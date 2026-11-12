@@ -35,3 +35,7 @@ follow [Semantic Versioning](https://semver.org/).
   default) and read by `Database` where the system has no such zone; regeneration is checked byte for byte.
 - Windows: its time zone names mapped to IANA names by CLDR's windowsZones (release 49, vendored), and
   `Database.local` reading Windows' dynamic time zone where no `$TZ` is given.
+- Text: RFC 3339 and RFC 9557 read as Temporal reads them (`text.parseTimestamp`, `parseDate`, `parseTime`,
+  `parseDateTime`, `parseSpan`, `parseZoned`), each type's `parse`, `format` and `max_text_len`,
+  `text.writeTimestamp`, and `text.strict`'s exact RFC 3339 checks (`isDateTime`, `isDate`, `isTime`,
+  `isDuration`).

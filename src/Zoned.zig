@@ -14,6 +14,7 @@ const Span = @import("Span.zig");
 const Date = @import("Date.zig");
 const Time = @import("Time.zig");
 const DateTime = @import("DateTime.zig");
+const write = @import("text/write.zig");
 const Offset = units.Offset;
 const Unit = units.Unit;
 const Timestamp = instant.Timestamp;
@@ -201,4 +202,24 @@ pub fn hoursInDay(z: Zoned) RangeError!Span {
     const start = try resolve.startOfDay(z.zone, date);
     const end = try resolve.startOfDay(z.zone, Date.fromDays(date.days() + 1) catch return error.OutOfRange);
     return Span.fromInternal(.{ .time = end - start }, .hour);
+}
+
+/// The most bytes `format` writes: the date and time, an offset, and a bracketed zone name of up to
+/// 255 bytes.
+pub const max_text_len = DateTime.max_text_len + 6 + 2 + 255;
+
+/// RFC 9557's form, as Temporal writes it: `2026-10-31T09:00:00+00:00[Europe/Lisbon]`, the offset
+/// rounded to the minute, then the zone's IANA name, or a fixed zone's offset. A zone with neither
+/// (a POSIX string) has no annotation RFC 9557 can write, so none is written.
+pub fn format(z: Zoned, w: *std.Io.Writer) std.Io.Writer.Error!void {
+    try z.dateTime().format(w);
+    const seconds = z.offset.seconds.raw();
+    try write.offset(w, @intCast(rounding.toIncrement(seconds, 60, .half_expand)));
+    if (z.zone.name()) |n| {
+        try w.print("[{s}]", .{n});
+    } else if (z.zone.transitions.len == 0 and z.zone.footer == null) {
+        try w.writeByte('[');
+        try write.offset(w, @intCast(rounding.toIncrement(seconds, 60, .half_expand)));
+        try w.writeByte(']');
+    }
 }

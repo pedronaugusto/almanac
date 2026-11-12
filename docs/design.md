@@ -13,7 +13,8 @@ invariant or a decision changes.
 (`calendar.zig`, the calendar's conversions; `round.zig`, rounding), the arithmetic (`arithmetic.zig`,
 Temporal's abstract operations over plain records), the span (`Span.zig`), the civil values (`Date.zig`,
 `Time.zig`, `DateTime.zig`), instants (`instant.zig`), the zone's sources (`zone/posix.zig`, `zone/tzif.zig`, which sit beneath the
-arithmetic beside the kernels), the zone (`TimeZone.zig`), resolution (`resolve.zig`), zoned values (`Zoned.zig`), the zone database (`Database.zig`), and the root.
+arithmetic beside the kernels), the zone (`TimeZone.zig`), resolution (`resolve.zig`), zoned values (`Zoned.zig`), the zone database (`Database.zig`), text (`text.zig`; beneath it, with the kernels, `text/iso.zig`,
+the reader, `text/write.zig`, the writers, and `text/strict.zig`), and the root.
 Arithmetic in a zone reaches the zone through `arithmetic.Zone`, two functions (the wall clock at an
 instant, and a wall clock's instant under `compatible`), since the zone sits above the arithmetic. The span sits beneath the types it is added to, so what gives its
 calendar units a length (`Span.RelativeTo`) holds their records and is made by them (`Date.relativeTo`).
@@ -174,6 +175,31 @@ regeneration. `Database.local` with no `$TZ` asks Windows for its dynamic time z
 (`GetDynamicTimeZoneInformation`), maps its key name, and reads that zone; where the user turned
 daylight saving adjustment off, it is the standard offset all year.
 
+## Text
+
+`text/iso.zig` reads ISO 8601 and RFC 9557 as Temporal does and returns plain checked fields, so it sits
+with the kernels and each type builds itself from them: `Date`, `Time`, `DateTime` and `Span` publish
+`parse`, `format` and `max_text_len` (the text-form contract strand reads), and `text.zig` adds what needs
+more than one type: `parseTimestamp` (an instant written with its offset), `parseZoned` (the zone
+annotation from a `Database`, a written offset weighed by `OffsetConflict`, matched to the minute where it
+was written to the minute, `Z` as the exact instant, a date alone as the day's start), and
+`writeTimestamp`. The reading: dates extended or basic with six-digit signed years (`-000000` refused),
+`T`, `t` or a space, times to nine fractional digits with `.` or `,`, a leap second read as :59, offsets
+`Z` or `±HH[:MM[:SS]]` (U+2212 as minus), annotations with the time zone first and once, `u-ca` naming
+`iso8601` only, other keys passed over or refused by option and refused when critical. Durations: a sign,
+`P`, `Y M W D`, `T`, `H M S`, a fraction only on the last unit, carried into the units below. Every refusal
+is `Invalid` with a `Diagnostic` (where, and what was expected).
+
+`text/strict.zig` is RFC 3339's grammar alone: `isDateTime`, `isDate`, `isTime`, `isDuration`
+(Appendix A), case-insensitive literals, the offset required, a leap second only at 23:59:60 UTC, any
+fraction length, no sign or fraction in a duration. Every text it accepts is read by the lenient reader to
+the same value, past two limits of the lenient reading: at most nine fractional digits, and Temporal's
+bounds on a span.
+
+Writing is Temporal's: four-digit years (six and a sign outside 0000 to 9999), the fraction's trailing
+zeros left off, a zoned value's offset rounded to the minute and its zone's name or fixed offset in
+brackets, durations with the seconds and smaller units as one fraction and `PT0S` for zero.
+
 ## Validation
 
 The kernels are checked against Hinnant's independent `days_from_civil` on every day of the range, ISO
@@ -207,8 +233,13 @@ tests, and every zone of a zoneinfo directory in a trial (`-Dzic-out=<dir>`, run
 Against the system's zoneinfo of the same release (2026f) all 598 zones agree; against zic 2022g's
 compilation of 2026f, 595 do, the other three (America/Ojinaga in 2022, Asia/Gaza and Asia/Hebron in
 2073) being where that older zic differs from 2026f's own compiled files, which almanac matches. The Windows table is checked by regeneration, its order, and every name it gives
-being a zone of the embedded data; the Windows code is compiled for Windows targets.
+being a zone of the embedded data; the Windows code is compiled for Windows targets. Text is checked on
+Temporal's forms and refusals, zoned text through the embedded database, writing and reading back (each
+type's `parse`, `format` and `max_text_len` at its widest values, and a property over random values), the
+strict checks against JSON-Schema-Test-Suite's `date-time`, `date`, `time` and `duration` cases (release
+23.2.0, vendored in testdata/json-schema), properties that every date-time and duration the strict checks
+accept is read leniently to the same value, and every parser and check on mutated text.
 
 ## Not built yet
 
-Text.
+Temporal's test262 cases extracted as text, lint rules, and the benchmark rows.

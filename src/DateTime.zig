@@ -6,6 +6,7 @@ const arithmetic = @import("arithmetic.zig");
 const Date = @import("Date.zig");
 const Time = @import("Time.zig");
 const Span = @import("Span.zig");
+const reading = @import("text/iso.zig");
 
 date: Date,
 time: Time = .midnight,
@@ -65,4 +66,24 @@ fn difference(dt: DateTime, operation: arithmetic.Operation, other: DateTime, op
     const result = try arithmetic.dateTimeUntilRounded(dt.iso(), other.iso(), r);
     const span = try Span.fromInternal(result, r.largest);
     return if (operation == .since) span.negate() else span;
+}
+
+pub const max_text_len = Date.max_text_len + 1 + Time.max_text_len;
+
+/// `2026-10-31T09:00:00`.
+pub fn format(dt: DateTime, w: *std.Io.Writer) std.Io.Writer.Error!void {
+    try dt.date.format(w);
+    try w.writeByte('T');
+    try dt.time.format(w);
+}
+
+/// A civil date and time from text, as `text.parseDateTime` reads it (the time optional).
+pub fn parse(text: []const u8) reading.ParseError!DateTime {
+    return fromText(text, .{});
+}
+
+pub fn fromText(text: []const u8, options: reading.Options) reading.ParseError!DateTime {
+    const dt = try reading.dateTime(text, options);
+    if (dt.offset != null and dt.offset.? == .z) return reading.refuse(options, text.len, "no 'Z' on a civil value");
+    return .{ .date = Date.fromCivil(dt.date), .time = if (dt.time) |t| Time.fromCivil(t) else .midnight };
 }

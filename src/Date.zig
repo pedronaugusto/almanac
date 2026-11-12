@@ -6,6 +6,8 @@ const units = @import("units.zig");
 const calendar = @import("calendar.zig");
 const arithmetic = @import("arithmetic.zig");
 const Span = @import("Span.zig");
+const write = @import("text/write.zig");
+const reading = @import("text/iso.zig");
 
 year: units.Year,
 month: units.Month,
@@ -127,4 +129,30 @@ fn difference(d: Date, operation: arithmetic.Operation, other: Date, options: un
     }
     const span = try Span.fromInternal(result, .day);
     return if (operation == .since) span.negate() else span;
+}
+
+/// The most bytes `format` writes (`+009999-12-31` is the widest: years outside 0000-9999 take six
+/// digits and a sign).
+pub const max_text_len = write.date_len;
+
+/// ISO 8601's extended date, as RFC 3339 writes it: `2026-10-31`.
+pub fn format(d: Date, w: *std.Io.Writer) std.Io.Writer.Error!void {
+    return write.date(w, d.year.raw(), d.month.raw(), d.day.raw());
+}
+
+/// A date from text, as `text.parseDate` reads it (ISO 8601's extended or basic form, or a date-time
+/// whose date is taken; `Z` refused): the text-form contract's reading.
+pub fn parse(text: []const u8) reading.ParseError!Date {
+    return fromText(text, .{});
+}
+
+pub fn fromText(text: []const u8, options: reading.Options) reading.ParseError!Date {
+    const dt = try reading.dateTime(text, options);
+    if (dt.offset != null and dt.offset.? == .z) return reading.refuse(options, text.len, "no 'Z' on a civil value");
+    return fromCivil(dt.date);
+}
+
+/// A date the reader checked.
+pub fn fromCivil(c: reading.CivilDate) Date {
+    return init(c.year, c.month, c.day) catch unreachable;
 }

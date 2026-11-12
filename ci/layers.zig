@@ -3,7 +3,7 @@ const gantry = @import("gantry");
 
 pub const layers: []const gantry.rules.Layer = &.{
     .{ .name = "vocabulary", .patterns = &.{"src/units.zig"} },
-    .{ .name = "kernels", .patterns = &.{ "src/calendar.zig", "src/round.zig" } },
+    .{ .name = "kernels", .patterns = &.{ "src/calendar.zig", "src/round.zig", "src/text/write.zig", "src/text/strict.zig", "src/text/iso.zig" } },
     .{ .name = "rules", .patterns = &.{ "src/zone/posix.zig", "src/zone/tzif.zig", "src/zone/embedded.zig", "src/zone/windows.zig" } },
     .{ .name = "arithmetic", .patterns = &.{"src/arithmetic.zig"} },
     .{ .name = "span", .patterns = &.{"src/Span.zig"} },
@@ -13,6 +13,7 @@ pub const layers: []const gantry.rules.Layer = &.{
     .{ .name = "resolve", .patterns = &.{"src/resolve.zig"} },
     .{ .name = "zoned", .patterns = &.{"src/Zoned.zig"} },
     .{ .name = "database", .patterns = &.{"src/Database.zig"} },
+    .{ .name = "text", .patterns = &.{"src/text.zig"} },
     .{ .name = "root", .patterns = &.{"src/almanac.zig"} },
 };
 
@@ -26,7 +27,7 @@ const package_references = [_]gantry.rules.ReferenceRule{
     .{
         .name = "named dependencies",
         .unresolved_only = true,
-        .except_targets = &.{ "std", "aegis", "shakedown", "builtin", "rejection_options", "zoneinfo", "almanac_options", "zic", "tzdata", "windows_tool" },
+        .except_targets = &.{ "std", "aegis", "shakedown", "builtin", "rejection_options", "zoneinfo", "almanac_options", "zic", "tzdata", "windows_tool", "json_schema" },
     },
     .{ .name = "source siblings", .suffix = ".zig", .relative = true, .except_targets = &.{"src/**"} },
 };
@@ -50,6 +51,10 @@ pub const required = [_][]const u8{
     "src/resolve.zig",
     "src/Zoned.zig",
     "src/Database.zig",
+    "src/text.zig",
+    "src/text/iso.zig",
+    "src/text/write.zig",
+    "src/text/strict.zig",
     "src/Date.zig",
     "src/Time.zig",
     "src/DateTime.zig",

@@ -10,6 +10,8 @@ const Ranged = aegis.int.Ranged;
 const units = @import("units.zig");
 const arithmetic = @import("arithmetic.zig");
 const rounding = @import("round.zig");
+const write = @import("text/write.zig");
+const reading = @import("text/iso.zig");
 const Unit = units.Unit;
 
 pub const RangeError = units.RangeError;
@@ -354,4 +356,57 @@ pub fn round(s: Span, options: Round) ArithmeticError!Span {
     const unit = arithmetic.nanoseconds(smallest) * options.increment;
     const time = try arithmetic.checkTime(rounding.toIncrement(d.time, unit, options.mode));
     return fromInternal(.{ .time = time }, largest);
+}
+
+/// The most bytes `format` writes: a sign, `P`, three calendar fields of ten digits and days of
+/// twelve with their letters, `T`, hours, minutes and seconds with nine fractional digits.
+pub const max_text_len = 2 + 3 * 11 + 13 + 1 + 14 + 16 + 27;
+
+/// ISO 8601's duration as Temporal writes it (`P1Y2M3DT4H5M6.5S`, `-PT1H`, `PT0S` for zero): the
+/// seconds, milliseconds, microseconds and nanoseconds together as seconds with a fraction.
+pub fn format(s: Span, w: *std.Io.Writer) std.Io.Writer.Error!void {
+    if (s.signum() < 0) try w.writeByte('-');
+    try w.writeByte('P');
+    const letters = "YMWD";
+    for ([_]u64{ s.years.raw(), s.months.raw(), s.weeks.raw(), s.days.raw() }, letters) |v, c| {
+        if (v != 0) try w.print("{d}{c}", .{ v, c });
+    }
+    const sub: u128 = @as(u128, s.seconds.raw()) * ns_per_s + @as(u128, s.milliseconds.raw()) * std.time.ns_per_ms +
+        s.microseconds.raw() * std.time.ns_per_us + s.nanoseconds.raw();
+    const date_zero = s.years.raw() == 0 and s.months.raw() == 0 and s.weeks.raw() == 0 and s.days.raw() == 0;
+    const hours = s.hours.raw();
+    const minutes = s.minutes.raw();
+    if (hours == 0 and minutes == 0 and sub == 0) {
+        if (date_zero) try w.writeAll("T0S");
+        return;
+    }
+    try w.writeByte('T');
+    if (hours != 0) try w.print("{d}H", .{hours});
+    if (minutes != 0) try w.print("{d}M", .{minutes});
+    if (sub != 0) {
+        try w.print("{d}", .{sub / ns_per_s});
+        try write.fraction(w, @intCast(sub % ns_per_s));
+        try w.writeByte('S');
+    }
+}
+
+/// A span from an ISO 8601 duration, as `text.parseSpan` reads it.
+pub fn parse(text: []const u8) reading.ParseError!Span {
+    return fromText(text, .{});
+}
+
+pub fn fromText(text: []const u8, options: reading.Options) reading.ParseError!Span {
+    const d = try reading.duration(text, options);
+    return init(if (d.negative) .negative else .positive, .{
+        .years = d.years,
+        .months = d.months,
+        .weeks = d.weeks,
+        .days = d.days,
+        .hours = d.hours,
+        .minutes = d.minutes,
+        .seconds = d.seconds,
+        .milliseconds = d.milliseconds,
+        .microseconds = d.microseconds,
+        .nanoseconds = d.nanoseconds,
+    }) catch reading.refuse(options, text.len, "a span within Temporal's bounds");
 }

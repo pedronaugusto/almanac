@@ -11,4 +11,5 @@ test {
     _ = @import("zoned_test.zig");
     _ = @import("database_test.zig");
     _ = @import("tzdb_test.zig");
+    _ = @import("text_test.zig");
 }

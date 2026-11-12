@@ -2,6 +2,8 @@
 const Time = @This();
 const std = @import("std");
 const units = @import("units.zig");
+const write = @import("text/write.zig");
+const reading = @import("text/iso.zig");
 
 hour: units.Hour = .literal(0),
 minute: units.Minute = .literal(0),
@@ -33,4 +35,29 @@ pub fn fromNanosecondOfDay(ns: u64) RangeError!Time {
 
 pub fn order(a: Time, b: Time) std.math.Order {
     return std.math.order(a.nanosecondOfDay(), b.nanosecondOfDay());
+}
+
+pub fn eql(a: Time, b: Time) bool {
+    return a.nanosecondOfDay() == b.nanosecondOfDay();
+}
+
+pub const max_text_len = write.time_len;
+
+/// `09:00:00`, with the fraction of the second where there is one (`09:00:00.25`).
+pub fn format(t: Time, w: *std.Io.Writer) std.Io.Writer.Error!void {
+    return write.time(w, t.hour.raw(), t.minute.raw(), t.second.raw(), t.nanosecond.raw());
+}
+
+/// A time of day from text, as `text.parseTime` reads it.
+pub fn parse(text: []const u8) reading.ParseError!Time {
+    return fromText(text, .{});
+}
+
+pub fn fromText(text: []const u8, options: reading.Options) reading.ParseError!Time {
+    return fromCivil(try reading.timeOfDay(text, options));
+}
+
+/// A time the reader checked.
+pub fn fromCivil(c: reading.CivilTime) Time {
+    return init(c.hour, c.minute, c.second, c.nanosecond) catch unreachable;
 }

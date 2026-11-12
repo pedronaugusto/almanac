@@ -211,6 +211,11 @@ fn load(db: *Database, io: Io, name: []const u8) ZoneError!Entry {
     return error.ZoneNotFound;
 }
 
+/// A zone of one offset for all time, as a handle (the zone an RFC 9557 `[+05:30]` names).
+pub fn fixedZone(db: *Database, offset: units.Offset) ZoneError!Zone {
+    return db.builtin(TimeZone.fixed(offset));
+}
+
 /// A zone made here, as a handle.
 fn builtin(db: *Database, value: TimeZone) ZoneError!Zone {
     return .{ .shared = try .create(db.gpa, value), .from = .builtin };

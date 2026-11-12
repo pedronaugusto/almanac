@@ -50,6 +50,7 @@ pub fn dev(b: *std.Build, tools: type) void {
                 .{ .name = "zic", .module = zic },
                 .{ .name = "windows_tool", .module = windows_tool },
                 .{ .name = "tzdata", .module = tzdata(b, p) },
+                .{ .name = "json_schema", .module = jsonSchema(b, p) },
             },
         }),
     });
@@ -135,6 +136,19 @@ fn tzdata(b: *std.Build, p: *std.Build) *std.Build.Module {
 }
 
 const tzdata_files = [_][]const u8{ "africa", "antarctica", "asia", "australasia", "europe", "northamerica", "southamerica", "etcetera", "backward", "factory", "version" };
+
+/// JSON-Schema-Test-Suite's format cases (testdata/json-schema, release 23.2.0, MIT), as a module.
+fn jsonSchema(b: *std.Build, p: *std.Build) *std.Build.Module {
+    const files = b.addWriteFiles();
+    var source: std.ArrayList(u8) = .empty;
+    for ([_][]const u8{ "date-time", "date", "time", "duration" }) |name| {
+        _ = files.addCopyFile(p.path(b.fmt("testdata/json-schema/{s}.json", .{name})), b.fmt("{s}.json", .{name}));
+        source.print(b.allocator, "pub const @\"{s}\" = @embedFile(\"{s}.json\");\n", .{ name, name }) catch @panic("OOM");
+    }
+    _ = files.addCopyFile(p.path("testdata/json-schema/version"), "version");
+    source.appendSlice(b.allocator, "pub const version = @embedFile(\"version\");\n") catch @panic("OOM");
+    return b.createModule(.{ .root_source_file = files.add("json_schema.zig", source.items) });
+}
 
 const zoneinfo_files = [_][]const u8{ "America_New_York", "Europe_Lisbon", "Australia_Lord_Howe", "Pacific_Apia" };
 
