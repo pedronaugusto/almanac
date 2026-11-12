@@ -47,9 +47,17 @@ The block is `examples/usage.zig`, built and run with the tests.
 almanac follows Temporal (TC39). test262's Temporal tests for the types almanac shares, read as text,
 give 10660 cases from 1259 of the 1402 files that apply to a Zig API (the rest test JavaScript's object
 protocol): 10317 pass, and the 341 others are refused by design and listed by file, almost all values
-outside almanac's years -9999 to 9999. One reading is unconfirmed: rounding a span measured from a zoned
-time inside a repeated hour (a fold) starts from that time's own instant, and test262 has no case of it
-yet. Every zone of the embedded IANA database agrees with zic's compilation of the same release, in
+outside almanac's years -9999 to 9999.
+
+Three readings concern the hours a zone repeats (a fold) or skips, where test262 has no case yet.
+Rounding a span to a time unit measured from a zoned time inside a fold starts from that time's own
+instant; an independent implementation gives the same results on seeded cases. A difference to a date
+unit from the fold's second occurrence follows the spec's DifferenceZonedDateTime, which resolves its
+intermediate wall clock as `compatible` (the first occurrence): the result counts the repeated hour, and
+unrounded it can hold 24 hours or more past its days. Rounding that carries past a day shorter than 24
+hours into weeks or months follows BubbleRelativeDuration, which sets the time to zero.
+
+Every zone of the embedded IANA database agrees with zic's compilation of the same release, in
 offsets, abbreviations and DST flags.
 
 ## License
