@@ -155,13 +155,15 @@ pub const Case = struct {
 
 pub const Expect = union(enum) {
     throws,
+    /// The same value another call gives (`assertDurationsEqual(a, b)` and its kin).
+    equal: Value,
     /// The fields of the result in test262's order for its type (assert<Kind>).
     fields: struct { kind: []const u8, values: []const []const u8 },
     epoch_ns: []const u8,
     number: []const u8,
 };
 
-const methods = [_][]const u8{ "from", "until", "since", "round", "add", "subtract", "total" };
+const methods = [_][]const u8{ "from", "until", "since", "round", "add", "subtract", "total", "equals" };
 const types = [_][]const u8{ "Duration", "Instant", "PlainDate", "PlainDateTime", "PlainTime", "ZonedDateTime" };
 
 fn isOneOf(s: []const u8, set: []const []const u8) bool {
@@ -495,7 +497,7 @@ const Reader = struct {
     }
 
     fn property(r: *Reader, v: Value, name: []const u8) Value {
-        _ = r;
+        if (v == .array and std.mem.eql(u8, name, "length")) return .{ .number = std.fmt.allocPrint(r.a, "{d}", .{v.array.len}) catch return .unknown };
         return switch (v) {
             .object => |fields| for (fields) |f| {
                 if (std.mem.eql(u8, f.key, name)) break f.value;
@@ -540,6 +542,14 @@ const Reader = struct {
             }
         }
         if (t.tag == .identifier and std.mem.eql(u8, t.text, "assert")) {
+            // `assert(a.equals(b))`: a case of a equal to b.
+            if (r.peekAt(1).tag == .punct and std.mem.eql(u8, r.peekAt(1).text, "(")) {
+                r.at += 1;
+                const args = try r.arguments();
+                _ = r.eat(";");
+                if (args.len > 0) try r.equalsCase(args[0]);
+                return;
+            }
             if (r.peekAt(2).tag == .identifier and std.mem.eql(u8, r.peekAt(2).text, "throws")) return r.throws();
             if (r.peekAt(2).tag == .identifier and std.mem.eql(u8, r.peekAt(2).text, "sameValue")) {
                 r.at += 3;
@@ -589,6 +599,16 @@ const Reader = struct {
             _ = r.eat(";");
             try r.scope.append(r.a, .{ .name = t.text, .value = value });
             return;
+        }
+        // `[...].forEach((row) => { ... })`.
+        if (r.is("[")) {
+            const start = r.at;
+            const table = try r.array();
+            if (r.is(".") and std.mem.eql(u8, r.peekAt(1).text, "forEach")) {
+                r.at += 2;
+                return r.forEachOf(table);
+            }
+            r.at = start;
         }
         // `table.forEach((row) => { ... })`.
         if (t.tag == .identifier and r.peekAt(1).tag == .punct and std.mem.eql(u8, r.peekAt(1).text, ".") and std.mem.eql(u8, r.peekAt(2).text, "forEach")) {
@@ -656,10 +676,47 @@ const Reader = struct {
         _ = r.eat("]");
     }
 
+    /// `for (let i = a; i < b; i++) <body>`, `a` and `b` integers or an array's length: the body
+    /// read once per value of `i`.
+    fn forCount(r: *Reader) Allocator.Error!bool {
+        const start = r.at;
+        if (!(r.eat("let") or r.eat("var"))) return false;
+        const name = r.peek().text;
+        r.at += 1;
+        if (!r.eat("=")) {
+            r.at = start;
+            return false;
+        }
+        const from = try r.expression();
+        const ok_head = r.eat(";") and r.eat(name) and r.eat("<");
+        const to = if (ok_head) try r.expression() else Value.unknown;
+        const ok_tail = r.eat(";") and r.eat(name) and r.eat("++") and r.eat(")");
+        if (!ok_head or !ok_tail or from != .number or to != .number) {
+            r.at = start;
+            return false;
+        }
+        const low = std.fmt.parseInt(i64, from.number, 10) catch return false;
+        const high = std.fmt.parseInt(i64, to.number, 10) catch return false;
+        const body_at = r.at;
+        r.skipBody();
+        const end = r.at;
+        var i = low;
+        while (i < high and i - low < 1000) : (i += 1) {
+            const depth = r.scope.items.len;
+            try r.scope.append(r.a, .{ .name = name, .value = .{ .number = try std.fmt.allocPrint(r.a, "{d}", .{i}) } });
+            r.at = body_at;
+            try r.body();
+            r.scope.shrinkRetainingCapacity(depth);
+        }
+        r.at = end;
+        return true;
+    }
+
     /// `for (const <pattern> of <table>) <body>`: the body read once per row.
     fn forOf(r: *Reader) Allocator.Error!void {
         r.at += 1;
         if (!r.eat("(")) return r.skipStatement();
+        if (try r.forCount()) return;
         _ = r.eat("const") or r.eat("let") or r.eat("var");
         const pattern_at = r.at;
         if (r.is("[")) r.skipBalanced() else r.at += 1;
@@ -713,14 +770,21 @@ const Reader = struct {
     fn forEach(r: *Reader) Allocator.Error!void {
         const table = r.lookup(r.peek().text);
         r.at += 3;
+        return r.forEachOf(table);
+    }
+
+    /// The `(callback)` of a `forEach` over `table`, the cursor at its `(`.
+    fn forEachOf(r: *Reader, table: Value) Allocator.Error!void {
         if (!r.eat("(")) return r.skipStatement();
+        // `function (row) { ... }`, as an arrow function.
+        const old_style = r.eat("function");
         const open = r.eat("(");
         const pattern_at = r.at;
         if (r.is("[")) r.skipBalanced() else r.at += 1;
         // A second parameter (the index) is passed over.
         if (r.eat(",")) r.at += 1;
         if (open) _ = r.eat(")");
-        if (!r.eat("=>")) {
+        if (!(old_style and r.is("{")) and !r.eat("=>")) {
             r.at = pattern_at;
             while (!r.is(";") and r.peek().tag != .end) {
                 if (r.is("(") or r.is("{") or r.is("[")) r.skipBalanced() else r.at += 1;
@@ -774,9 +838,15 @@ const Reader = struct {
             switch (args[1]) {
                 .temporal => |t| if (std.mem.eql(u8, t.make, "new") and t.args.len > 0 and t.args[0] == .bigint) {
                     try r.record(args[0], .{ .epoch_ns = t.args[0].bigint });
+                    return;
                 },
                 else => {},
             }
+        }
+        // Two values equal: the second, whatever it is, gives the first.
+        const equals = [_][]const u8{ "assertDurationsEqual", "assertPlainDatesEqual", "assertPlainDateTimesEqual", "assertPlainTimesEqual", "assertZonedDateTimesEqual", "assertInstantsEqual" };
+        if (isOneOf(name, &equals) and args.len >= 2) {
+            if (known(args[1]) and (args[1] == .call or args[1] == .temporal)) try r.record(args[0], .{ .equal = args[1] });
             return;
         }
         const kinds = [_][]const u8{ "assertDuration", "assertPlainDate", "assertPlainDateTime", "assertPlainTime" };
@@ -794,8 +864,16 @@ const Reader = struct {
         try r.record(args[0], .{ .fields = .{ .kind = name, .values = values.items } });
     }
 
+    /// `a.equals(b)` asserted true: a case of `a` whose value is `b`'s.
+    fn equalsCase(r: *Reader, v: Value) Allocator.Error!void {
+        if (v != .call or !std.mem.eql(u8, v.call.method, "equals") or v.call.args.len < 1) return;
+        const other = v.call.args[0];
+        if (known(other) and (other == .call or other == .temporal)) try r.record(v.call.receiver.*, .{ .equal = other });
+    }
+
     fn sameValue(r: *Reader, args: []const Value) Allocator.Error!void {
         if (args.len < 2) return;
+        if (args[1] == .boolean and args[1].boolean) return r.equalsCase(args[0]);
         switch (args[1]) {
             .bigint => |n| try r.record(args[0], .{ .epoch_ns = n }),
             .number => |n| if (args[0] == .call and std.mem.eql(u8, args[0].call.method, "total")) try r.record(args[0], .{ .number = n }),
@@ -813,8 +891,14 @@ const Reader = struct {
             return r.skipStatement();
         }
         var call: Value = .unknown;
-        if (r.eat("(") and r.eat(")") and r.eat("=>")) {
-            if (r.is("{")) r.skipBalanced() else call = try r.expression();
+        const old_style = r.eat("function");
+        if (r.eat("(") and r.eat(")") and (old_style or r.eat("=>"))) {
+            // A block of one expression statement is that expression.
+            if (r.eat("{")) {
+                call = try r.expression();
+                _ = r.eat(";");
+                if (!r.is("}")) call = .unknown;
+            } else call = try r.expression();
         }
         r.at = start;
         r.skipStatement();
@@ -906,6 +990,11 @@ fn writeCase(w: *std.Io.Writer, c: Case) std.Io.Writer.Error!void {
     try w.writeAll(",\"expect\":");
     switch (c.expect) {
         .throws => try w.writeAll("\"throws\""),
+        .equal => |v| {
+            try w.writeAll("{\"equal\":");
+            try writeValue(w, v);
+            try w.writeByte('}');
+        },
         .fields => |f| {
             try w.print("{{\"kind\":\"{s}\",\"fields\":[", .{f.kind});
             for (f.values, 0..) |x, i| {
@@ -920,6 +1009,32 @@ fn writeCase(w: *std.Io.Writer, c: Case) std.Io.Writer.Error!void {
     try w.writeByte('}');
 }
 
+/// Why a file gave no case. A file of JavaScript's object protocol (property and getter
+/// observation, the order options are read in, TypeError for JavaScript types, prototypes and
+/// descriptors, functions as options, calendar eras) asks nothing of a Zig API; any other file is
+/// applicable, and unread.
+fn classify(name: []const u8, body: []const u8) []const u8 {
+    const protocol_names = [_][]const u8{
+        "wrong-type",          "nan",             "non-integer", "infinity",       "undefined",                 "observable",    "order-of-operations", "order",
+        "prop-desc",           "length.js",       "name.js",     "builtin",        "not-a-constructor",         "subclass",      "branding",            "get-property",
+        "prototype-pollution", "may-be-function", "tostring",    "valueof",        "era",                       "proto",         "non-object",          "primitive",
+        "argument-number",     "argument-object", "-object.js",  "options-object", "precision-exact-numerical", "negative-zero",
+    };
+    for (protocol_names) |p| if (std.mem.find(u8, name, p) != null) return "not applicable: JavaScript's object protocol";
+    // "years" and "year" naming one option: almanac takes a `Unit`.
+    if (std.mem.find(u8, name, "plurals-accepted") != null) return "not applicable: unit names as JavaScript strings";
+    const protocol_body = [_][]const u8{
+        "Object.defineProperty", "Symbol",              "Proxy",                            "getOwnPropertyDescriptor",         ".prototype",    "Reflect.",       "observeProperty",
+        "propertyBagObserver",   "compareArray(actual", "checkSubclass",                    "getPrototypeOf",                   "isConstructor", "verifyProperty", ".call(",
+        "valueOf",               "toString()",          "TemporalHelpers.calendarObserver", "TemporalHelpers.timeZoneObserver",
+    };
+    for (protocol_body) |p| if (std.mem.find(u8, body, p) != null) return "not applicable: JavaScript's object protocol";
+    const range_error = std.mem.find(u8, body, "RangeError") != null;
+    const asserts = std.mem.find(u8, body, "sameValue") != null or std.mem.find(u8, body, "TemporalHelpers.assert") != null;
+    if (std.mem.find(u8, body, "TypeError") != null and !range_error and !asserts) return "not applicable: a TypeError for a JavaScript type";
+    return "applicable, unread";
+}
+
 /// The directories read: each type's `from` and its arithmetic.
 const directories = [_][]const u8{ "from", "prototype/until", "prototype/since", "prototype/round", "prototype/add", "prototype/subtract", "prototype/total" };
 
@@ -929,7 +1044,8 @@ pub fn transcribe(gpa: Allocator, io: std.Io, root: std.Io.Dir, commit: []const 
     defer arena.deinit();
     const a = arena.allocator();
     var cases: std.ArrayList(Case) = .empty;
-    var none: std.ArrayList([]const u8) = .empty;
+    const Unread = struct { path: []const u8, why: []const u8 };
+    var none: std.ArrayList(Unread) = .empty;
     var read: usize = 0;
     for (types) |ty| for (directories) |sub| {
         const dir_path = try std.fmt.allocPrint(a, "test/built-ins/Temporal/{s}/{s}", .{ ty, sub });
@@ -960,7 +1076,7 @@ pub fn transcribe(gpa: Allocator, io: std.Io, root: std.Io.Dir, commit: []const 
             const before = cases.items.len;
             var r: Reader = .{ .a = a, .tokens = tokens.items, .cases = &cases, .path = path };
             try r.statements(false);
-            if (cases.items.len == before) try none.append(a, path);
+            if (cases.items.len == before) try none.append(a, .{ .path = path, .why = classify(name, src[body_start..]) });
         }
     };
     var out: std.Io.Writer.Allocating = .init(gpa);
@@ -982,7 +1098,11 @@ pub fn transcribe(gpa: Allocator, io: std.Io, root: std.Io.Dir, commit: []const 
     try w.writeAll("\n],\"files_without_cases\":[\n");
     for (none.items, 0..) |p, i| {
         if (i > 0) try w.writeAll(",\n");
-        try writeString(w, p);
+        try w.writeAll("{\"path\":");
+        try writeString(w, p.path);
+        try w.writeAll(",\"why\":");
+        try writeString(w, p.why);
+        try w.writeByte('}');
     }
     try w.writeAll("\n]}\n");
     return out.toOwnedSlice();

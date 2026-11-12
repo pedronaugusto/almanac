@@ -40,7 +40,8 @@ follow [Semantic Versioning](https://semver.org/).
   `text.writeTimestamp`, and `text.strict`'s exact RFC 3339 checks (`isDateTime`, `isDate`, `isTime`,
   `isDuration`).
 - test262's Temporal cases, transcribed as text by `tools/test262.zig`: the `from` strings and the arithmetic
-  of every type, 9622 cases; 9279 pass, 341 are refused by design (listed by file), 2 use calendar eras.
+  of every type, 10660 cases from 1259 of the 1402 applicable files; 10317 pass, 341 are refused by design
+  (listed by file), 2 use calendar eras.
 - `Time.add`, `subtract`, `until`, `since` and `round`; `DateTime.round`; `Span.total`.
 
 ### Changed

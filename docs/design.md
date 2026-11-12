@@ -253,12 +253,18 @@ shorthand, array destructuring with defaults, loops over a table) and the assert
 (`TemporalHelpers.assert*`, `assert.sameValue`, `assert.throws(RangeError, ...)`), and records each call
 of `from`, `until`, `since`, `round`, `add`, `subtract` and `total` whose receiver and arguments it could
 evaluate into `testdata/test262/temporal.json`, with the files it read no case from. Regenerating it
-reproduces it byte for byte. `src/test262_test.zig` runs every case through almanac: 9622 cases from 1159
-files; 9279 pass, 341 are refused by design and listed by file with the reason (values past -9999 to
-9999, and one case of Temporal's duration fields being doubles where almanac's are exact integers), 2
-use calendar eras almanac leaves out. 27 more assertions from four files whose expectations are computed
-in JavaScript's doubles are transcribed by hand, in the same double arithmetic. The 862 files read no case
-from are listed in `temporal.json`. No test262 case at this commit exercises rounding from a zoned value in
+reproduces it byte for byte. Equality assertions (`assertDurationsEqual` and its kin, `assert(a.equals(b))`)
+are cases too, checked by running both sides. `src/test262_test.zig` runs every case through almanac:
+10660 cases from 1259 files; 10317 pass, 341 are refused by design and listed by file with the reason
+(values past -9999 to 9999, and one case of Temporal's duration fields being doubles where almanac's are
+exact integers), 2 use calendar eras almanac leaves out. 27 more assertions from four files whose
+expectations are computed in JavaScript's doubles are transcribed by hand, in the same double arithmetic.
+The 762 files read no case from are listed in `temporal.json`, each classified: 619 are not applicable to
+a Zig API (JavaScript's object protocol: getters and property observation, the order options are read
+in, TypeErrors for JavaScript types, prototypes and descriptors, functions as options, unit names as
+strings, calendar eras) and 143 are applicable and unread, none in a group of more than six (the largest,
+`month-boundary`, is procedural JavaScript whose invariant is the add/until property above). Of the 1402
+applicable files, 1259 are read. No test262 case at this commit exercises rounding from a zoned value in
 a fold, so almanac's reading of the origin instant there (§ Arithmetic) rests on its own reasoning.
 
 ## Not built yet

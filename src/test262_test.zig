@@ -499,6 +499,9 @@ const Runner = struct {
                 else => opts = try r.options(args[0]),
             }
             const m = opts.mode orelse .half_expand;
+            // Temporal's options name a largest or a smallest unit; almanac's `Round` takes null for
+            // `auto`, so the rule is the options' and read here.
+            if (receiver == .span and !opts.largest_given and opts.smallest == null) return error.Invalid;
             return switch (receiver) {
                 .span => |a| .{ .span = try a.round(.{ .largest = if (opts.largest_given) (opts.largest orelse a.largestUnit()) else null, .smallest = opts.smallest, .increment = opts.increment, .mode = m, .relative_to = opts.relative_to }) },
                 .instant => |a| .{ .instant = try almanac.instant.round(a, .{ .smallest = opts.smallest orelse return error.Invalid, .increment = opts.increment, .mode = m }) },
@@ -631,8 +634,27 @@ fn describe(v: anytype) void {
     last_got_len = w.end;
 }
 
+/// Whether two results are the same value of the same type.
+fn same(a: Val, b: Val) bool {
+    return switch (a) {
+        .date => |x| b == .date and x.eql(b.date),
+        .date_time => |x| b == .date_time and x.eql(b.date_time),
+        .time => |x| b == .time and x.eql(b.time),
+        .span => |x| b == .span and x.eql(b.span),
+        .instant => |x| b == .instant and x.raw() == b.instant.raw(),
+        .zoned => |x| b == .zoned and x.timestamp.raw() == b.zoned.timestamp.raw(),
+        else => false,
+    };
+}
+
 fn run(r: *Runner, case: std.json.ObjectMap) Outcome {
     const expect = case.get("expect").?;
+    if (expect == .object) if (expect.object.get("equal")) |other| {
+        const a = r.eval(case.get("call").?) catch |err| return if (err == error.Unsupported) .unsupported else .fail;
+        const b = r.eval(other) catch |err| return if (err == error.Unsupported) .unsupported else .fail;
+        describe(a);
+        return if (same(a, b)) .pass else .fail;
+    };
     const got = r.eval(case.get("call").?);
     last_got_len = 0;
     if (got) |v| describe(v) else |err| describe(err);
@@ -714,9 +736,14 @@ test "test262's Temporal cases: each passes or is listed" {
         counts[1] += 1;
     };
     const cases = parsed.value.object.get("cases").?.array.items.len;
-    const without = parsed.value.object.get("files_without_cases").?.array.items.len;
-    std.debug.print("test262 Temporal ({s}): {d} cases read from {d} files: {d} pass, {d} refused by design, {d} fail, {d} not runnable here; {d} files read no case\n", .{
-        parsed.value.object.get("commit").?.string, cases, parsed.value.object.get("files_read").?.integer - @as(i64, @intCast(without)), counts[0], listed, counts[1], counts[2], without,
+    const unread = parsed.value.object.get("files_without_cases").?.array.items;
+    const without = unread.len;
+    var applicable: usize = 0;
+    for (unread) |u| {
+        if (std.mem.startsWith(u8, u.object.get("why").?.string, "applicable")) applicable += 1;
+    }
+    std.debug.print("test262 Temporal ({s}): {d} cases read from {d} files: {d} pass, {d} refused by design, {d} fail, {d} not runnable here; {d} files read no case: {d} applicable and unread, {d} not applicable to a Zig API\n", .{
+        parsed.value.object.get("commit").?.string, cases, parsed.value.object.get("files_read").?.integer - @as(i64, @intCast(without)), counts[0], listed, counts[1], counts[2], without, applicable, without - applicable,
     });
     try testing.expectEqual(0, counts[1]);
 }
