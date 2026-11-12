@@ -164,6 +164,16 @@ Shanghai's 1949 line shows.
 same byte for byte. `-Dtzdb=system` leaves it out of a build; `embedded` and `both` (the default) link
 it, and `Database` reads it where the system has no such zone or where only it is asked for.
 
+## Windows
+
+Windows has no zoneinfo; its zones come from the embedded data. Its time zone names are mapped to IANA
+names by CLDR's `windowsZones.xml` (vendored in `cldr/` with its release, Unicode License v3 in
+`LICENSES/cldr-unicode-v3.txt`), each name's default (territory 001), generated into
+`src/zone/windows.zig` by `tools/windows.zig` with the rest of `bay dev tzdb` and checked by
+regeneration. `Database.local` with no `$TZ` asks Windows for its dynamic time zone
+(`GetDynamicTimeZoneInformation`), maps its key name, and reads that zone; where the user turned
+daylight saving adjustment off, it is the standard offset all year.
+
 ## Validation
 
 The kernels are checked against Hinnant's independent `days_from_civil` on every day of the range, ISO
@@ -196,8 +206,9 @@ before it) to 2400 and at every hour from 1800 to 2100: the four zones of testda
 tests, and every zone of a zoneinfo directory in a trial (`-Dzic-out=<dir>`, run in a release build).
 Against the system's zoneinfo of the same release (2026f) all 598 zones agree; against zic 2022g's
 compilation of 2026f, 595 do, the other three (America/Ojinaga in 2022, Asia/Gaza and Asia/Hebron in
-2073) being where that older zic differs from 2026f's own compiled files, which almanac matches.
+2073) being where that older zic differs from 2026f's own compiled files, which almanac matches. The Windows table is checked by regeneration, its order, and every name it gives
+being a zone of the embedded data; the Windows code is compiled for Windows targets.
 
 ## Not built yet
 
-Windows' zone mapping and its local zone, and text.
+Text.

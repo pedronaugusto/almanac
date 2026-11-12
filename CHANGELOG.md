@@ -33,3 +33,5 @@ follow [Semantic Versioning](https://semver.org/).
 - The embedded database: the IANA time zone database (release 2026f, vendored in `tzdata/`) compiled by almanac's
   own zic compiler (`tools/zic.zig`) into `src/zone/tzdb.bin`, linked by `-Dtzdb=embedded` or `both` (the
   default) and read by `Database` where the system has no such zone; regeneration is checked byte for byte.
+- Windows: its time zone names mapped to IANA names by CLDR's windowsZones (release 49, vendored), and
+  `Database.local` reading Windows' dynamic time zone where no `$TZ` is given.

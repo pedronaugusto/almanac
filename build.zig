@@ -32,6 +32,7 @@ pub fn dev(b: *std.Build, tools: type) void {
     const filters = if (test_filter) |filter| &.{filter} else &.{};
     const shakedown = b.dependency("shakedown", .{ .target = target, .optimize = optimize });
     const zic = b.createModule(.{ .root_source_file = p.path("tools/zic.zig"), .target = target, .optimize = optimize });
+    const windows_tool = b.createModule(.{ .root_source_file = p.path("tools/windows.zig"), .target = target, .optimize = optimize });
     const test_options = b.addOptions();
     test_options.addOption(bool, "embedded", true);
     test_options.addOption(?[]const u8, "zic_out", b.option([]const u8, "zic-out", "A directory of zic's output for the tests to compare every zone against"));
@@ -47,6 +48,7 @@ pub fn dev(b: *std.Build, tools: type) void {
                 .{ .name = "shakedown", .module = shakedown.module("shakedown") },
                 .{ .name = "zoneinfo", .module = zoneinfo(b, p) },
                 .{ .name = "zic", .module = zic },
+                .{ .name = "windows_tool", .module = windows_tool },
                 .{ .name = "tzdata", .module = tzdata(b, p) },
             },
         }),
@@ -60,14 +62,15 @@ pub fn dev(b: *std.Build, tools: type) void {
             .root_source_file = p.path("tools/generate.zig"),
             .target = target,
             .optimize = optimize,
-            .imports = &.{.{ .name = "zic", .module = zic }},
+            .imports = &.{ .{ .name = "zic", .module = zic }, .{ .name = "windows", .module = windows_tool } },
         }),
     });
     const generate = b.addRunArtifact(generator);
     generate.addDirectoryArg(p.path("tzdata"));
+    generate.addDirectoryArg(p.path("cldr"));
     generate.addDirectoryArg(p.path("src/zone"));
     generate.has_side_effects = true;
-    b.step("tzdb", "Regenerate src/zone/tzdb.bin from tzdata/").dependOn(&generate.step);
+    b.step("tzdb", "Regenerate src/zone/tzdb.bin from tzdata/ and src/zone/windows.zig from cldr/").dependOn(&generate.step);
 
     const check = b.step("check", "Compile the tests without running them");
     const test_step = b.step("test", "Run the tests");
@@ -125,6 +128,9 @@ fn tzdata(b: *std.Build, p: *std.Build) *std.Build.Module {
         _ = files.addCopyFile(p.path(b.fmt("tzdata/{s}", .{name})), name);
         source.print(b.allocator, "pub const @\"{s}\" = @embedFile(\"{s}\");\n", .{ name, name }) catch @panic("OOM");
     }
+    _ = files.addCopyFile(p.path("cldr/windowsZones.xml"), "windowsZones.xml");
+    _ = files.addCopyFile(p.path("cldr/version"), "cldr_version");
+    source.appendSlice(b.allocator, "pub const windows_zones = @embedFile(\"windowsZones.xml\");\npub const cldr_version = @embedFile(\"cldr_version\");\n") catch @panic("OOM");
     return b.createModule(.{ .root_source_file = files.add("tzdata.zig", source.items) });
 }
 

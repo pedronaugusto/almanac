@@ -1,8 +1,9 @@
-//! Writes almanac's embedded zone data: `generate <tzdata directory> <output directory>`, which
-//! writes `tzdb.bin` there. The tzdata directory holds an IANA release's source files and a
-//! `version` file naming the release.
+//! Writes almanac's embedded zone data: `generate <tzdata directory> <cldr directory> <output
+//! directory>`, which writes `tzdb.bin` and `windows.zig` there. The tzdata directory holds an IANA
+//! release's source files, the cldr directory CLDR's windowsZones.xml, each with a `version` file.
 const std = @import("std");
 const zic = @import("zic");
+const windows = @import("windows");
 
 pub fn main(init: std.process.Init) !void {
     const gpa = init.gpa;
@@ -10,15 +11,24 @@ pub fn main(init: std.process.Init) !void {
     var arena: std.heap.ArenaAllocator = .init(gpa);
     defer arena.deinit();
     const args = try init.minimal.args.toSlice(arena.allocator());
-    if (args.len != 3) {
-        std.debug.print("usage: generate <tzdata directory> <output directory>\n", .{});
+    if (args.len != 4) {
+        std.debug.print("usage: generate <tzdata directory> <cldr directory> <output directory>\n", .{});
         std.process.exit(2);
     }
     const blob = try build(gpa, io, std.Io.Dir.cwd(), args[1]);
     defer gpa.free(blob);
-    var out = try std.Io.Dir.cwd().openDir(io, args[2], .{});
+    var cldr = try std.Io.Dir.cwd().openDir(io, args[2], .{});
+    defer cldr.close(io);
+    const xml = try cldr.readFileAlloc(io, "windowsZones.xml", gpa, .limited(1 << 20));
+    defer gpa.free(xml);
+    const version = try cldr.readFileAlloc(io, "version", gpa, .limited(64));
+    defer gpa.free(version);
+    const table = try windows.generate(gpa, xml, std.mem.trim(u8, version, " \n"));
+    defer gpa.free(table);
+    var out = try std.Io.Dir.cwd().openDir(io, args[3], .{});
     defer out.close(io);
     try out.writeFile(io, .{ .sub_path = "tzdb.bin", .data = blob });
+    try out.writeFile(io, .{ .sub_path = "windows.zig", .data = table });
 }
 
 /// The blob for the release in `path` beneath `dir`.

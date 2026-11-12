@@ -13,4 +13,5 @@ files and an embedded copy of the IANA database, and zoned times are in; text fo
 ## License
 
 MIT. The IANA time zone database, vendored in tzdata/ (release 2026f) and compiled into src/zone/tzdb.bin, and the
-test data in testdata/zoneinfo drawn from it, are in the public domain.
+test data in testdata/zoneinfo drawn from it, are in the public domain. CLDR's windowsZones.xml, vendored in cldr/
+(release 49) and compiled into src/zone/windows.zig, is under the Unicode License v3 (LICENSES/cldr-unicode-v3.txt).

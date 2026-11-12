@@ -9,7 +9,10 @@ const Database = @This();
 const std = @import("std");
 const aegis = @import("aegis");
 const TimeZone = @import("TimeZone.zig");
+const units = @import("units.zig");
 const embedded = @import("zone/embedded.zig");
+const windows_zones = @import("zone/windows.zig");
+const target_os = @import("builtin").os.tag;
 const Io = std.Io;
 const Allocator = std.mem.Allocator;
 const Untrusted = aegis.input.Untrusted([]const u8);
@@ -97,6 +100,23 @@ const Cache = struct {
 gpa: Allocator,
 options: Options,
 cache: aegis.RwGuarded(Cache),
+
+/// The IANA zone CLDR gives a Windows time zone name by default (`Eastern Standard Time` is
+/// `America/New_York`), or null for a name CLDR does not map.
+pub fn ianaForWindows(name: []const u8) ?[]const u8 {
+    const pairs = &windows_zones.pairs;
+    var low: usize = 0;
+    var high: usize = pairs.len;
+    while (low < high) {
+        const mid = low + (high - low) / 2;
+        switch (std.mem.order(u8, pairs[mid].windows, name)) {
+            .eq => return pairs[mid].iana,
+            .lt => low = mid + 1,
+            .gt => high = mid,
+        }
+    }
+    return null;
+}
 
 /// The IANA release the embedded data is (`2026f`), or empty where it is not linked.
 pub fn embeddedVersion() []const u8 {
@@ -300,6 +320,7 @@ pub fn local(db: *Database, io: Io, tz: ?Untrusted) ZoneError!Zone {
         const rule = TimeZone.posix(.init(text)) catch return error.ZoneNotFound;
         return db.builtin(rule);
     }
+    if (target_os == .windows) return db.windowsLocal(io);
     const etc = db.options.localtime orelse return db.zone(io, .init("UTC"));
     var target: [512]u8 = undefined;
     if (etc.readLink(io, "localtime", &target)) |n| {
@@ -321,6 +342,37 @@ pub fn local(db: *Database, io: Io, tz: ?Untrusted) ZoneError!Zone {
     if (entry.path) |p| db.gpa.free(p);
     entry.zone.from = .builtin;
     return entry.zone;
+}
+
+/// TIME_DYNAMIC_ZONE_INFORMATION (timezoneapi.h).
+const DynamicZone = extern struct {
+    bias: i32,
+    standard_name: [32]u16,
+    standard_date: [8]u16,
+    standard_bias: i32,
+    daylight_name: [32]u16,
+    daylight_date: [8]u16,
+    daylight_bias: i32,
+    key_name: [128]u16,
+    dynamic_daylight_time_disabled: u8,
+};
+
+extern "kernel32" fn GetDynamicTimeZoneInformation(info: *DynamicZone) callconv(.winapi) u32;
+
+/// Windows' local zone: its time zone key name mapped to an IANA name through CLDR, read from the
+/// embedded data (Windows has no zoneinfo). Where the user turned daylight saving adjustment off,
+/// the clock keeps standard time all year: a fixed offset.
+fn windowsLocal(db: *Database, io: Io) ZoneError!Zone {
+    var info: DynamicZone = undefined;
+    if (GetDynamicTimeZoneInformation(&info) == 0xFFFF_FFFF) return error.ReadFailed;
+    if (info.dynamic_daylight_time_disabled != 0) {
+        const offset = units.Offset.init(-info.bias * 60) catch return error.Corrupt;
+        return db.builtin(TimeZone.fixed(offset));
+    }
+    const length = std.mem.findScalar(u16, &info.key_name, 0) orelse info.key_name.len;
+    var name: [512]u8 = undefined;
+    const n = std.unicode.utf16LeToUtf8(&name, info.key_name[0..length]) catch return error.ZoneNotFound;
+    return db.zone(io, .init(ianaForWindows(name[0..n]) orelse return error.ZoneNotFound));
 }
 
 pub const Refreshed = struct {

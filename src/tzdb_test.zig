@@ -12,6 +12,8 @@ const tzdata = @import("tzdata");
 const zoneinfo = @import("zoneinfo");
 const embedded = @import("zone/embedded.zig");
 const options = @import("almanac_options");
+const windows_tool = @import("windows_tool");
+const windows_zones = @import("zone/windows.zig");
 const TimeZone = almanac.TimeZone;
 const testing = std.testing;
 const Untrusted = aegis.input.Untrusted([]const u8);
@@ -50,6 +52,22 @@ fn loads(name: []const u8) !void {
     defer z.free();
     _ = try z.offsetAt(almanac.instant.min);
     _ = try z.offsetAt(almanac.instant.max);
+}
+
+test "regenerating the Windows table from cldr/ reproduces it, and each name it gives is a zone" {
+    const table = try windows_tool.generate(testing.allocator, tzdata.windows_zones, std.mem.trim(u8, tzdata.cldr_version, " \n"));
+    defer testing.allocator.free(table);
+    try testing.expectEqualStrings(@embedFile("zone/windows.zig"), table);
+    try testing.expectEqualStrings("release-49", windows_zones.cldr_version);
+    for (windows_zones.pairs, 0..) |p, i| {
+        errdefer std.debug.print("{s} -> {s}\n", .{ p.windows, p.iana });
+        try testing.expect(embedded.find(p.iana) != null);
+        try testing.expectEqualStrings(p.iana, almanac.Database.ianaForWindows(p.windows).?);
+        if (i > 0) try testing.expect(std.mem.order(u8, windows_zones.pairs[i - 1].windows, p.windows) == .lt);
+    }
+    try testing.expectEqualStrings("America/New_York", almanac.Database.ianaForWindows("Eastern Standard Time").?);
+    try testing.expectEqualStrings("Europe/London", almanac.Database.ianaForWindows("GMT Standard Time").?);
+    try testing.expectEqual(null, almanac.Database.ianaForWindows("Mars Standard Time"));
 }
 
 const year_seconds: i64 = 31_556_952;
