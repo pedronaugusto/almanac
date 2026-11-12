@@ -615,6 +615,17 @@ fn footer(a: Allocator, source: *const Source, out: *const Compiled, last: *cons
 
 // Writing TZif and the blob.
 
+/// Where `abbreviation` already ends an entry of `chars` (NUL-terminated strings), as zic shares
+/// them: a suffix of an entry reads as itself, a prefix would read on to the entry's end.
+fn shared(chars: []const u8, abbreviation: []const u8) ?usize {
+    var from: usize = 0;
+    while (std.mem.findPos(u8, chars, from, abbreviation)) |at| : (from = at + 1) {
+        const end = at + abbreviation.len;
+        if (end < chars.len and chars[end] == 0) return at;
+    }
+    return null;
+}
+
 /// A version 2 TZif file of the compiled zone (version 3 where its footer needs RFC 8536's
 /// extensions); the version 1 block holds the first type alone.
 pub fn writeTzif(a: Allocator, c: *const Compiled) Error![]u8 {
@@ -622,7 +633,7 @@ pub fn writeTzif(a: Allocator, c: *const Compiled) Error![]u8 {
     var chars: std.ArrayList(u8) = .empty;
     var indices: std.ArrayList(u8) = .empty;
     for (c.types.items) |t| {
-        const at = std.mem.find(u8, chars.items, t.abbreviation) orelse blk: {
+        const at = shared(chars.items, t.abbreviation) orelse blk: {
             const at = chars.items.len;
             try chars.appendSlice(a, t.abbreviation);
             try chars.append(a, 0);

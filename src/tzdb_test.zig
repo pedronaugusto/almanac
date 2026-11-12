@@ -82,21 +82,30 @@ fn agree(name: []const u8, ours: *const TimeZone, theirs: *const TimeZone) !void
         var at: i128 = @as(i128, from_1800) * ns_per_s;
         while (z.nextChange(at)) |t| {
             if (t > to_2400) break;
-            for ([_]i64{ t - 1, t }) |s| try same(name, ours, theirs, s);
+            for ([_]i64{ t - 1, t }) |s| try same(name, ours, theirs, s, true);
             at = @as(i128, t) * ns_per_s;
         }
     }
     // Every hour from 1800 to 2100.
     var s = from_1800;
-    while (s < to_2100) : (s += 3600) try same(name, ours, theirs, s);
+    while (s < to_2100) : (s += 3600) try same(name, ours, theirs, s, false);
 }
 
-fn same(name: []const u8, ours: *const TimeZone, theirs: *const TimeZone, seconds: i64) !void {
+fn same(name: []const u8, ours: *const TimeZone, theirs: *const TimeZone, seconds: i64, info: bool) !void {
     const ns = @as(i128, seconds) * ns_per_s;
     const a = ours.offsetAtNanoseconds(ns);
     const b = theirs.offsetAtNanoseconds(ns);
     if (a != b) {
         std.debug.print("{s} at {d}: almanac {d}, zic {d}\n", .{ name, seconds, a, b });
+        return error.TestUnexpectedResult;
+    }
+    // Abbreviations and DST change only at transitions: compared on each side of one.
+    if (!info) return;
+    const at = almanac.Timestamp.fromRaw(@intCast(ns));
+    const ia = try ours.infoAt(at);
+    const ib = try theirs.infoAt(at);
+    if (ia.dst != ib.dst or !std.mem.eql(u8, ia.abbreviation, ib.abbreviation)) {
+        std.debug.print("{s} at {d}: almanac {s} dst={}, zic {s} dst={}\n", .{ name, seconds, ia.abbreviation, ia.dst, ib.abbreviation, ib.dst });
         return error.TestUnexpectedResult;
     }
 }

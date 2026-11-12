@@ -49,7 +49,8 @@ give 10660 cases from 1259 of the 1402 files that apply to a Zig API (the rest t
 protocol): 10317 pass, and the 341 others are refused by design and listed by file, almost all values
 outside almanac's years -9999 to 9999. One reading is unconfirmed: rounding a span measured from a zoned
 time inside a repeated hour (a fold) starts from that time's own instant, and test262 has no case of it
-yet. Every zone of the embedded IANA database agrees with zic's compilation of the same release.
+yet. Every zone of the embedded IANA database agrees with zic's compilation of the same release, in
+offsets, abbreviations and DST flags.
 
 ## License
 
