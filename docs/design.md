@@ -62,7 +62,10 @@ almanac's arithmetic is Temporal's, transcribed from its abstract operations in 
   as the whole; rounding to the day uses the day's own length. Where NudgeToCalendarUnit's start is the
   origin itself, the origin's instant is used rather than its wall clock resolved again, which in a fold
   could be the other of its two instants.
-- **Not yet:** `Duration.total`, and rounding a `DateTime` or a `Time`.
+- **Totals** (`Span.total`) are TotalRelativeDuration's exact ratio, converted to the nearest f64 once.
+  NudgeToCalendarUnit moves its window on by an increment where a constrained month's end leaves the
+  destination past the window's end (a year from February 29). `Time` has Temporal's `PlainTime`
+  arithmetic (wrapping at midnight) and rounding; `DateTime` rounds with its carry into the date.
 
 ## Instants
 
@@ -243,14 +246,20 @@ type's `parse`, `format` and `max_text_len` at its widest values, and a property
 strict checks against JSON-Schema-Test-Suite's `date-time`, `date`, `time` and `duration` cases (release
 23.2.0, vendored in testdata/json-schema), properties that every date-time and duration the strict checks
 accept is read leniently to the same value, and every parser and check on mutated text. test262's
-Temporal string cases (the `from` tests of PlainDate, PlainDateTime, PlainTime, Instant, Duration and
-ZonedDateTime at test262 2e58f87) are transcribed as text by `testdata/test262/extract.py`, which runs
-no JavaScript and recognises only the shapes those files repeat (arrays of strings that must throw,
-tables of strings and expected fields, the same inline), into `testdata/test262/temporal.json`: 760
-cases from 89 files. 754 pass; the other 6 are years outside -9999 to 9999, listed by name in
-`src/test262_test.zig` as refused by design. The arithmetic tests (until, since, round, add) take
-objects and options the extractor does not read; the arithmetic is checked by the cases worked from the
-specification and the properties above.
+Temporal cases (test262 2e58f87) are transcribed as text by `tools/test262.zig` (`bay dev test262`), which
+runs no JavaScript: it reads the subset of JavaScript those files repeat (`const` and `let` bindings,
+assignments, `new Temporal.<Type>(...)` and `Temporal.<Type>.from(...)`, object and array literals with
+shorthand, array destructuring with defaults, loops over a table) and the assertions they make
+(`TemporalHelpers.assert*`, `assert.sameValue`, `assert.throws(RangeError, ...)`), and records each call
+of `from`, `until`, `since`, `round`, `add`, `subtract` and `total` whose receiver and arguments it could
+evaluate into `testdata/test262/temporal.json`, with the files it read no case from. Regenerating it
+reproduces it byte for byte. `src/test262_test.zig` runs every case through almanac: 9622 cases from 1159
+files; 9279 pass, 341 are refused by design and listed by file with the reason (values past -9999 to
+9999, and one case of Temporal's duration fields being doubles where almanac's are exact integers), 2
+use calendar eras almanac leaves out. 27 more assertions from four files whose expectations are computed
+in JavaScript's doubles are transcribed by hand, in the same double arithmetic. The 862 files read no case
+from are listed in `temporal.json`. No test262 case at this commit exercises rounding from a zoned value in
+a fold, so almanac's reading of the origin instant there (§ Arithmetic) rests on its own reasoning.
 
 ## Not built yet
 

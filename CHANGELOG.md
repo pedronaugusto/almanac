@@ -39,11 +39,14 @@ follow [Semantic Versioning](https://semver.org/).
   `parseDateTime`, `parseSpan`, `parseZoned`), each type's `parse`, `format` and `max_text_len`,
   `text.writeTimestamp`, and `text.strict`'s exact RFC 3339 checks (`isDateTime`, `isDate`, `isTime`,
   `isDuration`).
-- test262's Temporal string cases, transcribed as text: 754 of 760 pass, the 6 others years outside almanac's
-  range, refused by design.
+- test262's Temporal cases, transcribed as text by `tools/test262.zig`: the `from` strings and the arithmetic
+  of every type, 9622 cases; 9279 pass, 341 are refused by design (listed by file), 2 use calendar eras.
+- `Time.add`, `subtract`, `until`, `since` and `round`; `DateTime.round`; `Span.total`.
 
 ### Changed
 
 - Text reading follows test262: U+2212 is no minus sign; offsets are read to the nanosecond; only the first
   calendar annotation names the calendar, and a time or an instant reads past any; annotation values may be
   of any length; a time without `T` is read unless it is also a date.
+- Arithmetic follows test262: NudgeToCalendarUnit's window moves on where a constrained month's end leaves the
+  destination past it; two nameless zones of the same rules are the same zone.

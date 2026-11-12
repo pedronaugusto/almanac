@@ -78,11 +78,17 @@ pub fn eql(a: Zoned, b: Zoned) bool {
     return a.nanoseconds() == b.nanoseconds() and sameZone(a.zone, b.zone);
 }
 
+/// Temporal's TimeZoneEquals: the same zone value, the same IANA name, or two nameless zones of the
+/// same rules (two `+01:00` zones are one zone).
 fn sameZone(a: *const TimeZone, b: *const TimeZone) bool {
     if (a == b) return true;
-    const an = a.name() orelse return false;
-    const bn = b.name() orelse return false;
-    return std.mem.eql(u8, an, bn);
+    if (a.name()) |an| {
+        const bn = b.name() orelse return false;
+        return std.mem.eql(u8, an, bn);
+    }
+    if (b.name() != null) return false;
+    return std.meta.eql(a.initial, b.initial) and std.meta.eql(a.footer, b.footer) and
+        std.mem.eql(i64, a.transitions, b.transitions) and std.mem.eql(u8, a.kinds, b.kinds) and a.types.len == b.types.len;
 }
 
 fn wallClockOf(context: *const anyopaque, ns: i128) RangeError!arithmetic.IsoDateTime {

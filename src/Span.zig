@@ -410,3 +410,33 @@ pub fn fromText(text: []const u8, options: reading.Options) reading.ParseError!S
         .nanoseconds = d.nanoseconds,
     }) catch reading.refuse(options, text.len, "a span within Temporal's bounds");
 }
+
+/// Temporal's `Duration.prototype.total`: the span's length in `unit`, as the nearest f64 to the
+/// exact value. Calendar units (and, in a zone, days) are measured from `relative_to`.
+pub fn total(s: Span, unit: Unit, relative_to: ?RelativeTo) ArithmeticError!f64 {
+    if (relative_to) |rel| switch (rel) {
+        .zoned => |z| {
+            const target = try arithmetic.zonedAdd(z.zone, z.ns, try s.toInternal(), .constrain);
+            if (!arithmetic.isDate(unit)) return arithmetic.ratioToF64(target - z.ns, arithmetic.nanoseconds(unit));
+            const diff = try arithmetic.zonedUntil(z.zone, z.ns, target, unit);
+            return arithmetic.totalRelative(diff, z.ns, target, try z.zone.wallClock(z.ns), z.zone, unit);
+        },
+        .date => |origin_date| {
+            const d = try s.toInternalDays();
+            const carried: i64 = @intCast(@divFloor(d.time, arithmetic.ns_per_day));
+            const time: i64 = @intCast(@mod(d.time, arithmetic.ns_per_day));
+            var date = d.date;
+            date.days = carried;
+            try arithmetic.checkDate(date);
+            const target_date = try arithmetic.dateAdd(origin_date, date, .constrain);
+            const origin: arithmetic.IsoDateTime = .{ .date = origin_date };
+            const target: arithmetic.IsoDateTime = .{ .date = target_date, .time = time };
+            if (origin.epochNs() == target.epochNs()) return 0;
+            const diff = try arithmetic.dateTimeUntil(origin, target, unit);
+            if (unit == .nanosecond) return arithmetic.ratioToF64(diff.time, 1);
+            return arithmetic.totalRelative(diff, origin.epochNs(), target.epochNs(), origin, null, unit);
+        },
+    };
+    if (arithmetic.isCalendar(s.largestUnit()) or arithmetic.isCalendar(unit)) return error.CalendarUnits;
+    return arithmetic.ratioToF64((try s.toInternalDays()).time, arithmetic.nanoseconds(unit));
+}

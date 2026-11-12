@@ -74,6 +74,18 @@ pub fn dev(b: *std.Build, tools: type) void {
     generate.has_side_effects = true;
     b.step("tzdb", "Regenerate src/zone/tzdb.bin from tzdata/ and src/zone/windows.zig from cldr/").dependOn(&generate.step);
 
+    // test262's Temporal cases, transcribed from a checkout into testdata/test262/temporal.json.
+    const transcriber = b.addExecutable(.{
+        .name = "test262",
+        .root_module = b.createModule(.{ .root_source_file = p.path("tools/test262.zig"), .target = target, .optimize = optimize }),
+    });
+    const transcribe = b.addRunArtifact(transcriber);
+    transcribe.addArg(b.option([]const u8, "test262", "A test262 checkout to transcribe the Temporal cases from") orelse "test262");
+    transcribe.addArg(b.option([]const u8, "test262-commit", "The checkout's commit, recorded in the cases") orelse "2e58f87");
+    transcribe.addDirectoryArg(p.path("testdata/test262"));
+    transcribe.has_side_effects = true;
+    b.step("test262", "Transcribe test262's Temporal cases into testdata/test262/temporal.json").dependOn(&transcribe.step);
+
     const check = b.step("check", "Compile the tests without running them");
     const test_step = b.step("test", "Run the tests");
     test_step.dependOn(&b.addRunArtifact(tests).step);

@@ -255,7 +255,7 @@ pub const Zone = struct {
     wall_clock: *const fn (context: *const anyopaque, ns: i128) RangeError!IsoDateTime,
     instant_of: *const fn (context: *const anyopaque, dt: IsoDateTime) RangeError!i128,
 
-    fn wallClock(z: Zone, ns: i128) RangeError!IsoDateTime {
+    pub fn wallClock(z: Zone, ns: i128) RangeError!IsoDateTime {
         return z.wall_clock(z.context, ns);
     }
 
@@ -346,7 +346,52 @@ const Nudge = struct {
     duration: Internal,
     nudged: i128,
     expanded: bool,
+    /// NudgeToCalendarUnit's total: `numerator / denominator` of the unit.
+    numerator: i128 = 0,
+    denominator: i128 = 1,
 };
+
+/// A ratio of integers as the nearest f64, rounded once (ties to even): Temporal's 𝔽(total).
+pub fn ratioToF64(numerator: i128, denominator: i128) f64 {
+    std.debug.assert(denominator != 0);
+    if (numerator == 0) return 0;
+    const negative = (numerator < 0) != (denominator < 0);
+    const n: u512 = @abs(numerator);
+    const d: u512 = @abs(denominator);
+    // The quotient scaled by 2^k to 55 bits (2^54 <= q < 2^55): 53 kept, a rounding bit, a guard.
+    var k: i32 = 55 - @as(i32, 512 - @clz(n)) + @as(i32, 512 - @clz(d));
+    var q: u512 = undefined;
+    var sticky = false;
+    while (true) {
+        const num = if (k >= 0) n << @intCast(k) else n;
+        const den = if (k >= 0) d else d << @intCast(-k);
+        q = num / den;
+        sticky = num % den != 0;
+        if (q >= (@as(u512, 1) << 55)) {
+            k -= 1;
+        } else if (q < (@as(u512, 1) << 54)) {
+            k += 1;
+        } else break;
+    }
+    const low: u2 = @truncate(q);
+    var m: u64 = @intCast(q >> 2);
+    // Over half, or exactly half and odd (or a sticky bit past it): up.
+    if (low == 3 or (low == 2 and (sticky or m & 1 == 1))) m += 1;
+    const value = std.math.ldexp(@as(f64, @floatFromInt(m)), 2 - k);
+    return if (negative) -value else value;
+}
+
+/// TotalRelativeDuration: `duration`, measured from `origin` to `dest`, in `unit` as a ratio.
+pub fn totalRelative(duration: Internal, origin_ns: i128, dest: i128, origin: IsoDateTime, zone: ?Zone, unit: Unit) RangeError!f64 {
+    if (isCalendar(unit) or (zone != null and unit == .day)) {
+        const sign: i2 = if (duration.sign() < 0) -1 else 1;
+        const r: Rounding = .{ .largest = unit, .smallest = unit, .increment = 1, .mode = .trunc };
+        const nudge = try nudgeToCalendarUnit(sign, duration, origin_ns, dest, origin, zone, r);
+        return ratioToF64(nudge.numerator, nudge.denominator);
+    }
+    const time = try addDays(duration.time, duration.date.days);
+    return ratioToF64(time, nanoseconds(unit));
+}
 
 /// RoundRelativeDuration: `duration` measured from `origin` (the instant `origin_ns`, the wall
 /// clock `origin`) to `dest`, in `zone` or on a timeline without one.
@@ -403,8 +448,25 @@ fn nudgeToCalendarUnit(sign: i2, duration: Internal, origin_ns: i128, dest: i128
     try checkDate(end);
     // A start that is the origin itself is the origin's instant, not its wall clock resolved
     // again (which in a fold may be the other of its two instants).
-    const start_ns = if (start.sign() == 0) origin_ns else try epochOf(zone, .{ .date = try dateAdd(origin.date, start, .constrain), .time = origin.time });
-    const end_ns = try epochOf(zone, .{ .date = try dateAdd(origin.date, end, .constrain), .time = origin.time });
+    var start_ns = if (start.sign() == 0) origin_ns else try epochOf(zone, .{ .date = try dateAdd(origin.date, start, .constrain), .time = origin.time });
+    var end_ns = try epochOf(zone, .{ .date = try dateAdd(origin.date, end, .constrain), .time = origin.time });
+    // Where a month's end was constrained, the destination can lie past the window's end (a year
+    // from February 29 ends on February 28): the window moves on by an increment until it holds it.
+    var moved: usize = 0;
+    while (@as(i128, sign) * (dest - end_ns) > 0 and moved < 4) : (moved += 1) {
+        r1 += increment * sign;
+        start = end;
+        start_ns = end_ns;
+        end = switch (r.smallest) {
+            .year => .{ .years = r1 + increment * sign },
+            .month => .{ .years = d.years, .months = r1 + increment * sign },
+            .week => .{ .years = d.years, .months = d.months, .weeks = r1 + increment * sign },
+            .day => .{ .years = d.years, .months = d.months, .weeks = d.weeks, .days = r1 + increment * sign },
+            else => unreachable,
+        };
+        try checkDate(end);
+        end_ns = try epochOf(zone, .{ .date = try dateAdd(origin.date, end, .constrain), .time = origin.time });
+    }
     var num = dest - start_ns;
     var den = end_ns - start_ns;
     if (sign < 0) {
@@ -414,10 +476,12 @@ fn nudgeToCalendarUnit(sign: i2, duration: Internal, origin_ns: i128, dest: i128
     if (!(den > 0 and num >= 0 and num <= den)) return error.OutOfRange;
     const r1_abs: i64 = @intCast(@abs(r1));
     const up = round.toSecond(num, den, round.unsignedMode(r.mode, sign < 0), @mod(@divTrunc(r1_abs, increment), 2) == 0);
+    // The total: r1 + progress × increment × sign, as one ratio.
+    const numerator = @as(i128, r1) * den + @as(i128, sign) * increment * num;
     return if (up)
-        .{ .duration = .{ .date = end }, .nudged = end_ns, .expanded = true }
+        .{ .duration = .{ .date = end }, .nudged = end_ns, .expanded = true, .numerator = numerator, .denominator = den }
     else
-        .{ .duration = .{ .date = start }, .nudged = start_ns, .expanded = false };
+        .{ .duration = .{ .date = start }, .nudged = start_ns, .expanded = false, .numerator = numerator, .denominator = den };
 }
 
 fn truncate(x: i64, increment: i64) i64 {
@@ -542,4 +606,16 @@ fn loops(one: IsoDate, two: IsoDate, largest: Unit) DateRec {
         count = candidate;
     }
     return .{ .years = years, .months = months, .weeks = weeks, .days = count };
+}
+
+test "a ratio to the nearest f64, rounded once" {
+    const t = std.testing;
+    try t.expectEqual(@as(f64, 1.5), ratioToF64(3, 2));
+    try t.expectEqual(@as(f64, -0.1), ratioToF64(-1, 10));
+    try t.expectEqual(@as(f64, 1.0 / 3.0), ratioToF64(1, 3));
+    try t.expectEqual(@as(f64, 9007199254740992), ratioToF64(9007199254740993, 1));
+    try t.expectEqual(@as(f64, 9007199254740996), ratioToF64(9007199254740995, 1));
+    // Past an i64, and a ratio whose naive f64 division rounds twice.
+    try t.expectEqual(@as(f64, 1e30), ratioToF64(1_000_000_000_000_000_000_000_000_000_000, 1));
+    try t.expectEqual(@as(f64, 2.0 / 3.0), ratioToF64(2 * 86_400_000_000_000, 3 * 86_400_000_000_000));
 }

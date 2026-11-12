@@ -7,6 +7,7 @@ const Date = @import("Date.zig");
 const Time = @import("Time.zig");
 const Span = @import("Span.zig");
 const reading = @import("text/iso.zig");
+const rounding = @import("round.zig");
 
 date: Date,
 time: Time = .midnight,
@@ -86,4 +87,28 @@ pub fn fromText(text: []const u8, options: reading.Options) reading.ParseError!D
     const dt = try reading.dateTime(text, options);
     if (dt.offset != null and dt.offset.? == .z) return reading.refuse(options, text.len, "no 'Z' on a civil value");
     return .{ .date = Date.fromCivil(dt.date), .time = if (dt.time) |t| Time.fromCivil(t) else .midnight };
+}
+
+pub const Round = struct {
+    /// The day or a time unit.
+    smallest: units.Unit,
+    /// For the day, 1; for a time unit, a divisor of the unit above, less than it.
+    increment: u32 = 1,
+    mode: units.RoundingMode = .half_expand,
+};
+
+/// Temporal's `PlainDateTime.prototype.round`: the time of day rounded to a multiple of
+/// `increment` in `smallest` (to the day, by its 24 hours), what carries past midnight carried
+/// into the date.
+pub fn round(dt: DateTime, options: Round) DifferenceError!DateTime {
+    if (arithmetic.isCalendar(options.smallest)) return error.InvalidOptions;
+    if (options.smallest == .day) {
+        if (options.increment != 1) return error.InvalidOptions;
+    } else try arithmetic.checkIncrement(options.increment, options.smallest);
+    const rounded = rounding.toIncrement(dt.time.nanosecondOfDay(), arithmetic.nanoseconds(options.smallest) * options.increment, options.mode);
+    const carry: i32 = @intCast(@divFloor(rounded, Time.nanoseconds_per_day));
+    return .{
+        .date = Date.fromDays(dt.date.days() + carry) catch return error.OutOfRange,
+        .time = Time.fromNanosecondOfDay(@intCast(@mod(rounded, Time.nanoseconds_per_day))) catch unreachable,
+    };
 }
