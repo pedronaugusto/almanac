@@ -9,6 +9,7 @@ const Database = @This();
 const std = @import("std");
 const aegis = @import("aegis");
 const TimeZone = @import("TimeZone.zig");
+const embedded = @import("zone/embedded.zig");
 const Io = std.Io;
 const Allocator = std.mem.Allocator;
 const Untrusted = aegis.input.Untrusted([]const u8);
@@ -22,7 +23,7 @@ pub const ZoneError = error{ ZoneNotFound, Corrupt, LeapSeconds, TooLarge, Cance
 pub const Source = enum {
     /// The system's zoneinfo.
     system,
-    /// The data built into almanac (with the embedded database; until then it has no zones).
+    /// The data built into almanac (`-Dtzdb=embedded` or `both`).
     embedded,
     /// Made here: UTC when no source has it, a POSIX string from `$TZ`, a local zone with no name.
     builtin,
@@ -96,6 +97,11 @@ const Cache = struct {
 gpa: Allocator,
 options: Options,
 cache: aegis.RwGuarded(Cache),
+
+/// The IANA release the embedded data is (`2026f`), or empty where it is not linked.
+pub fn embeddedVersion() []const u8 {
+    return embedded.version();
+}
 
 pub fn init(gpa: Allocator, options: Options) Database {
     return .{ .gpa = gpa, .options = options, .cache = .init(.{}) };
@@ -171,6 +177,15 @@ fn load(db: *Database, io: Io, name: []const u8) ZoneError!Entry {
     const system = db.options.source != .embedded;
     if (system) if (db.options.zoneinfo) |dir| {
         if (try db.loadSystem(io, dir, name)) |e| return e;
+    };
+    if (db.options.source != .system) if (embedded.find(name)) |bytes| {
+        var value = TimeZone.fromTzif(db.gpa, .init(bytes), name) catch |err| return switch (err) {
+            // The embedded data is almanac's own, checked when it was generated.
+            error.Corrupt, error.LeapSeconds => unreachable,
+            error.OutOfMemory => error.OutOfMemory,
+        };
+        errdefer value.free();
+        return .{ .zone = .{ .shared = try .createFrom(db.gpa, &value), .from = .embedded } };
     };
     if (std.mem.eql(u8, name, "UTC")) return .{ .zone = try db.builtin(TimeZone.utc) };
     return error.ZoneNotFound;

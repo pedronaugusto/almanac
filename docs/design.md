@@ -147,6 +147,23 @@ data, which is consulted only where the system has no such zone.
 or UTC where there is no `localtime`. `refresh` compares each cached system file's inode, size and
 modification time with what was loaded and loads the changed ones again as new zones.
 
+## The embedded database
+
+almanac carries its own compiler of the zic language (`tools/zic.zig`, a development tool, not
+shipped): it reads an IANA release's source files (vendored in `tzdata/` with their version, public
+domain), computes each zone's transitions as zic's `outzone` does (rules run year by year with each
+time's suffix, a zone line's start and until, zic's merge of a transition that falls at or before the
+one before it in local time), writes each zone as a TZif file with its POSIX TZ string for the years
+past 2037 (zic's `stringzone`, including RFC 8536's rule times past 24 hours and negative daylight
+saving), and packs them with every name and link into `src/zone/tzdb.bin` (about 280 KiB). One
+choice differs from a literal reading of zic: a rule-driven zone line starts from its own rules' save
+(standard time where none has fired yet), not the previous line's, which is what zic's own output for
+Shanghai's 1949 line shows.
+
+`bay dev tzdb` regenerates the file; a unit test regenerates it in memory and fails unless it is the
+same byte for byte. `-Dtzdb=system` leaves it out of a build; `embedded` and `both` (the default) link
+it, and `Database` reads it where the system has no such zone or where only it is asked for.
+
 ## Validation
 
 The kernels are checked against Hinnant's independent `days_from_civil` on every day of the range, ISO
@@ -172,9 +189,15 @@ offset the zone uses. The database is checked on a temporary zoneinfo tree: name
 inside and escaping it, a link loop, damaged and oversized files, the cache's handles, `$TZ`'s forms
 and the `localtime` link, a refresh that replaces and removes zones while the old ones are held, under
 shakedown's quarantine allocator (where a use after free faults), and failures, a short read and a
-cancel of the reads under shakedown's FaultIo, after which the cache loads the zone as before.
+cancel of the reads under shakedown's FaultIo, after which the cache loads the zone as before. The
+embedded database is checked byte for byte against its regeneration, every name in it loads, and its
+zones agree with zic's compiled output on the offset at every transition of either (and the second
+before it) to 2400 and at every hour from 1800 to 2100: the four zones of testdata/zoneinfo in the unit
+tests, and every zone of a zoneinfo directory in a trial (`-Dzic-out=<dir>`, run in a release build).
+Against the system's zoneinfo of the same release (2026f) all 598 zones agree; against zic 2022g's
+compilation of 2026f, 595 do, the other three (America/Ojinaga in 2022, Asia/Gaza and Asia/Hebron in
+2073) being where that older zic differs from 2026f's own compiled files, which almanac matches.
 
 ## Not built yet
 
-The embedded database (and with it the `embedded` source), Windows' zone mapping and its local zone,
-and text.
+Windows' zone mapping and its local zone, and text.

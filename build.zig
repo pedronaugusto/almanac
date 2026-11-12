@@ -5,12 +5,20 @@ const std = @import("std");
 pub fn build(b: *std.Build) void {
     const target = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});
-    _ = almanacModule(b, b, target, optimize);
+    const tzdb = b.option(Tzdb, "tzdb", "Zone data linked in: system files only, the embedded database, or both (default)") orelse .both;
+    _ = almanacModule(b, b, target, optimize, tzdb);
 }
 
-fn almanacModule(b: *std.Build, p: *std.Build, target: std.Build.ResolvedTarget, optimize: std.lang.Optimize) *std.Build.Module {
+/// Which zone data a program carries: `system` reads only the system's files, `embedded` and
+/// `both` link almanac's copy of the IANA database (about 400 KiB).
+pub const Tzdb = enum { system, embedded, both };
+
+fn almanacModule(b: *std.Build, p: *std.Build, target: std.Build.ResolvedTarget, optimize: std.lang.Optimize, tzdb: Tzdb) *std.Build.Module {
     const module = b.addModule("almanac", .{ .root_source_file = p.path("src/almanac.zig"), .target = target, .optimize = optimize });
     module.addImport("aegis", p.dependency("aegis", .{ .target = target, .optimize = optimize }).module("aegis"));
+    const options = b.addOptions();
+    options.addOption(bool, "embedded", tzdb != .system);
+    module.addOptions("almanac_options", options);
     return module;
 }
 
@@ -23,6 +31,10 @@ pub fn dev(b: *std.Build, tools: type) void {
     const p = package.builder;
     const filters = if (test_filter) |filter| &.{filter} else &.{};
     const shakedown = b.dependency("shakedown", .{ .target = target, .optimize = optimize });
+    const zic = b.createModule(.{ .root_source_file = p.path("tools/zic.zig"), .target = target, .optimize = optimize });
+    const test_options = b.addOptions();
+    test_options.addOption(bool, "embedded", true);
+    test_options.addOption(?[]const u8, "zic_out", b.option([]const u8, "zic-out", "A directory of zic's output for the tests to compare every zone against"));
     const tests = b.addTest(.{
         .name = "almanac-tests",
         .filters = filters,
@@ -34,9 +46,29 @@ pub fn dev(b: *std.Build, tools: type) void {
                 .{ .name = "aegis", .module = p.dependency("aegis", .{ .target = target, .optimize = optimize }).module("aegis") },
                 .{ .name = "shakedown", .module = shakedown.module("shakedown") },
                 .{ .name = "zoneinfo", .module = zoneinfo(b, p) },
+                .{ .name = "zic", .module = zic },
+                .{ .name = "tzdata", .module = tzdata(b, p) },
             },
         }),
     });
+    tests.root_module.addOptions("almanac_options", test_options);
+
+    // The embedded database, regenerated from tzdata/ by almanac's own zic compiler.
+    const generator = b.addExecutable(.{
+        .name = "generate",
+        .root_module = b.createModule(.{
+            .root_source_file = p.path("tools/generate.zig"),
+            .target = target,
+            .optimize = optimize,
+            .imports = &.{.{ .name = "zic", .module = zic }},
+        }),
+    });
+    const generate = b.addRunArtifact(generator);
+    generate.addDirectoryArg(p.path("tzdata"));
+    generate.addDirectoryArg(p.path("src/zone"));
+    generate.has_side_effects = true;
+    b.step("tzdb", "Regenerate src/zone/tzdb.bin from tzdata/").dependOn(&generate.step);
+
     const check = b.step("check", "Compile the tests without running them");
     const test_step = b.step("test", "Run the tests");
     test_step.dependOn(&b.addRunArtifact(tests).step);
@@ -83,6 +115,20 @@ fn zoneinfo(b: *std.Build, p: *std.Build) *std.Build.Module {
     }
     return b.createModule(.{ .root_source_file = files.add("zoneinfo.zig", source.items) });
 }
+
+/// The vendored IANA release's source files, as a module of their bytes, for the test that
+/// regenerating the embedded database reproduces it.
+fn tzdata(b: *std.Build, p: *std.Build) *std.Build.Module {
+    const files = b.addWriteFiles();
+    var source: std.ArrayList(u8) = .empty;
+    for (tzdata_files) |name| {
+        _ = files.addCopyFile(p.path(b.fmt("tzdata/{s}", .{name})), name);
+        source.print(b.allocator, "pub const @\"{s}\" = @embedFile(\"{s}\");\n", .{ name, name }) catch @panic("OOM");
+    }
+    return b.createModule(.{ .root_source_file = files.add("tzdata.zig", source.items) });
+}
+
+const tzdata_files = [_][]const u8{ "africa", "antarctica", "asia", "australasia", "europe", "northamerica", "southamerica", "etcetera", "backward", "factory", "version" };
 
 const zoneinfo_files = [_][]const u8{ "America_New_York", "Europe_Lisbon", "Australia_Lord_Howe", "Pacific_Apia" };
 

@@ -8,8 +8,9 @@ Temporal's semantics: an explicit policy at every ambiguous point, and no hidden
 
 Unreleased and being built: the calendar (dates, times, the proleptic Gregorian kernels), civil arithmetic (spans,
 adding, differences, rounding), instants, time zones (TZif files, POSIX TZ strings), the zone database over the system's
-files and zoned times are in; text and the embedded database follow. [The design](docs/design.md) says what is built.
+files and an embedded copy of the IANA database, and zoned times are in; text follows. [The design](docs/design.md) says what is built.
 
 ## License
 
-MIT. The test data in testdata/zoneinfo is from the IANA time zone database, which is in the public domain.
+MIT. The IANA time zone database, vendored in tzdata/ (release 2026f) and compiled into src/zone/tzdb.bin, and the
+test data in testdata/zoneinfo drawn from it, are in the public domain.

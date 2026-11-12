@@ -30,3 +30,6 @@ follow [Semantic Versioning](https://semver.org/).
 - The zone database: `Database` with counted `Zone` handles (`aegis.Shared`), a cache under `aegis.RwGuarded`,
   zones read beneath the caller's zoneinfo directory (links followed only while they stay beneath it), the local
   zone from the caller's `$TZ` or the `localtime` link, and `refresh`, which frees nothing in use.
+- The embedded database: the IANA time zone database (release 2026f, vendored in `tzdata/`) compiled by almanac's
+  own zic compiler (`tools/zic.zig`) into `src/zone/tzdb.bin`, linked by `-Dtzdb=embedded` or `both` (the
+  default) and read by `Database` where the system has no such zone; regeneration is checked byte for byte.

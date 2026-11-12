@@ -78,13 +78,29 @@ test "names: read beneath the directory, links followed while they stay beneath 
     try testing.expectError(error.Corrupt, db.zone(io, .init("Bad/Zone")));
     try testing.expectError(error.TooLarge, db.zone(io, .init("Big")));
     // UTC that no source has is the built-in one.
-    var utc = try db.zone(io, .init("UTC"));
+    var system_only = Database.init(testing.allocator, .{ .zoneinfo = tree.zones, .source = .system });
+    defer system_only.deinit();
+    var utc = try system_only.zone(io, .init("UTC"));
     defer utc.release();
     try testing.expectEqual(.builtin, utc.source());
-    // Only the embedded data: none yet, so no zone but UTC.
+    try testing.expectError(error.ZoneNotFound, system_only.zone(io, .init("Asia/Tokyo")));
+    // Only the embedded data: the tree's damaged file is not read, the embedded zone is.
     var embedded = Database.init(testing.allocator, .{ .zoneinfo = tree.zones, .source = .embedded });
     defer embedded.deinit();
-    try testing.expectError(error.ZoneNotFound, embedded.zone(io, .init("America/New_York")));
+    var bundled = try embedded.zone(io, .init("America/New_York"));
+    defer bundled.release();
+    try testing.expectEqual(.embedded, bundled.source());
+    try testing.expectEqual(-14400, try offsetAt(&bundled, 2024, 7, 1));
+    try testing.expectError(error.ZoneNotFound, embedded.zone(io, .init("Bad/Zone")));
+    // The system first, the embedded data only where the system has no such zone.
+    var both = Database.init(testing.allocator, .{ .zoneinfo = tree.zones });
+    defer both.deinit();
+    var tokyo = try both.zone(io, .init("Asia/Tokyo"));
+    defer tokyo.release();
+    try testing.expectEqual(.embedded, tokyo.source());
+    try testing.expectEqual(32400, try offsetAt(&tokyo, 2024, 7, 1));
+    try testing.expectError(error.Corrupt, both.zone(io, .init("Bad/Zone")));
+    try testing.expectEqualStrings("2026f", Database.embeddedVersion());
 }
 
 test "the local zone: $TZ as POSIX reads it, else the localtime link" {
@@ -112,7 +128,7 @@ test "the local zone: $TZ as POSIX reads it, else the localtime link" {
     defer system.release();
     try testing.expectEqualStrings("Europe/Lisbon", system.get().name().?);
     // With no localtime at all, UTC.
-    var bare = Database.init(testing.allocator, .{ .zoneinfo = tree.zones });
+    var bare = Database.init(testing.allocator, .{ .zoneinfo = tree.zones, .source = .system });
     defer bare.deinit();
     var none = try bare.local(io, null);
     defer none.release();
