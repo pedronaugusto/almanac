@@ -47,8 +47,9 @@ The block is `examples/usage.zig`, built and run with the tests.
 almanac follows Temporal (TC39). test262's Temporal tests for the types almanac shares, read as text,
 give 10660 cases from 1259 of the 1402 files that apply to a Zig API (the rest test JavaScript's object
 protocol): 10317 pass, and the 341 others are refused by design and listed by file, almost all values
-outside almanac's years -9999 to 9999. Every zone of the embedded IANA database agrees with zic's
-compilation of the same release.
+outside almanac's years -9999 to 9999. One reading is unconfirmed: rounding a span measured from a zoned
+time inside a repeated hour (a fold) starts from that time's own instant, and test262 has no case of it
+yet. Every zone of the embedded IANA database agrees with zic's compilation of the same release.
 
 ## License
 
