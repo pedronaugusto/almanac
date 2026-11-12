@@ -33,6 +33,7 @@ pub fn dev(b: *std.Build, tools: type) void {
             .imports = &.{
                 .{ .name = "aegis", .module = p.dependency("aegis", .{ .target = target, .optimize = optimize }).module("aegis") },
                 .{ .name = "shakedown", .module = shakedown.module("shakedown") },
+                .{ .name = "zoneinfo", .module = zoneinfo(b, p) },
             },
         }),
     });
@@ -70,6 +71,20 @@ pub fn dev(b: *std.Build, tools: type) void {
     // The release tier runs every property under Zig's fuzzer, and the suite with safety on.
     tools.preflight.addCi(b, p, .{ .tests = test_step, .portable_tests = true, .hardened = .{ .fuzz_step = "test", .tsan_step = "test" } });
 }
+
+/// The zones the tests read (testdata/zoneinfo: compiled by zic from tzdata 2026f, public domain), as a
+/// module of their bytes.
+fn zoneinfo(b: *std.Build, p: *std.Build) *std.Build.Module {
+    const files = b.addWriteFiles();
+    var source: std.ArrayList(u8) = .empty;
+    for (zoneinfo_files) |name| {
+        _ = files.addCopyFile(p.path(b.fmt("testdata/zoneinfo/{s}", .{name})), name);
+        source.print(b.allocator, "pub const {s} = @embedFile(\"{s}\");\n", .{ name, name }) catch @panic("OOM");
+    }
+    return b.createModule(.{ .root_source_file = files.add("zoneinfo.zig", source.items) });
+}
+
+const zoneinfo_files = [_][]const u8{ "America_New_York", "Europe_Lisbon", "Australia_Lord_Howe", "Pacific_Apia" };
 
 /// What each case of src/testing/instant_rejected.zig is refused with.
 const instant_rejections = [_][]const u8{

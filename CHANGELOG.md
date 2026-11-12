@@ -21,3 +21,6 @@ follow [Semantic Versioning](https://semver.org/).
   real clock at its own unit and representation: `now`, `inRange`, `timestamp`, `convert`, civil time at an offset
   and back (`toDateTime`, `fromDateTime`), `round`, `until`, `since`, `add` and `subtract` with Temporal's
   `Instant` semantics; an instant of another clock is a compile error.
+- Time zones: `TimeZone`, one compiled form for TZif files (RFC 8536, versions 1 to 4, read as untrusted bytes),
+  POSIX TZ strings (with RFC 8536's extensions), fixed offsets and UTC; `offsetAt`, `infoAt` (offset, daylight
+  saving, abbreviation), a caller's `Cursor`, and `nextTransition` and `previousTransition`.

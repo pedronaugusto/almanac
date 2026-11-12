@@ -12,7 +12,8 @@ invariant or a decision changes.
 (`units.zig`: ranged fields, `Offset`, units, rounding modes, policies and errors), the kernels
 (`calendar.zig`, the calendar's conversions; `round.zig`, rounding), the arithmetic (`arithmetic.zig`,
 Temporal's abstract operations over plain records), the span (`Span.zig`), the civil values (`Date.zig`,
-`Time.zig`, `DateTime.zig`), instants (`instant.zig`), and the root. The span sits beneath the types it is added to, so what gives its
+`Time.zig`, `DateTime.zig`), instants (`instant.zig`), the zone's sources (`zone/posix.zig`, `zone/tzif.zig`, which sit beneath the
+arithmetic beside the kernels), the zone (`TimeZone.zig`), and the root. The span sits beneath the types it is added to, so what gives its
 calendar units a length (`Span.RelativeTo`) holds their records and is made by them (`Date.relativeTo`).
 
 ## The calendar
@@ -73,6 +74,37 @@ adding a span of time units (days and calendar units have no fixed length on a t
 the instant's type, refusing a length that is neither a multiple nor a divisor of its unit; `add` returns
 an exact `Timestamp`, and `convert` takes it to a coarser type under an explicit rounding mode.
 
+## Zones
+
+Every zone has one compiled form, `TimeZone`: an initial local time type, a sorted array of
+transitions (seconds since 1970) with the type each starts, and an optional POSIX rule for times past
+the table. A TZif file fills all of it; a POSIX string is a zone of a rule alone; a fixed offset and
+UTC have neither transitions nor rule. A local time type holds its offset, its daylight saving flag
+and its abbreviation inline (up to 16 bytes), so `Info.abbreviation` is borrowed from the zone and a
+zone made by value (`utc`, `fixed`, `posix`) holds no pointer into itself.
+
+A lookup is a binary search, then the rule. A zone is immutable and holds no hint of its own; a
+caller's `Cursor` remembers the last transition found and is tried, with its neighbour, before the
+search. Any cursor gives the same answers.
+
+**POSIX strings** (`std offset [dst [offset] ,start[/time],end[/time]]`, with RFC 8536's rule times
+from -167 to 167 hours) parse into a `Rule` of fixed size. Daylight saving time without a rule is
+refused rather than given an implementation's default. A rule is evaluated in closed form: the
+transitions of the years around an instant are computed and sorted, an end before a start at the same
+instant, so daylight saving all year (an end and the next start at once) stays in force. The next and
+previous changes are searched over several years and reported only where every event at that instant
+is known.
+
+**TZif files** (RFC 8536, versions 1 to 4) are untrusted bytes: each block's length is computed from
+its counts and checked against what the file still holds before anything is allocated; transitions
+must ascend strictly, every index, flag, offset (within ±25:59:59) and abbreviation is checked, and the
+footer must be the file's last line. A file with a leap second table (a `right/` zone) is refused as
+`LeapSeconds`: almanac counts POSIX time.
+
+Transitions are Temporal's: `nextTransition` and `previousTransition` report instants where the
+offset changes, so a change of abbreviation or daylight saving flag alone (Lisbon's WEST to CET in
+1992) is none.
+
 ## Validation
 
 The kernels are checked against Hinnant's independent `days_from_civil` on every day of the range, ISO
@@ -84,9 +116,15 @@ and properties over random dates and date-times that adding a difference reaches
 edges, at offsets, in conversion and rounding before and after 1970, chronicle's `Time` and a `u64` of
 milliseconds against a `Timestamp` of the same instant, a property that civil time at any offset and back
 is the instant, and compile-error fixtures (`src/testing/instant_rejected.zig`) for the `.awake` and
-`.boot` clocks, a duration and an integer.
+`.boot` clocks, a duration and an integer. Zones are checked on POSIX strings of both hemispheres,
+rule times past 24 hours and negative, Julian and zero-based days, daylight saving all year, and what
+is refused; on TZif files of the IANA database (testdata/zoneinfo: New York, Lisbon, Lord Howe and
+Apia, compiled by zic from tzdata 2026f) against zdump's account of each transition tested; on a
+property that lookups with any cursor agree with a linear scan and that the next and previous
+transitions bound the offset in force; and on mutated rules and mutated files, which parse or are
+refused and, when parsed, answer consistently.
 
 ## Not built yet
 
-Zones (TZif, POSIX strings, the embedded database), the database, resolution and zoned values, and
-text.
+The embedded database, the database (finding, loading and caching zones; the local zone), resolution
+and zoned values, and text.

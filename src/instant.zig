@@ -75,6 +75,11 @@ fn fromNanoseconds(comptime T: type, ns: i128) RangeError!T {
     return T.fromRaw(std.math.cast(T.aegis_scalar.representation, @divExact(ns, step(T))) orelse return error.OutOfRange);
 }
 
+/// Nanoseconds since 1970-01-01T00:00:00Z of any real instant inside almanac's range.
+pub fn epochNanoseconds(instant: anytype) RangeError!i128 {
+    return inside(instant);
+}
+
 /// The real clock's instant now.
 pub fn now(io: std.Io) Timestamp {
     return Timestamp.fromTimestamp(std.Io.Clock.real.now(io), .exact);
