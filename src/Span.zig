@@ -241,10 +241,12 @@ pub fn fromInternal(d: arithmetic.Internal, largest: Unit) RangeError!Span {
     });
 }
 
-/// What gives calendar units a length: made by `Date.relativeTo` (a zoned value's arrives with
-/// zones). The span sits beneath the types it is added to, so it holds their records, not them.
+/// What gives calendar units a length: made by `Date.relativeTo` or `Zoned.relativeTo`. The span
+/// sits beneath the types it is added to, so it holds their records, not them.
 pub const RelativeTo = union(enum) {
     date: arithmetic.IsoDate,
+    /// An instant and its zone: days as the zone makes them.
+    zoned: struct { ns: i128, zone: arithmetic.Zone },
 };
 
 /// Temporal's `Duration.prototype.add`: spans of days and time only (a day is 24 hours), the sum
@@ -268,6 +270,14 @@ pub fn compare(a: Span, b: Span, relative_to: ?RelativeTo) ArithmeticError!std.m
     const ib = try b.toInternal();
     var days_a = ia.date.days;
     var days_b = ib.date.days;
+    if (relative_to) |rel| switch (rel) {
+        .zoned => |z| if (arithmetic.isDate(a.largestUnit()) or arithmetic.isDate(b.largestUnit())) {
+            const after_a = try arithmetic.zonedAdd(z.zone, z.ns, ia, .constrain);
+            const after_b = try arithmetic.zonedAdd(z.zone, z.ns, ib, .constrain);
+            return std.math.order(after_a, after_b);
+        },
+        .date => {},
+    };
     if (calendar_units) {
         const rel = relative_to orelse return error.CalendarUnits;
         days_a = try dateDurationDays(ia.date, rel.date);
@@ -308,6 +318,16 @@ pub fn round(s: Span, options: Round) ArithmeticError!Span {
     try arithmetic.checkIncrement(options.increment, smallest);
     if (options.increment > 1 and largest != smallest and arithmetic.isDate(smallest)) return error.InvalidOptions;
     const r: arithmetic.Rounding = .{ .largest = largest, .smallest = smallest, .increment = options.increment, .mode = options.mode };
+
+    if (options.relative_to) |rel| if (rel == .zoned) {
+        const z = rel.zoned;
+        const target = try arithmetic.zonedAdd(z.zone, z.ns, try s.toInternal(), .constrain);
+        if (!arithmetic.isDate(largest)) {
+            const time = try arithmetic.checkTime(rounding.toIncrement(target - z.ns, arithmetic.nanoseconds(smallest) * options.increment, options.mode));
+            return fromInternal(.{ .time = time }, largest);
+        }
+        return fromInternal(try arithmetic.zonedUntilRounded(z.zone, z.ns, target, r), .hour);
+    };
 
     if (options.relative_to) |rel| {
         const d = try s.toInternalDays();

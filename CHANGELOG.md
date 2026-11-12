@@ -24,3 +24,6 @@ follow [Semantic Versioning](https://semver.org/).
 - Time zones: `TimeZone`, one compiled form for TZif files (RFC 8536, versions 1 to 4, read as untrusted bytes),
   POSIX TZ strings (with RFC 8536's extensions), fixed offsets and UTC; `offsetAt`, `infoAt` (offset, daylight
   saving, abbreviation), a caller's `Cursor`, and `nextTransition` and `previousTransition`.
+- Resolution and zoned values: `TimeZone.candidates`, `resolve` (every `Disambiguation`, a written offset under
+  every `OffsetConflict`, the start of a day), and `Zoned` (Temporal's `ZonedDateTime`: `add`, `subtract`, `until`,
+  `since`, `round`, `startOfDay`, `hoursInDay`); a zoned value as a span's `relativeTo`.

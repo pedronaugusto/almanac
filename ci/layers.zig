@@ -10,6 +10,8 @@ pub const layers: []const gantry.rules.Layer = &.{
     .{ .name = "civil", .patterns = &.{ "src/Date.zig", "src/Time.zig", "src/DateTime.zig" } },
     .{ .name = "instant", .patterns = &.{"src/instant.zig"} },
     .{ .name = "zone", .patterns = &.{"src/TimeZone.zig"} },
+    .{ .name = "resolve", .patterns = &.{"src/resolve.zig"} },
+    .{ .name = "zoned", .patterns = &.{"src/Zoned.zig"} },
     .{ .name = "root", .patterns = &.{"src/almanac.zig"} },
 };
 
@@ -42,6 +44,8 @@ pub const required = [_][]const u8{
     "src/zone/posix.zig",
     "src/zone/tzif.zig",
     "src/TimeZone.zig",
+    "src/resolve.zig",
+    "src/Zoned.zig",
     "src/Date.zig",
     "src/Time.zig",
     "src/DateTime.zig",

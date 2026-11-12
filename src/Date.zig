@@ -122,7 +122,8 @@ fn difference(d: Date, operation: arithmetic.Operation, other: Date, options: un
     var result: arithmetic.Internal = .{ .date = arithmetic.dateUntil(d.iso(), other.iso(), r.largest) };
     if (r.smallest != .day or r.increment != 1) {
         const dest = (arithmetic.IsoDateTime{ .date = other.iso() }).epochNs();
-        result = try arithmetic.roundRelative(result, dest, .{ .date = d.iso() }, r);
+        const origin: arithmetic.IsoDateTime = .{ .date = d.iso() };
+        result = try arithmetic.roundRelative(result, origin.epochNs(), dest, origin, null, r);
     }
     const span = try Span.fromInternal(result, .day);
     return if (operation == .since) span.negate() else span;

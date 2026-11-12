@@ -244,7 +244,80 @@ pub fn dateTimeUntilRounded(one: IsoDateTime, two: IsoDateTime, r: Rounding) Ran
     if (one.epochNs() == two.epochNs()) return .{};
     const diff = try dateTimeUntil(one, two, r.largest);
     if (r.smallest == .nanosecond and r.increment == 1) return diff;
-    return roundRelative(diff, two.epochNs(), one, r);
+    return roundRelative(diff, one.epochNs(), two.epochNs(), one, null, r);
+}
+
+/// What arithmetic in a zone asks of it: the wall clock at an instant (GetISODateTimeFor), and the
+/// instant of a wall clock under Temporal's `compatible` resolution (GetEpochNanosecondsFor). The
+/// zone sits above the arithmetic, so it is reached through these.
+pub const Zone = struct {
+    context: *const anyopaque,
+    wall_clock: *const fn (context: *const anyopaque, ns: i128) RangeError!IsoDateTime,
+    instant_of: *const fn (context: *const anyopaque, dt: IsoDateTime) RangeError!i128,
+
+    fn wallClock(z: Zone, ns: i128) RangeError!IsoDateTime {
+        return z.wall_clock(z.context, ns);
+    }
+
+    fn instantOf(z: Zone, dt: IsoDateTime) RangeError!i128 {
+        return z.instant_of(z.context, dt);
+    }
+};
+
+/// A wall clock's instant: in the zone, or read as UTC where there is none.
+fn epochOf(zone: ?Zone, dt: IsoDateTime) RangeError!i128 {
+    return if (zone) |z| z.instantOf(dt) else dt.epochNs();
+}
+
+/// The day after or before a wall clock's date, at the same time.
+fn nextDay(dt: IsoDateTime, sign: i2) RangeError!IsoDateTime {
+    const days = dt.date.epochDays() + sign;
+    if (!inRange(days)) return error.OutOfRange;
+    return .{ .date = fromEpochDays(days), .time = dt.time };
+}
+
+/// AddZonedDateTime: the date part added to the wall clock and resolved, then the time on the
+/// timeline. Without a date part, the time alone.
+pub fn zonedAdd(zone: Zone, ns: i128, d: Internal, overflow: Overflow) RangeError!i128 {
+    var at = ns;
+    if (d.date.sign() != 0) {
+        const wall = try zone.wallClock(ns);
+        at = try zone.instantOf(.{ .date = try dateAdd(wall.date, d.date, overflow), .time = wall.time });
+    }
+    return at + d.time;
+}
+
+/// DifferenceZonedDateTime: whole days by the wall clock, found by stepping back from the end's
+/// date until the time left runs the same way as the whole; the date part by the calendar, the
+/// rest on the timeline.
+pub fn zonedUntil(zone: Zone, one: i128, two: i128, largest: Unit) RangeError!Internal {
+    if (one == two) return .{};
+    const start = try zone.wallClock(one);
+    const end = try zone.wallClock(two);
+    if (compare(start.date, end.date) == 0) return .{ .time = two - one };
+    const sign: i2 = if (two < one) -1 else 1;
+    const max_correction: i64 = if (sign == 1) 2 else 1;
+    var correction: i64 = 0;
+    if (signOf(@as(i128, end.time) - start.time) == -sign) correction += 1;
+    while (correction <= max_correction) : (correction += 1) {
+        const days = end.date.epochDays() - correction * sign;
+        if (!inRange(days)) return error.OutOfRange;
+        const intermediate: IsoDateTime = .{ .date = fromEpochDays(days), .time = start.time };
+        const time = two - try zone.instantOf(intermediate);
+        if (sign != -signOf(time)) {
+            const date = dateUntil(start.date, intermediate.date, larger(largest, .day));
+            return .{ .date = date, .time = time };
+        }
+    }
+    // No real zone reaches here: its offsets change by less than a day at a time.
+    return error.OutOfRange;
+}
+
+/// DifferenceZonedDateTimeWithRounding, `largest` a date unit.
+pub fn zonedUntilRounded(zone: Zone, one: i128, two: i128, r: Rounding) RangeError!Internal {
+    const diff = try zonedUntil(zone, one, two, r.largest);
+    if (r.smallest == .nanosecond and r.increment == 1) return diff;
+    return roundRelative(diff, one, two, try zone.wallClock(one), zone, r);
 }
 
 pub const Operation = enum { until, since };
@@ -275,21 +348,26 @@ const Nudge = struct {
     expanded: bool,
 };
 
-/// RoundRelativeDuration without a zone: `duration` measured from `origin` to `dest`.
-pub fn roundRelative(duration: Internal, dest: i128, origin: IsoDateTime, r: Rounding) RangeError!Internal {
+/// RoundRelativeDuration: `duration` measured from `origin` (the instant `origin_ns`, the wall
+/// clock `origin`) to `dest`, in `zone` or on a timeline without one.
+pub fn roundRelative(duration: Internal, origin_ns: i128, dest: i128, origin: IsoDateTime, zone: ?Zone, r: Rounding) RangeError!Internal {
     const sign: i2 = if (duration.sign() < 0) -1 else 1;
-    const nudge = if (isCalendar(r.smallest))
-        try nudgeToCalendarUnit(sign, duration, dest, origin, r)
+    // A day in a zone may be 23 or 25 hours long: a calendar unit there.
+    const irregular = isCalendar(r.smallest) or (zone != null and r.smallest == .day);
+    const nudge = if (irregular)
+        try nudgeToCalendarUnit(sign, duration, origin_ns, dest, origin, zone, r)
+    else if (zone) |z|
+        try nudgeToZonedTime(sign, duration, origin, z, r)
     else
         try nudgeToDayOrTime(duration, dest, r);
     if (nudge.expanded and r.smallest != .week)
-        return bubble(sign, nudge.duration, nudge.nudged, origin, r.largest, larger(r.smallest, .day));
+        return bubble(sign, nudge.duration, nudge.nudged, origin, zone, r.largest, larger(r.smallest, .day));
     return nudge.duration;
 }
 
 /// NudgeToCalendarUnit: the duration truncated to a multiple of the increment in `unit`, and that
 /// plus one increment, as dates from the origin; the destination's progress between them picks one.
-fn nudgeToCalendarUnit(sign: i2, duration: Internal, dest: i128, origin: IsoDateTime, r: Rounding) RangeError!Nudge {
+fn nudgeToCalendarUnit(sign: i2, duration: Internal, origin_ns: i128, dest: i128, origin: IsoDateTime, zone: ?Zone, r: Rounding) RangeError!Nudge {
     const d = duration.date;
     const increment: i64 = r.increment;
     var start: DateRec = undefined;
@@ -323,15 +401,17 @@ fn nudgeToCalendarUnit(sign: i2, duration: Internal, dest: i128, origin: IsoDate
     }
     try checkDate(start);
     try checkDate(end);
-    const start_ns = (IsoDateTime{ .date = try dateAdd(origin.date, start, .constrain), .time = origin.time }).epochNs();
-    const end_ns = (IsoDateTime{ .date = try dateAdd(origin.date, end, .constrain), .time = origin.time }).epochNs();
+    // A start that is the origin itself is the origin's instant, not its wall clock resolved
+    // again (which in a fold may be the other of its two instants).
+    const start_ns = if (start.sign() == 0) origin_ns else try epochOf(zone, .{ .date = try dateAdd(origin.date, start, .constrain), .time = origin.time });
+    const end_ns = try epochOf(zone, .{ .date = try dateAdd(origin.date, end, .constrain), .time = origin.time });
     var num = dest - start_ns;
     var den = end_ns - start_ns;
     if (sign < 0) {
         num = -num;
         den = -den;
     }
-    std.debug.assert(den > 0 and num >= 0 and num <= den);
+    if (!(den > 0 and num >= 0 and num <= den)) return error.OutOfRange;
     const r1_abs: i64 = @intCast(@abs(r1));
     const up = round.toSecond(num, den, round.unsignedMode(r.mode, sign < 0), @mod(@divTrunc(r1_abs, increment), 2) == 0);
     return if (up)
@@ -363,9 +443,35 @@ fn nudgeToDayOrTime(duration: Internal, dest: i128, r: Rounding) RangeError!Nudg
     return .{ .duration = .{ .date = date, .time = remainder }, .nudged = dest + (rounded - time), .expanded = expanded };
 }
 
+/// NudgeToZonedTime: the time rounded within the day the date part reaches, that day as long as
+/// the zone makes it; rounding past its end carries a day and rounds what lies beyond again.
+fn nudgeToZonedTime(sign: i2, duration: Internal, origin: IsoDateTime, zone: Zone, r: Rounding) RangeError!Nudge {
+    const start: IsoDateTime = .{ .date = try dateAdd(origin.date, duration.date, .constrain), .time = origin.time };
+    const end = try nextDay(start, sign);
+    const start_ns = try zone.instantOf(start);
+    const end_ns = try zone.instantOf(end);
+    const day_span = end_ns - start_ns;
+    const length = nanoseconds(r.smallest) * r.increment;
+    var rounded = try checkTime(round.toIncrement(duration.time, length, r.mode));
+    const beyond = rounded - day_span;
+    var date = duration.date;
+    var nudged: i128 = undefined;
+    var expanded = false;
+    if (signOf(beyond) != -sign) {
+        expanded = true;
+        date.days += sign;
+        rounded = try checkTime(round.toIncrement(beyond, length, r.mode));
+        nudged = end_ns + rounded;
+    } else {
+        nudged = start_ns + rounded;
+    }
+    try checkDate(date);
+    return .{ .duration = .{ .date = date, .time = rounded }, .nudged = nudged, .expanded = expanded };
+}
+
 /// BubbleRelativeDuration: after rounding carried into a larger unit, each unit up to `largest`
 /// takes one more where the rounded end reaches that unit's next boundary.
-fn bubble(sign: i2, duration: Internal, nudged: i128, origin: IsoDateTime, largest: Unit, smallest: Unit) RangeError!Internal {
+fn bubble(sign: i2, duration: Internal, nudged: i128, origin: IsoDateTime, zone: ?Zone, largest: Unit, smallest: Unit) RangeError!Internal {
     var out = duration;
     var index: usize = @backingInt(smallest);
     while (index > @backingInt(largest)) {
@@ -380,7 +486,7 @@ fn bubble(sign: i2, duration: Internal, nudged: i128, origin: IsoDateTime, large
             else => unreachable,
         };
         try checkDate(end);
-        const end_ns = (IsoDateTime{ .date = try dateAdd(origin.date, end, .constrain), .time = origin.time }).epochNs();
+        const end_ns = try epochOf(zone, .{ .date = try dateAdd(origin.date, end, .constrain), .time = origin.time });
         if (signOf(nudged - end_ns) == -sign) break;
         out = .{ .date = end };
     }

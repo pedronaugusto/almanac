@@ -13,6 +13,7 @@ const units = @import("units.zig");
 const instant = @import("instant.zig");
 const posix_rule = @import("zone/posix.zig");
 const tzif = @import("zone/tzif.zig");
+const DateTime = @import("DateTime.zig");
 const Offset = units.Offset;
 const Allocator = std.mem.Allocator;
 const Local = posix_rule.Local;
@@ -160,6 +161,80 @@ pub fn offsetAtCursor(zone: *const TimeZone, cursor: *Cursor, at: anytype) Range
 /// The offset, daylight saving and abbreviation in force at an instant.
 pub fn infoAt(zone: *const TimeZone, at: anytype) RangeError!Info {
     return info(zone.localAt(try secondsOf(at), null));
+}
+
+/// The instants at which the zone's wall clock reads a given civil time: none where the zone skips
+/// it (a gap), two where it repeats it (a fold), one otherwise. Earliest first.
+pub const Candidates = struct {
+    /// How many there are. More than two is possible only for a zone whose offset changes several
+    /// times within two days (no real zone's does); `instants` keeps the first four.
+    count: usize = 0,
+    /// Nanoseconds since 1970.
+    instants: [4]i128 = undefined,
+
+    pub fn slice(c: *const Candidates) []const i128 {
+        return c.instants[0..@min(c.count, c.instants.len)];
+    }
+
+    pub fn earliest(c: *const Candidates) ?i128 {
+        return if (c.count == 0) null else c.instants[0];
+    }
+
+    pub fn latest(c: *const Candidates) ?i128 {
+        return if (c.count == 0) null else c.instants[@min(c.count, c.instants.len) - 1];
+    }
+};
+
+/// The candidates for a wall clock given as nanoseconds since 1970 read as if UTC. Each offset in
+/// force within two days either side (an offset is under 26 hours) is tried: the wall clock less
+/// it is a candidate where that offset is the one in force there.
+pub fn candidatesAt(zone: *const TimeZone, local: i128) Candidates {
+    const day: i64 = 86_400;
+    const centre: i64 = @intCast(@divFloor(local, std.time.ns_per_s));
+    var offsets: [66]i32 = undefined;
+    var n: usize = 0;
+    var at = centre - 2 * day;
+    offsets[n] = offsetSeconds(zone.localAt(at, null));
+    n += 1;
+    // The changes within the window; a zone with more than 64 in four days has the rest passed over.
+    while (n < offsets.len) {
+        at = zone.nextSeconds(at) orelse break;
+        if (at > centre + 2 * day) break;
+        offsets[n] = offsetSeconds(zone.localAt(at, null));
+        n += 1;
+    }
+    var c: Candidates = .{};
+    var found: [66]i128 = undefined;
+    var count: usize = 0;
+    for (offsets[0..n], 0..) |o, i| {
+        if (std.mem.findScalar(i32, offsets[0..i], o) != null) continue;
+        const candidate = local - @as(i128, o) * std.time.ns_per_s;
+        const s: i64 = @intCast(@divFloor(candidate, std.time.ns_per_s));
+        if (offsetSeconds(zone.localAt(s, null)) == o) {
+            found[count] = candidate;
+            count += 1;
+        }
+    }
+    std.mem.sort(i128, found[0..count], {}, std.sort.asc(i128));
+    c.count = count;
+    for (found[0..@min(count, c.instants.len)], 0..) |f, i| c.instants[i] = f;
+    if (count > c.instants.len) c.instants[c.instants.len - 1] = found[count - 1];
+    return c;
+}
+
+/// The candidates for a civil date and time in the zone.
+pub fn candidates(zone: *const TimeZone, dt: DateTime) Candidates {
+    return zone.candidatesAt(@as(i128, dt.date.days()) * std.time.ns_per_day + dt.time.nanosecondOfDay());
+}
+
+/// The offset in force at nanoseconds since 1970, inside or outside almanac's range.
+pub fn offsetAtNanoseconds(zone: *const TimeZone, ns: i128) i32 {
+    return offsetSeconds(zone.localAt(@intCast(@divFloor(ns, std.time.ns_per_s)), null));
+}
+
+/// The first change of offset after nanoseconds since 1970, as seconds.
+pub fn nextChange(zone: *const TimeZone, ns: i128) ?i64 {
+    return zone.nextSeconds(@intCast(@divFloor(ns, std.time.ns_per_s)));
 }
 
 fn offsetSeconds(l: *const Local) i32 {

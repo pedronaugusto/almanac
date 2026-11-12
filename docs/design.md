@@ -13,7 +13,9 @@ invariant or a decision changes.
 (`calendar.zig`, the calendar's conversions; `round.zig`, rounding), the arithmetic (`arithmetic.zig`,
 Temporal's abstract operations over plain records), the span (`Span.zig`), the civil values (`Date.zig`,
 `Time.zig`, `DateTime.zig`), instants (`instant.zig`), the zone's sources (`zone/posix.zig`, `zone/tzif.zig`, which sit beneath the
-arithmetic beside the kernels), the zone (`TimeZone.zig`), and the root. The span sits beneath the types it is added to, so what gives its
+arithmetic beside the kernels), the zone (`TimeZone.zig`), resolution (`resolve.zig`), zoned values (`Zoned.zig`), and the root.
+Arithmetic in a zone reaches the zone through `arithmetic.Zone`, two functions (the wall clock at an
+instant, and a wall clock's instant under `compatible`), since the zone sits above the arithmetic. The span sits beneath the types it is added to, so what gives its
 calendar units a length (`Span.RelativeTo`) holds their records and is made by them (`Date.relativeTo`).
 
 ## The calendar
@@ -53,7 +55,13 @@ almanac's arithmetic is Temporal's, transcribed from its abstract operations in 
   (NudgeToDayOrTime); then a carry bubbles up through the units to the largest. Every comparison is exact integer
   arithmetic: progress is a fraction of two `i128`s, never a float. A span rounded without a date may hold no calendar
   units, and a day is 24 hours.
-- **Not yet:** a zoned value as `relativeTo` (with zones), `Duration.total`, and rounding a `DateTime` or a `Time`.
+- **In a zone** (AddZonedDateTime, DifferenceZonedDateTime, NudgeToZonedTime): days are calendar units,
+  added to the wall clock and resolved `compatible`, so a day across a change of offset is 23 or 25 hours;
+  a difference finds whole days by stepping back from the end's date until the time left runs the same way
+  as the whole; rounding to the day uses the day's own length. Where NudgeToCalendarUnit's start is the
+  origin itself, the origin's instant is used rather than its wall clock resolved again, which in a fold
+  could be the other of its two instants.
+- **Not yet:** `Duration.total`, and rounding a `DateTime` or a `Time`.
 
 ## Instants
 
@@ -105,6 +113,18 @@ Transitions are Temporal's: `nextTransition` and `previousTransition` report ins
 offset changes, so a change of abbreviation or daylight saving flag alone (Lisbon's WEST to CET in
 1992) is none.
 
+## Resolution and zoned values
+
+A wall clock's candidates in a zone are found by trying each offset in force within two days either side
+of it: the wall clock less that offset is a candidate where that offset is the one in force there. A gap
+has none, a fold two. `Disambiguation` picks among them as Temporal does (in a gap, `compatible` and
+`later` move the wall clock forward by the gap's length, `earlier` back); `OffsetConflict` weighs an
+offset written beside the wall clock (`use`, `ignore`, `prefer`, `reject`, with RFC 3339's minute
+precision as an option). `Zoned` holds an instant, a borrowed zone and the offset in force, and is
+refused where its wall clock would leave the calendar. Its arithmetic, differences (the hour the default
+largest unit), rounding and `startOfDay` are Temporal's `ZonedDateTime`'s; differences in date units need
+the same zone (the same zone value, or the same IANA name).
+
 ## Validation
 
 The kernels are checked against Hinnant's independent `days_from_civil` on every day of the range, ISO
@@ -122,9 +142,12 @@ is refused; on TZif files of the IANA database (testdata/zoneinfo: New York, Lis
 Apia, compiled by zic from tzdata 2026f) against zdump's account of each transition tested; on a
 property that lookups with any cursor agree with a linear scan and that the next and previous
 transitions bound the offset in force; and on mutated rules and mutated files, which parse or are
-refused and, when parsed, answer consistently.
+refused and, when parsed, answer consistently. Resolution is checked on New York's gap and fold under
+every disambiguation and offset policy, Lisbon's local mean time written to the minute, a day whose
+midnight is skipped, zoned arithmetic, differences, rounding and spans across changes of offset, and a
+property that the candidates and the `compatible` resolution agree with a brute-force search over every
+offset the zone uses.
 
 ## Not built yet
 
-The embedded database, the database (finding, loading and caching zones; the local zone), resolution
-and zoned values, and text.
+The embedded database, the database (finding, loading and caching zones; the local zone), and text.
