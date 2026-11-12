@@ -109,7 +109,7 @@ fn anyDay(_: void, case: *shakedown.Case) !void {
     const w = d.isoWeek();
     // The ISO week's Monday is at most three days from the date's year's edges.
     try testing.expect(w.year >= @as(i32, d.year.raw()) - 1 and w.year <= @as(i32, d.year.raw()) + 1);
-    try testing.expectEqual(@as(u32, @intFromEnum(d.weekday())), calendar.weekday(days));
+    try testing.expectEqual(@as(u32, @backingInt(d.weekday())), calendar.weekday(days));
 }
 
 test "fuzz: any day count's date counts back to it, as the independent derivation does" {

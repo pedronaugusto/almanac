@@ -52,13 +52,25 @@ pub fn civilFromDays(days: i32) Civil {
     return .{ .year = year, .month = if (january_or_february) month - 12 else month, .day = day + 1 };
 }
 
-pub fn isLeapYear(year: i32) bool {
+/// The day count of a date in any year an `i64` holds, by Hinnant's floor-division
+/// derivation: what arithmetic reads before it checks its result is in range.
+pub fn daysFromCivilWide(year: i64, month: u32, day: u32) i64 {
+    const y = year - @intFromBool(month <= 2);
+    const era = @divFloor(y, 400);
+    const year_of_era = y - era * 400;
+    const m: i64 = month;
+    const day_of_year = @divFloor(153 * (if (m > 2) m - 3 else m + 9) + 2, 5) + day - 1;
+    const day_of_era = year_of_era * 365 + @divFloor(year_of_era, 4) - @divFloor(year_of_era, 100) + day_of_year;
+    return era * 146_097 + day_of_era - 719_468;
+}
+
+pub fn isLeapYear(year: i64) bool {
     // A year divisible by 100 is leap only where divisible by 400, which is by 16 then.
-    const divisor: i32 = if (@rem(year, 100) == 0) 16 else 4;
+    const divisor: i64 = if (@rem(year, 100) == 0) 16 else 4;
     return @mod(year, divisor) == 0;
 }
 
-pub fn daysInMonth(year: i32, month: u32) u32 {
+pub fn daysInMonth(year: i64, month: u32) u32 {
     if (month == 2) return if (isLeapYear(year)) 29 else 28;
     // 30 for April, June, September and November, else 31.
     return 30 | (month ^ (month >> 3));
@@ -94,5 +106,6 @@ test "the kernels are evaluable at comptime" {
         std.debug.assert(civilFromDays(0).year == 1970);
         std.debug.assert(daysFromCivil(-9999, 1, 1) == min_days);
         std.debug.assert(daysFromCivil(9999, 12, 31) == max_days);
+        std.debug.assert(daysFromCivilWide(-9999, 1, 1) == min_days);
     }
 }

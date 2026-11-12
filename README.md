@@ -6,8 +6,8 @@ Temporal's semantics: an explicit policy at every ambiguous point, and no hidden
 
 ## Status
 
-Unreleased and being built: the calendar (dates, times, the proleptic Gregorian kernels) is in; arithmetic, instants,
-zones, text and the embedded database follow. [The design](docs/design.md) says what is built.
+Unreleased and being built: the calendar (dates, times, the proleptic Gregorian kernels) and civil arithmetic (spans,
+adding, differences, rounding) are in; instants, zones, text and the embedded database follow. [The design](docs/design.md) says what is built.
 
 ## License
 

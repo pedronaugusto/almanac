@@ -4,7 +4,8 @@
 const aegis = @import("aegis");
 const Ranged = aegis.int.Ranged;
 
-/// The proleptic Gregorian years almanac covers, as Temporal and jiff.
+/// The proleptic Gregorian years almanac covers, jiff's range: a year has four digits in RFC 3339
+/// text and fits an `i16`. Temporal's reaches further; almanac refuses what lies outside.
 pub const Year = Ranged(i16, -9999, 9999);
 pub const Month = Ranged(u8, 1, 12);
 /// A day of the month; a `Date` checks it against its month.
@@ -22,6 +23,15 @@ pub const Week = Ranged(u8, 1, 53);
 
 /// A value outside almanac's calendar or a field's range.
 pub const RangeError = error{OutOfRange};
+
+/// What a difference refuses: a result out of range, or options Temporal refuses (a smallest unit
+/// above the largest, a unit the type does not have, an increment that does not divide the unit
+/// above it).
+pub const DifferenceError = RangeError || error{InvalidOptions};
+
+/// What arithmetic on spans refuses: a `DifferenceError`, or years, months or weeks where no date
+/// gives them a length (Temporal's missing `relativeTo`).
+pub const ArithmeticError = DifferenceError || error{CalendarUnits};
 
 /// An offset from UTC in seconds, within RFC 9557's ±25:59:59 (Temporal's bound).
 pub const Offset = struct {
@@ -70,6 +80,20 @@ pub const RoundingMode = enum {
     half_expand,
     half_trunc,
     half_even,
+};
+
+/// How a difference (`until`, `since`) is measured and rounded: Temporal's options.
+pub const Difference = struct {
+    /// The largest unit of the result; null for the larger of the day and `smallest` (Temporal's
+    /// `auto`).
+    largest: ?Unit = null,
+    /// The unit rounded to; null for the type's smallest (the day for a date, the nanosecond for a
+    /// date and time).
+    smallest: ?Unit = null,
+    /// A multiple of `smallest` to round to: up to 10^9, and for a time unit a divisor of the unit
+    /// above it, less than it.
+    increment: u32 = 1,
+    mode: RoundingMode = .trunc,
 };
 
 /// A day past the end of the target month (January 31 plus a month): clamped to the month's last

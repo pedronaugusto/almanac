@@ -3,7 +3,9 @@ const gantry = @import("gantry");
 
 pub const layers: []const gantry.rules.Layer = &.{
     .{ .name = "vocabulary", .patterns = &.{"src/units.zig"} },
-    .{ .name = "calendar", .patterns = &.{"src/calendar.zig"} },
+    .{ .name = "kernels", .patterns = &.{ "src/calendar.zig", "src/round.zig" } },
+    .{ .name = "arithmetic", .patterns = &.{"src/arithmetic.zig"} },
+    .{ .name = "span", .patterns = &.{"src/Span.zig"} },
     .{ .name = "civil", .patterns = &.{ "src/Date.zig", "src/Time.zig", "src/DateTime.zig" } },
     .{ .name = "root", .patterns = &.{"src/almanac.zig"} },
 };
@@ -28,6 +30,9 @@ pub const references: []const gantry.rules.ReferenceRule = &package_references;
 pub const required = [_][]const u8{
     "src/units.zig",
     "src/calendar.zig",
+    "src/round.zig",
+    "src/arithmetic.zig",
+    "src/Span.zig",
     "src/Date.zig",
     "src/Time.zig",
     "src/DateTime.zig",
