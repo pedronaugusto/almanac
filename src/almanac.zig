@@ -1,4 +1,4 @@
-//! almanac: civil time. Calendar dates and times, spans and their arithmetic; instants, zoned
+//! almanac: civil time. Calendar dates and times, instants, spans and their arithmetic; zoned
 //! times and text arrive stage by stage (docs/design.md says what is built).
 pub const units = @import("units.zig");
 pub const calendar = @import("calendar.zig");
@@ -6,6 +6,13 @@ pub const Date = @import("Date.zig");
 pub const Time = @import("Time.zig");
 pub const DateTime = @import("DateTime.zig");
 pub const Span = @import("Span.zig");
+pub const instant = @import("instant.zig");
+
+pub const Timestamp = instant.Timestamp;
+pub const Exact = instant.Exact;
+pub const now = instant.now;
+pub const round = instant.round;
+pub const inRange = instant.inRange;
 
 pub const Year = units.Year;
 pub const Month = units.Month;

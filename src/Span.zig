@@ -107,10 +107,15 @@ pub fn fromSigned(f: Signed) RangeError!Span {
 
 /// The days and time fields as one count of nanoseconds, unsigned.
 fn magnitude(s: Span) u128 {
-    const day: u128 = @intCast(arithmetic.ns_per_day);
-    return s.days.raw() * day + s.hours.raw() * 3600 * ns_per_s + s.minutes.raw() * 60 * ns_per_s +
-        @as(u128, s.seconds.raw()) * ns_per_s + @as(u128, s.milliseconds.raw()) * std.time.ns_per_ms +
-        s.microseconds.raw() * std.time.ns_per_us + s.nanoseconds.raw();
+    const wide = struct {
+        fn f(v: anytype, comptime scale: u128) u128 {
+            return @as(u128, v) * scale;
+        }
+    }.f;
+    return wide(s.days.raw(), @intCast(arithmetic.ns_per_day)) + wide(s.hours.raw(), 3600 * ns_per_s) +
+        wide(s.minutes.raw(), 60 * ns_per_s) + wide(s.seconds.raw(), ns_per_s) +
+        wide(s.milliseconds.raw(), std.time.ns_per_ms) + wide(s.microseconds.raw(), std.time.ns_per_us) +
+        s.nanoseconds.raw();
 }
 
 /// A field's value with the span's sign.

@@ -44,6 +44,12 @@ test "a span's bounds: one sign, years below 2^32, days and time below 2^53 seco
     // The joint bound holds across fields: 2^53 seconds as milliseconds alone is one too many.
     _ = try Span.init(.positive, .{ .milliseconds = (1 << 53) * 1000 - 1 });
     try testing.expectError(error.OutOfRange, Span.init(.positive, .{ .milliseconds = (1 << 53) * 1000 }));
+    // Each time field alone up to the bound, counted without overflow.
+    _ = try Span.init(.positive, .{ .hours = ((1 << 53) - 1) / 3600 });
+    _ = try Span.init(.positive, .{ .minutes = ((1 << 53) - 1) / 60 });
+    _ = try Span.init(.positive, .{ .microseconds = (1 << 53) * 1_000_000 - 1 });
+    _ = try Span.init(.positive, .{ .nanoseconds = (1 << 53) * 1_000_000_000 - 1 });
+    try testing.expectError(error.OutOfRange, Span.init(.positive, .{ .hours = ((1 << 53) - 1) / 3600, .minutes = 60 }));
     // Zero is positive; negating it keeps it so.
     const z = try Span.init(.negative, .{});
     try testing.expectEqual(.positive, z.sign);

@@ -6,4 +6,5 @@ test {
     _ = @import("round.zig");
     _ = @import("arithmetic.zig");
     _ = @import("span_test.zig");
+    _ = @import("instant_test.zig");
 }

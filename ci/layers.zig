@@ -7,18 +7,21 @@ pub const layers: []const gantry.rules.Layer = &.{
     .{ .name = "arithmetic", .patterns = &.{"src/arithmetic.zig"} },
     .{ .name = "span", .patterns = &.{"src/Span.zig"} },
     .{ .name = "civil", .patterns = &.{ "src/Date.zig", "src/Time.zig", "src/DateTime.zig" } },
+    .{ .name = "instant", .patterns = &.{"src/instant.zig"} },
     .{ .name = "root", .patterns = &.{"src/almanac.zig"} },
 };
 
 pub const entries: []const []const u8 = &.{};
 
-pub const modules: []const gantry.NamedModule = &.{};
+pub const modules: []const gantry.NamedModule = &.{
+    .{ .name = "almanac", .path = "src/almanac.zig" },
+};
 
 const package_references = [_]gantry.rules.ReferenceRule{
     .{
         .name = "named dependencies",
         .unresolved_only = true,
-        .except_targets = &.{ "std", "aegis", "shakedown", "builtin" },
+        .except_targets = &.{ "std", "aegis", "shakedown", "builtin", "rejection_options" },
     },
     .{ .name = "source siblings", .suffix = ".zig", .relative = true, .except_targets = &.{"src/**"} },
 };
@@ -33,6 +36,7 @@ pub const required = [_][]const u8{
     "src/round.zig",
     "src/arithmetic.zig",
     "src/Span.zig",
+    "src/instant.zig",
     "src/Date.zig",
     "src/Time.zig",
     "src/DateTime.zig",

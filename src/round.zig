@@ -68,6 +68,16 @@ pub fn toIncrement(x: i128, increment: i128, mode: RoundingMode) i128 {
     return if (negative) -rounded else rounded;
 }
 
+/// RoundNumberToIncrementAsIfPositive: rounding on a timeline, where a mode's direction is the
+/// timeline's whatever the sign (an instant before 1970 truncates toward the past, as floor).
+pub fn toIncrementAsIfPositive(x: i128, increment: i128, mode: RoundingMode) i128 {
+    std.debug.assert(increment > 0);
+    const q = @divFloor(x, increment);
+    const r = x - q * increment;
+    const up = toSecond(r, increment, unsignedMode(mode, false), @mod(q, 2) == 0);
+    return (if (up) q + 1 else q) * increment;
+}
+
 test "every mode at a tie, below and above it, both signs" {
     const t = std.testing;
     // 15 to tens: ceil 20, floor 10, expand 20, trunc 10, half_ceil 20, half_floor 10,
@@ -83,4 +93,14 @@ test "every mode at a tie, below and above it, both signs" {
     try t.expectEqual(10, toIncrement(14, 10, .half_expand));
     try t.expectEqual(20, toIncrement(16, 10, .half_trunc));
     try t.expectEqual(30, toIncrement(30, 10, .expand));
+}
+
+test "on a timeline the direction ignores the sign" {
+    const t = std.testing;
+    try t.expectEqual(-20, toIncrementAsIfPositive(-15, 10, .trunc));
+    try t.expectEqual(-20, toIncrementAsIfPositive(-15, 10, .half_trunc));
+    try t.expectEqual(-20, toIncrementAsIfPositive(-15, 10, .half_even));
+    try t.expectEqual(-10, toIncrementAsIfPositive(-15, 10, .half_expand));
+    try t.expectEqual(-10, toIncrementAsIfPositive(-11, 10, .ceil));
+    try t.expectEqual(10, toIncrementAsIfPositive(15, 10, .floor));
 }

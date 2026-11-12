@@ -30,7 +30,8 @@ pub const RangeError = error{OutOfRange};
 pub const DifferenceError = RangeError || error{InvalidOptions};
 
 /// What arithmetic on spans refuses: a `DifferenceError`, or years, months or weeks where no date
-/// gives them a length (Temporal's missing `relativeTo`).
+/// gives them a length (Temporal's missing `relativeTo`), and on an instant days too, which a
+/// timeline without a zone does not give one.
 pub const ArithmeticError = DifferenceError || error{CalendarUnits};
 
 /// An offset from UTC in seconds, within RFC 9557's ±25:59:59 (Temporal's bound).

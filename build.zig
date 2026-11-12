@@ -40,7 +40,41 @@ pub fn dev(b: *std.Build, tools: type) void {
     const test_step = b.step("test", "Run the tests");
     test_step.dependOn(&b.addRunArtifact(tests).step);
     check.dependOn(&tests.step);
+
+    // An instant of another clock, or no instant, does not compile where almanac takes one.
+    if (test_filter == null or std.mem.find(u8, "instant", test_filter.?) != null) {
+        const aegis_module = p.dependency("aegis", .{ .target = target, .optimize = optimize }).module("aegis");
+        const almanac_module = package.module("almanac");
+        for (instant_rejections, 0..) |message, case| {
+            const rejection_options = b.addOptions();
+            rejection_options.addOption(usize, "case", case);
+            const rejected = b.addObject(.{
+                .name = b.fmt("instant-rejected-{d}", .{case}),
+                .root_module = b.createModule(.{
+                    .root_source_file = p.path("src/testing/instant_rejected.zig"),
+                    .target = target,
+                    .optimize = optimize,
+                    .imports = &.{
+                        .{ .name = "aegis", .module = aegis_module },
+                        .{ .name = "almanac", .module = almanac_module },
+                    },
+                }),
+            });
+            rejected.root_module.addOptions("rejection_options", rejection_options);
+            rejected.expect_errors = .{ .contains = message };
+            test_step.dependOn(&rejected.step);
+            check.dependOn(&rejected.step);
+        }
+    }
     b.getInstallStep().dependOn(&tests.step);
     // The release tier runs every property under Zig's fuzzer, and the suite with safety on.
     tools.preflight.addCi(b, p, .{ .tests = test_step, .portable_tests = true, .hardened = .{ .fuzz_step = "test", .tsan_step = "test" } });
 }
+
+/// What each case of src/testing/instant_rejected.zig is refused with.
+const instant_rejections = [_][]const u8{
+    "is of the awake clock, which names no civil time",
+    "is of the boot clock, which names no civil time",
+    "is an aegis duration, no instant",
+    "u64 is no aegis scalar",
+};
