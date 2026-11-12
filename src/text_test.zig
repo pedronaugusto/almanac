@@ -45,7 +45,6 @@ test "instants: RFC 3339 and Temporal's wider reading" {
         "2026-10-31T10:00:00+01:00",          "2026-10-31T10:00+01",               "20261031T090000Z",
         "2026-10-31T09:00Z",                  "2026-10-31T09Z",                    "2026-10-31T04:00:00-05:00[America/New_York]",
         "2026-10-31T09:00:00Z[u-ca=iso8601]", "2026-10-31T09:00:00Z[foo=bar-baz]", "+002026-10-31T09:00:00Z",
-        "2026-10-31T08:00:00\u{2212}01:00",
     }) |s| {
         errdefer std.debug.print("{s}\n", .{s});
         try testing.expectEqual(want, try text.parseTimestamp(u(s), .{}));
@@ -54,15 +53,22 @@ test "instants: RFC 3339 and Temporal's wider reading" {
     try testing.expectEqual(utc(2016, 12, 31, 23, 59, 59, 0), try text.parseTimestamp(u("2016-12-31T23:59:60Z"), .{}));
     var diagnostic: text.Diagnostic = .{};
     for ([_][]const u8{
-        "2026-10-31T09:00:00",                "2026-10-31",                      "2026-10-31T24:00:00Z",
-        "2026-02-29T00:00:00Z",               "2026-10-31T09:00:00.1234567890Z", "2026-10-31T09:00:00Z[!foo=bar]",
-        "2026-10-31T09:00:00Z[u-ca=gregory]", "-000000-01-01T00:00:00Z",         "+010000-01-01T00:00:00Z",
-        "2026-1031T09:00:00Z",                "2026-10-31T09:00:00+24:00",       "2026-10-31T09:00:00Z[Europe/Lisbon][America/New_York]",
-        "2026-10-31T09:00:00Z ",              "",                                "2026-10-31T09:00:00+01:00:00.5",
+        "2026-10-31T09:00:00",       "2026-10-31",                                            "2026-10-31T24:00:00Z",
+        "2026-02-29T00:00:00Z",      "2026-10-31T09:00:00.1234567890Z",                       "2026-10-31T09:00:00Z[!foo=bar]",
+        "-000000-01-01T00:00:00Z",   "+010000-01-01T00:00:00Z",                               "2026-1031T09:00:00Z",
+        "2026-10-31T09:00:00+24:00", "2026-10-31T09:00:00Z[Europe/Lisbon][America/New_York]", "2026-10-31T09:00:00Z ",
+        "",                          "2026-10-31T09:00:00+24:00:00",
     }) |s| {
         errdefer std.debug.print("accepted {s}\n", .{s});
         try testing.expectError(error.Invalid, text.parseTimestamp(u(s), .{ .diagnostic = &diagnostic }));
     }
+    // An offset to the nanosecond, as Temporal reads it.
+    try testing.expectEqual(utc(2026, 10, 31, 7, 59, 59, 500_000_000), try text.parseTimestamp(u("2026-10-31T09:00:00+01:00:00.5"), .{}));
+    // An instant has no calendar and reads past any; a date refuses all but ISO 8601's.
+    _ = try text.parseTimestamp(u("2026-10-31T09:00:00Z[u-ca=gregory]"), .{});
+    try testing.expectError(error.Invalid, text.parseDate(u("2026-10-31[u-ca=gregory]"), .{}));
+    _ = try text.parseDate(u("2026-10-31[u-ca=iso8601][u-ca=gregory]"), .{});
+    try testing.expectError(error.Invalid, text.parseDate(u("2026-10-31[u-ca=iso8601][!u-ca=gregory]"), .{}));
     try testing.expectError(error.Invalid, text.parseTimestamp(u("2026-10-31T09:00:00Z[foo=bar]"), .{ .unknown_annotations = .refuse }));
     _ = try text.parseTimestamp(u("2026-10-31T09:00:00Z[foo=bar]"), .{ .unknown_annotations = .ignore });
     // The diagnostic says where.
@@ -96,13 +102,12 @@ test "durations: Temporal's reading" {
         .{ "P1Y2D", .{ .years = 1, .days = 2 } },
         .{ "+P1D", .{ .days = 1 } },
         .{ "PT0S", .{} },
-        .{ "\u{2212}P2W", .{ .weeks = -2 } },
     };
     for (cases) |c| {
         errdefer std.debug.print("{s}\n", .{c[0]});
         try testing.expect((try text.parseSpan(u(c[0]), .{})).eql(try Span.fromSigned(c[1])));
     }
-    for ([_][]const u8{ "P", "PT", "P1H", "PT1D", "P1.5D", "PT1.5H1M", "P1D2Y", "1D", "P-1D", "P4294967296Y", "PT9007199254740992S", "P1DT" }) |s| {
+    for ([_][]const u8{ "P", "PT", "P1H", "PT1D", "P1.5D", "PT1.5H1M", "P1D2Y", "1D", "P-1D", "P4294967296Y", "PT9007199254740992S", "P1DT", "\u{2212}P2W" }) |s| {
         errdefer std.debug.print("accepted {s}\n", .{s});
         try testing.expectError(error.Invalid, text.parseSpan(u(s), .{}));
     }

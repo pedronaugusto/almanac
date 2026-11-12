@@ -29,15 +29,15 @@ const invalid = iso.refuse;
 /// RFC 9557 annotation after it allowed and passed over): Temporal's `Instant.from`.
 pub fn parseTimestamp(s: Untrusted, options: Options) ParseError!Timestamp {
     const text = s.readForParse();
-    const dt = try iso.dateTime(text, options);
+    const dt = try iso.dateTimeNoCalendar(text, options);
     const time = dt.time orelse return invalid(options, text.len, "a time");
     const written = dt.offset orelse return invalid(options, text.len, "an offset or 'Z'");
-    const seconds: i32 = switch (written) {
+    const offset_ns: i64 = switch (written) {
         .z => 0,
-        .numeric => |n| n.offset.seconds.raw(),
+        .numeric => |n| n.nanoseconds,
     };
     const local = resolve.wallClock(.{ .date = Date.fromCivil(dt.date), .time = Time.fromCivil(time) });
-    const ns = resolve.checked(local - @as(i128, seconds) * std.time.ns_per_s) catch return invalid(options, 0, "an instant from -9999 to 9999");
+    const ns = resolve.checked(local - offset_ns) catch return invalid(options, 0, "an instant from -9999 to 9999");
     return .fromRaw(@intCast(ns));
 }
 
@@ -103,7 +103,16 @@ pub fn parseZoned(db: *Database, io: std.Io, s: Untrusted, options: ParseZoned) 
         const written = dt.offset orelse break :blk try resolve.resolve(tz, civil, options.disambiguation);
         break :blk switch (written) {
             .z => try resolve.checked(resolve.wallClock(civil)),
-            .numeric => |n| try resolve.resolveWithOffset(tz, civil, n.offset, options.offset, options.disambiguation, !n.seconds),
+            .numeric => |n| blk2: {
+                // An offset finer than a second matches no zone's: taken as written, or refused.
+                const o = written.whole() orelse switch (options.offset) {
+                    .use => break :blk2 try resolve.checked(resolve.wallClock(civil) - n.nanoseconds),
+                    .ignore => break :blk2 try resolve.resolve(tz, civil, options.disambiguation),
+                    .prefer => break :blk2 try resolve.resolve(tz, civil, options.disambiguation),
+                    .reject => return error.OffsetConflict,
+                };
+                break :blk2 try resolve.resolveWithOffset(tz, civil, o, options.offset, options.disambiguation, !n.seconds);
+            },
         };
     } else try resolve.startOfDay(tz, Date.fromCivil(dt.date));
     return .{ .zoned = try Zoned.init(Timestamp.fromRaw(@intCast(ns)), tz), .zone = zone };

@@ -51,6 +51,7 @@ pub fn dev(b: *std.Build, tools: type) void {
                 .{ .name = "windows_tool", .module = windows_tool },
                 .{ .name = "tzdata", .module = tzdata(b, p) },
                 .{ .name = "json_schema", .module = jsonSchema(b, p) },
+                .{ .name = "test262", .module = test262Cases(b, p) },
             },
         }),
     });
@@ -148,6 +149,13 @@ fn jsonSchema(b: *std.Build, p: *std.Build) *std.Build.Module {
     _ = files.addCopyFile(p.path("testdata/json-schema/version"), "version");
     source.appendSlice(b.allocator, "pub const version = @embedFile(\"version\");\n") catch @panic("OOM");
     return b.createModule(.{ .root_source_file = files.add("json_schema.zig", source.items) });
+}
+
+/// test262's Temporal string cases (testdata/test262/temporal.json), as a module.
+fn test262Cases(b: *std.Build, p: *std.Build) *std.Build.Module {
+    const files = b.addWriteFiles();
+    _ = files.addCopyFile(p.path("testdata/test262/temporal.json"), "temporal.json");
+    return b.createModule(.{ .root_source_file = files.add("test262.zig", "pub const temporal = @embedFile(\"temporal.json\");\n") });
 }
 
 const zoneinfo_files = [_][]const u8{ "America_New_York", "Europe_Lisbon", "Australia_Lord_Howe", "Pacific_Apia" };

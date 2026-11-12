@@ -185,8 +185,12 @@ annotation from a `Database`, a written offset weighed by `OffsetConflict`, matc
 was written to the minute, `Z` as the exact instant, a date alone as the day's start), and
 `writeTimestamp`. The reading: dates extended or basic with six-digit signed years (`-000000` refused),
 `T`, `t` or a space, times to nine fractional digits with `.` or `,`, a leap second read as :59, offsets
-`Z` or `±HH[:MM[:SS]]` (U+2212 as minus), annotations with the time zone first and once, `u-ca` naming
-`iso8601` only, other keys passed over or refused by option and refused when critical. Durations: a sign,
+`Z` or `±HH[:MM[:SS[.f]]]` to the nanosecond (an instant takes it whole; a zoned value matches whole
+seconds), annotations with the time zone first and once, the first `u-ca` naming `iso8601` for a value
+with a calendar (a time or an instant reads past any), later ones passed over unless one is critical,
+other keys passed over or refused by option and refused when critical; a time without `T` refused where
+it reads as a year and month or a month and day too. U+2212 is not a minus sign, as Temporal no longer
+reads it. Durations: a sign,
 `P`, `Y M W D`, `T`, `H M S`, a fraction only on the last unit, carried into the units below. Every refusal
 is `Invalid` with a `Diagnostic` (where, and what was expected).
 
@@ -238,8 +242,16 @@ Temporal's forms and refusals, zoned text through the embedded database, writing
 type's `parse`, `format` and `max_text_len` at its widest values, and a property over random values), the
 strict checks against JSON-Schema-Test-Suite's `date-time`, `date`, `time` and `duration` cases (release
 23.2.0, vendored in testdata/json-schema), properties that every date-time and duration the strict checks
-accept is read leniently to the same value, and every parser and check on mutated text.
+accept is read leniently to the same value, and every parser and check on mutated text. test262's
+Temporal string cases (the `from` tests of PlainDate, PlainDateTime, PlainTime, Instant, Duration and
+ZonedDateTime at test262 2e58f87) are transcribed as text by `testdata/test262/extract.py`, which runs
+no JavaScript and recognises only the shapes those files repeat (arrays of strings that must throw,
+tables of strings and expected fields, the same inline), into `testdata/test262/temporal.json`: 760
+cases from 89 files. 754 pass; the other 6 are years outside -9999 to 9999, listed by name in
+`src/test262_test.zig` as refused by design. The arithmetic tests (until, since, round, add) take
+objects and options the extractor does not read; the arithmetic is checked by the cases worked from the
+specification and the properties above.
 
 ## Not built yet
 
-Temporal's test262 cases extracted as text, lint rules, and the benchmark rows.
+Lint rules and the benchmark rows.

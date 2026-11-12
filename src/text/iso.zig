@@ -44,10 +44,19 @@ pub const Options = struct {
     diagnostic: ?*Diagnostic = null,
 };
 
-/// A written UTC offset: `Z`, or a signed offset and whether it was written to the second.
+/// A written UTC offset: `Z`, or a signed offset in nanoseconds and whether it was written to the
+/// second or finer.
 pub const WrittenOffset = union(enum) {
     z,
-    numeric: struct { offset: Offset, seconds: bool },
+    numeric: struct { nanoseconds: i64, seconds: bool },
+
+    /// The offset in whole seconds, or null where it has a fraction of a second.
+    pub fn whole(o: WrittenOffset) ?Offset {
+        return switch (o) {
+            .z => .utc,
+            .numeric => |n| if (@rem(n.nanoseconds, std.time.ns_per_s) != 0) null else Offset.init(@intCast(@divExact(n.nanoseconds, std.time.ns_per_s))) catch null,
+        };
+    }
 };
 
 /// A time zone annotation: an IANA name or an offset (to the minute).
@@ -74,6 +83,8 @@ const Reader = struct {
     text: []const u8,
     at: usize = 0,
     options: Options,
+    /// Whether the value read has a calendar (a date does; a time or an instant does not).
+    check_calendar: bool = true,
 
     fn fail(r: *Reader, expected: []const u8) ParseError {
         if (r.options.diagnostic) |d| d.* = .{ .offset = r.at, .expected = expected };
@@ -128,14 +139,10 @@ const Reader = struct {
         return v;
     }
 
-    /// A sign: `+`, `-` or U+2212 MINUS SIGN.
+    /// A sign: `+` or `-` (Temporal no longer reads U+2212 MINUS SIGN as one).
     fn sign(r: *Reader) ?i2 {
         if (r.eat('+')) return 1;
         if (r.eat('-')) return -1;
-        if (std.mem.startsWith(u8, r.text[r.at..], "\u{2212}")) {
-            r.at += 3;
-            return -1;
-        }
         return null;
     }
 
@@ -193,27 +200,29 @@ const Reader = struct {
         return .{ .hour = @intCast(h), .minute = @intCast(m), .second = @intCast(s), .nanosecond = ns };
     }
 
-    /// `Z`, or `±HH[:MM[:SS[.f]]]` (or basic). Sub-second offsets are refused: almanac's offsets
-    /// are whole seconds.
+    /// `Z`, or `±HH[:MM[:SS[.f]]]` (or basic), to the nanosecond.
     fn offset(r: *Reader) ParseError!?WrittenOffset {
         if (r.eatAny("Zz")) return .z;
         const s = r.sign() orelse return null;
         const h = try r.digits(2, "a two-digit offset hour");
-        var total: i32 = @intCast(h * 3600);
+        var m: u32 = 0;
+        var sec: u32 = 0;
+        var ns: u32 = 0;
         var seconds = false;
         const extended = r.peek() == ':';
         if ((extended and r.isDigit(1)) or (!extended and r.isDigit(0))) {
             if (extended) r.at += 1;
-            total += @intCast(try r.digits(2, "two offset minute digits") * 60);
+            m = try r.digits(2, "two offset minute digits");
             if ((extended and r.peek() == ':' and r.isDigit(1)) or (!extended and r.isDigit(0))) {
                 if (extended) r.at += 1;
-                total += @intCast(try r.digits(2, "two offset second digits"));
+                sec = try r.digits(2, "two offset second digits");
                 seconds = true;
-                if ((try r.fraction()) orelse 0 != 0) return r.fail("an offset in whole seconds");
+                ns = (try r.fraction()) orelse 0;
             }
         }
-        if (h > 23 or @mod(@divTrunc(total, 60), 60) > 59) return r.fail("an offset hour to 23 and minute to 59");
-        return .{ .numeric = .{ .offset = Offset.init(s * total) catch return r.fail("an offset within a day"), .seconds = seconds } };
+        if (h > 23 or m > 59 or sec > 59) return r.fail("an offset hour to 23, minute and second to 59");
+        const total = (@as(i64, h) * 3600 + m * 60 + sec) * std.time.ns_per_s + ns;
+        return .{ .numeric = .{ .nanoseconds = s * total, .seconds = seconds } };
     }
 
     /// The bracketed annotations: a time zone first, at most once; `u-ca` naming `iso8601`; any
@@ -233,7 +242,8 @@ const Reader = struct {
                 if (std.mem.eql(u8, key, "u-ca")) {
                     calendars += 1;
                     critical_calendar = critical_calendar or critical;
-                    if (!std.ascii.eqlIgnoreCase(value, "iso8601")) return r.fail("the ISO 8601 calendar");
+                    // The first names the calendar; a type with none (a time, an instant) reads past it.
+                    if (calendars == 1 and r.check_calendar and !std.ascii.eqlIgnoreCase(value, "iso8601")) return r.fail("the ISO 8601 calendar");
                 } else if (critical or r.options.unknown_annotations == .refuse) {
                     return r.fail("an annotation almanac knows");
                 }
@@ -247,11 +257,11 @@ const Reader = struct {
     }
 
     fn zoneAnnotation(r: *Reader, body: []const u8) ParseError!ZoneAnnotation {
-        if (body.len > 0 and (body[0] == '+' or body[0] == '-' or std.mem.startsWith(u8, body, "\u{2212}"))) {
+        if (body.len > 0 and (body[0] == '+' or body[0] == '-')) {
             var inner: Reader = .{ .text = body, .options = r.options };
             const o = (try inner.offset()) orelse return r.fail("an offset");
             if (inner.at != body.len or o.numeric.seconds) return r.fail("an offset to the minute");
-            return .{ .offset = o.numeric.offset };
+            return .{ .offset = o.whole().? };
         }
         if (!validZoneName(body)) return r.fail("a time zone name");
         return .{ .name = body };
@@ -267,7 +277,7 @@ fn validKey(key: []const u8) bool {
 fn validValue(value: []const u8) bool {
     var parts = std.mem.splitScalar(u8, value, '-');
     while (parts.next()) |part| {
-        if (part.len < 3 or part.len > 8) return false;
+        if (part.len == 0) return false;
         for (part) |c| if (!std.ascii.isAlphanumeric(c)) return false;
     }
     return true;
@@ -288,7 +298,16 @@ fn validZoneName(name: []const u8) bool {
 
 /// A date, optionally a time after `T`, `t` or a space, optionally an offset, then annotations.
 pub fn dateTime(text: []const u8, options: Options) ParseError!DateTimeText {
-    var r: Reader = .{ .text = text, .options = options };
+    return dateTimeOf(text, options, true);
+}
+
+/// `dateTime` for a value with no calendar (an instant), which reads past a calendar annotation.
+pub fn dateTimeNoCalendar(text: []const u8, options: Options) ParseError!DateTimeText {
+    return dateTimeOf(text, options, false);
+}
+
+fn dateTimeOf(text: []const u8, options: Options, check_calendar: bool) ParseError!DateTimeText {
+    var r: Reader = .{ .text = text, .options = options, .check_calendar = check_calendar };
     var out: DateTimeText = .{ .date = try r.date() };
     if (r.eatAny("Tt ")) {
         out.time = try r.time();
@@ -299,22 +318,61 @@ pub fn dateTime(text: []const u8, options: Options) ParseError!DateTimeText {
     return out;
 }
 
-/// A time of day alone: `[T]HH:MM[:SS[.f]]` (with `T`, the basic form too), an offset and
-/// annotations allowed after it; or a whole date-time, whose time is taken.
+/// A time of day alone (`[T]HH[:MM[:SS[.f]]]`, extended or basic, an offset other than `Z` and
+/// annotations allowed after it), or a whole date-time whose time is taken. Without `T`, a text
+/// that is also a year and month (`2021-12`, `202112`) or a month and day (`12-14`, `1214`) is
+/// refused as ambiguous, as Temporal refuses it. A calendar annotation is read past: a time has
+/// none.
 pub fn timeOfDay(text: []const u8, options: Options) ParseError!CivilTime {
-    if (dateTime(text, options)) |dt| {
-        return dt.time orelse error.Invalid;
+    if (dateTimeOf(text, options, false)) |dt| {
+        const t = dt.time orelse return refuse(options, text.len, "a time");
+        if (dt.offset != null and dt.offset.? == .z) return refuse(options, text.len, "no 'Z' on a civil value");
+        return t;
     } else |_| {}
-    var r: Reader = .{ .text = text, .options = options };
+    var r: Reader = .{ .text = text, .options = options, .check_calendar = false };
     const designated = r.eatAny("Tt");
-    if (!designated and !(text.len > 2 and text[2] == ':')) return r.fail("a time with ':' or after 'T'");
+    if (!designated and ambiguous(text)) return r.fail("'T' before a time that reads as a date too");
     var out: DateTimeText = .{ .date = .{ .year = 1970, .month = 1, .day = 1 } };
     const t = try r.time();
     out.offset = try r.offset();
-    if (out.offset != null and out.offset.? == .z) return r.fail("no 'Z' on a time without a date");
+    if (out.offset != null and out.offset.? == .z) return r.fail("no 'Z' on a civil value");
     try r.annotations(&out);
     if (r.at != text.len) return r.fail("the end of the text");
     return t;
+}
+
+/// Whether a text, its annotations left off, is also a year and month or a month and day.
+fn ambiguous(text: []const u8) bool {
+    const end = std.mem.findScalar(u8, text, '[') orelse text.len;
+    const s = text[0..end];
+    const digitsAt = struct {
+        fn f(x: []const u8, at: usize, n: usize) ?u32 {
+            if (at + n > x.len) return null;
+            var v: u32 = 0;
+            for (x[at..][0..n]) |c| {
+                if (!std.ascii.isDigit(c)) return null;
+                v = v * 10 + (c - '0');
+            }
+            return v;
+        }
+    }.f;
+    // YYYY-MM or YYYYMM.
+    if ((s.len == 7 and s[4] == '-') or s.len == 6) {
+        const m = digitsAt(s, if (s.len == 7) 5 else 4, 2);
+        if (digitsAt(s, 0, 4) != null and m != null and m.? >= 1 and m.? <= 12) return true;
+    }
+    // MM-DD or MMDD.
+    if ((s.len == 5 and s[2] == '-') or s.len == 4) {
+        const m = digitsAt(s, 0, 2);
+        const d = digitsAt(s, if (s.len == 5) 3 else 2, 2);
+        if (m != null and d != null and m.? >= 1 and m.? <= 12 and d.? >= 1 and d.? <= daysIn(m.?)) return true;
+    }
+    return false;
+}
+
+fn daysIn(month: u32) u32 {
+    // The most a month may have, February's 29 among them.
+    return if (month == 2) 29 else calendar.daysInMonth(2001, month);
 }
 
 /// An ISO 8601 duration as Temporal reads it: an optional sign, `P`, years, months, weeks and days,

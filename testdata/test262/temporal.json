@@ -1,0 +1,7380 @@
+{
+ "commit": "2e58f87",
+ "files_read": 346,
+ "files_with_cases": 89,
+ "cases": [
+  {
+   "text": "1970-01-01[U-CA=iso8601]",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainDate/from/argument-string-calendar-annotation-invalid-key.js",
+   "type": "PlainDate"
+  },
+  {
+   "text": "1970-01-01[u-CA=iso8601]",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainDate/from/argument-string-calendar-annotation-invalid-key.js",
+   "type": "PlainDate"
+  },
+  {
+   "text": "1970-01-01[FOO=bar]",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainDate/from/argument-string-calendar-annotation-invalid-key.js",
+   "type": "PlainDate"
+  },
+  {
+   "text": "2000-05-02[u-ca=iso8601]",
+   "expect": {
+    "fields": [
+     2000,
+     5,
+     2
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainDate/from/argument-string-calendar-annotation.js",
+   "type": "PlainDate"
+  },
+  {
+   "text": "2000-05-02[UTC][u-ca=iso8601]",
+   "expect": {
+    "fields": [
+     2000,
+     5,
+     2
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainDate/from/argument-string-calendar-annotation.js",
+   "type": "PlainDate"
+  },
+  {
+   "text": "2000-05-02T15:23[u-ca=iso8601]",
+   "expect": {
+    "fields": [
+     2000,
+     5,
+     2
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainDate/from/argument-string-calendar-annotation.js",
+   "type": "PlainDate"
+  },
+  {
+   "text": "2000-05-02T15:23[UTC][u-ca=iso8601]",
+   "expect": {
+    "fields": [
+     2000,
+     5,
+     2
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainDate/from/argument-string-calendar-annotation.js",
+   "type": "PlainDate"
+  },
+  {
+   "text": "2000-05-02T15:23[!u-ca=iso8601]",
+   "expect": {
+    "fields": [
+     2000,
+     5,
+     2
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainDate/from/argument-string-calendar-annotation.js",
+   "type": "PlainDate"
+  },
+  {
+   "text": "2000-05-02T15:23[UTC][!u-ca=iso8601]",
+   "expect": {
+    "fields": [
+     2000,
+     5,
+     2
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainDate/from/argument-string-calendar-annotation.js",
+   "type": "PlainDate"
+  },
+  {
+   "text": "2000-05-02T15:23[u-ca=iso8601][u-ca=discord]",
+   "expect": {
+    "fields": [
+     2000,
+     5,
+     2
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainDate/from/argument-string-calendar-annotation.js",
+   "type": "PlainDate"
+  },
+  {
+   "text": "",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainDate/from/argument-string-calendar-invalid-iso-string.js",
+   "type": "PlainDate"
+  },
+  {
+   "text": "1997-12-04[u-ca=notacal]",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainDate/from/argument-string-calendar-invalid-iso-string.js",
+   "type": "PlainDate"
+  },
+  {
+   "text": "1997-12-04[u-ca=11111111]",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainDate/from/argument-string-calendar-invalid-iso-string.js",
+   "type": "PlainDate"
+  },
+  {
+   "text": "1997-12-04[u-ca=1111-11-11]",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainDate/from/argument-string-calendar-invalid-iso-string.js",
+   "type": "PlainDate"
+  },
+  {
+   "text": "1970-01-01[!foo=bar]",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainDate/from/argument-string-critical-unknown-annotation.js",
+   "type": "PlainDate"
+  },
+  {
+   "text": "1970-01-01T00:00[!foo=bar]",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainDate/from/argument-string-critical-unknown-annotation.js",
+   "type": "PlainDate"
+  },
+  {
+   "text": "1970-01-01T00:00[UTC][!foo=bar]",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainDate/from/argument-string-critical-unknown-annotation.js",
+   "type": "PlainDate"
+  },
+  {
+   "text": "1970-01-01T00:00[u-ca=iso8601][!foo=bar]",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainDate/from/argument-string-critical-unknown-annotation.js",
+   "type": "PlainDate"
+  },
+  {
+   "text": "1970-01-01T00:00[UTC][!foo=bar][u-ca=iso8601]",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainDate/from/argument-string-critical-unknown-annotation.js",
+   "type": "PlainDate"
+  },
+  {
+   "text": "1970-01-01T00:00[foo=bar][!_foo-bar0=Dont-Ignore-This-99999999999]",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainDate/from/argument-string-critical-unknown-annotation.js",
+   "type": "PlainDate"
+  },
+  {
+   "text": "2000-05-02T00+00",
+   "expect": {
+    "fields": [
+     2000,
+     5,
+     2
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainDate/from/argument-string-date-with-utc-offset.js",
+   "type": "PlainDate"
+  },
+  {
+   "text": "2000-05-02T00+00:00",
+   "expect": {
+    "fields": [
+     2000,
+     5,
+     2
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainDate/from/argument-string-date-with-utc-offset.js",
+   "type": "PlainDate"
+  },
+  {
+   "text": "2000-05-02T00+00:00:00,0",
+   "expect": {
+    "fields": [
+     2000,
+     5,
+     2
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainDate/from/argument-string-date-with-utc-offset.js",
+   "type": "PlainDate"
+  },
+  {
+   "text": "2000-05-02T00+00:00:00.000000000",
+   "expect": {
+    "fields": [
+     2000,
+     5,
+     2
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainDate/from/argument-string-date-with-utc-offset.js",
+   "type": "PlainDate"
+  },
+  {
+   "text": "2000-05-02T00+0000",
+   "expect": {
+    "fields": [
+     2000,
+     5,
+     2
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainDate/from/argument-string-date-with-utc-offset.js",
+   "type": "PlainDate"
+  },
+  {
+   "text": "2000-05-02T00+000000,0",
+   "expect": {
+    "fields": [
+     2000,
+     5,
+     2
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainDate/from/argument-string-date-with-utc-offset.js",
+   "type": "PlainDate"
+  },
+  {
+   "text": "2000-05-02T00+000000.000000000",
+   "expect": {
+    "fields": [
+     2000,
+     5,
+     2
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainDate/from/argument-string-date-with-utc-offset.js",
+   "type": "PlainDate"
+  },
+  {
+   "text": "2000-05-02T00+00:00[UTC]",
+   "expect": {
+    "fields": [
+     2000,
+     5,
+     2
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainDate/from/argument-string-date-with-utc-offset.js",
+   "type": "PlainDate"
+  },
+  {
+   "text": "2000-05-02T00+00:00[!UTC]",
+   "expect": {
+    "fields": [
+     2000,
+     5,
+     2
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainDate/from/argument-string-date-with-utc-offset.js",
+   "type": "PlainDate"
+  },
+  {
+   "text": "2000-05-02T00+01[Europe/Vienna]",
+   "expect": {
+    "fields": [
+     2000,
+     5,
+     2
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainDate/from/argument-string-date-with-utc-offset.js",
+   "type": "PlainDate"
+  },
+  {
+   "text": "2000-05-02T00-02:30[America/St_Johns]",
+   "expect": {
+    "fields": [
+     2000,
+     5,
+     2
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainDate/from/argument-string-date-with-utc-offset.js",
+   "type": "PlainDate"
+  },
+  {
+   "text": "2000-05-02T00-02:30:00,0[America/St_Johns]",
+   "expect": {
+    "fields": [
+     2000,
+     5,
+     2
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainDate/from/argument-string-date-with-utc-offset.js",
+   "type": "PlainDate"
+  },
+  {
+   "text": "2000-05-02T00-02:30:00.000000000[America/St_Johns]",
+   "expect": {
+    "fields": [
+     2000,
+     5,
+     2
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainDate/from/argument-string-date-with-utc-offset.js",
+   "type": "PlainDate"
+  },
+  {
+   "text": "2000-05-02T00-0230[America/St_Johns]",
+   "expect": {
+    "fields": [
+     2000,
+     5,
+     2
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainDate/from/argument-string-date-with-utc-offset.js",
+   "type": "PlainDate"
+  },
+  {
+   "text": "2000-05-02T00-023000,0[America/St_Johns]",
+   "expect": {
+    "fields": [
+     2000,
+     5,
+     2
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainDate/from/argument-string-date-with-utc-offset.js",
+   "type": "PlainDate"
+  },
+  {
+   "text": "2000-05-02T00-023000.000000000[America/St_Johns]",
+   "expect": {
+    "fields": [
+     2000,
+     5,
+     2
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainDate/from/argument-string-date-with-utc-offset.js",
+   "type": "PlainDate"
+  },
+  {
+   "text": "2022-09-15Z",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainDate/from/argument-string-date-with-utc-offset.js",
+   "type": "PlainDate"
+  },
+  {
+   "text": "2022-09-15Z[UTC]",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainDate/from/argument-string-date-with-utc-offset.js",
+   "type": "PlainDate"
+  },
+  {
+   "text": "2022-09-15Z[Europe/Vienna]",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainDate/from/argument-string-date-with-utc-offset.js",
+   "type": "PlainDate"
+  },
+  {
+   "text": "2022-09-15+00:00",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainDate/from/argument-string-date-with-utc-offset.js",
+   "type": "PlainDate"
+  },
+  {
+   "text": "2022-09-15+00:00[UTC]",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainDate/from/argument-string-date-with-utc-offset.js",
+   "type": "PlainDate"
+  },
+  {
+   "text": "2022-09-15-02:30",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainDate/from/argument-string-date-with-utc-offset.js",
+   "type": "PlainDate"
+  },
+  {
+   "text": "2022-09-15-02:30[America/St_Johns]",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainDate/from/argument-string-date-with-utc-offset.js",
+   "type": "PlainDate"
+  },
+  {
+   "text": "",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainDate/from/argument-string-invalid.js",
+   "type": "PlainDate"
+  },
+  {
+   "text": "invalid iso8601",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainDate/from/argument-string-invalid.js",
+   "type": "PlainDate"
+  },
+  {
+   "text": "2020-01-00",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainDate/from/argument-string-invalid.js",
+   "type": "PlainDate"
+  },
+  {
+   "text": "2020-01-32",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainDate/from/argument-string-invalid.js",
+   "type": "PlainDate"
+  },
+  {
+   "text": "2020-02-30",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainDate/from/argument-string-invalid.js",
+   "type": "PlainDate"
+  },
+  {
+   "text": "2021-02-29",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainDate/from/argument-string-invalid.js",
+   "type": "PlainDate"
+  },
+  {
+   "text": "2020-00-01",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainDate/from/argument-string-invalid.js",
+   "type": "PlainDate"
+  },
+  {
+   "text": "2020-13-01",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainDate/from/argument-string-invalid.js",
+   "type": "PlainDate"
+  },
+  {
+   "text": "2020-01-01T",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainDate/from/argument-string-invalid.js",
+   "type": "PlainDate"
+  },
+  {
+   "text": "2020-01-01T25:00:00",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainDate/from/argument-string-invalid.js",
+   "type": "PlainDate"
+  },
+  {
+   "text": "2020-01-01T01:60:00",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainDate/from/argument-string-invalid.js",
+   "type": "PlainDate"
+  },
+  {
+   "text": "2020-01-01T01:60:61",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainDate/from/argument-string-invalid.js",
+   "type": "PlainDate"
+  },
+  {
+   "text": "2020-01-01junk",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainDate/from/argument-string-invalid.js",
+   "type": "PlainDate"
+  },
+  {
+   "text": "2020-01-01T00:00:00junk",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainDate/from/argument-string-invalid.js",
+   "type": "PlainDate"
+  },
+  {
+   "text": "2020-01-01T00:00:00+00:00junk",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainDate/from/argument-string-invalid.js",
+   "type": "PlainDate"
+  },
+  {
+   "text": "2020-01-01T00:00:00+00:00[UTC]junk",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainDate/from/argument-string-invalid.js",
+   "type": "PlainDate"
+  },
+  {
+   "text": "2020-01-01T00:00:00+00:00[UTC][u-ca=iso8601]junk",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainDate/from/argument-string-invalid.js",
+   "type": "PlainDate"
+  },
+  {
+   "text": "02020-01-01",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainDate/from/argument-string-invalid.js",
+   "type": "PlainDate"
+  },
+  {
+   "text": "2020-001-01",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainDate/from/argument-string-invalid.js",
+   "type": "PlainDate"
+  },
+  {
+   "text": "2020-01-001",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainDate/from/argument-string-invalid.js",
+   "type": "PlainDate"
+  },
+  {
+   "text": "2020-01-01T001",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainDate/from/argument-string-invalid.js",
+   "type": "PlainDate"
+  },
+  {
+   "text": "2020-01-01T01:001",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainDate/from/argument-string-invalid.js",
+   "type": "PlainDate"
+  },
+  {
+   "text": "2020-01-01T01:01:001",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainDate/from/argument-string-invalid.js",
+   "type": "PlainDate"
+  },
+  {
+   "text": "2020-W01-1",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainDate/from/argument-string-invalid.js",
+   "type": "PlainDate"
+  },
+  {
+   "text": "2020-001",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainDate/from/argument-string-invalid.js",
+   "type": "PlainDate"
+  },
+  {
+   "text": "+0002020-01-01",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainDate/from/argument-string-invalid.js",
+   "type": "PlainDate"
+  },
+  {
+   "text": "2020-01-01[u-ca=notexist]",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainDate/from/argument-string-invalid.js",
+   "type": "PlainDate"
+  },
+  {
+   "text": "2020-01",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainDate/from/argument-string-invalid.js",
+   "type": "PlainDate"
+  },
+  {
+   "text": "+002020-01",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainDate/from/argument-string-invalid.js",
+   "type": "PlainDate"
+  },
+  {
+   "text": "01-01",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainDate/from/argument-string-invalid.js",
+   "type": "PlainDate"
+  },
+  {
+   "text": "2020-W01",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainDate/from/argument-string-invalid.js",
+   "type": "PlainDate"
+  },
+  {
+   "text": "P1Y",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainDate/from/argument-string-invalid.js",
+   "type": "PlainDate"
+  },
+  {
+   "text": "-P12Y",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainDate/from/argument-string-invalid.js",
+   "type": "PlainDate"
+  },
+  {
+   "text": "-999999-01-01",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainDate/from/argument-string-invalid.js",
+   "type": "PlainDate"
+  },
+  {
+   "text": "+999999-01-01",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainDate/from/argument-string-invalid.js",
+   "type": "PlainDate"
+  },
+  {
+   "text": "2020-0101",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainDate/from/argument-string-invalid.js",
+   "type": "PlainDate"
+  },
+  {
+   "text": "202001-01",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainDate/from/argument-string-invalid.js",
+   "type": "PlainDate"
+  },
+  {
+   "text": "-271821-04-18",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainDate/from/argument-string-limits.js",
+   "type": "PlainDate"
+  },
+  {
+   "text": "-271821-04-18T23:00",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainDate/from/argument-string-limits.js",
+   "type": "PlainDate"
+  },
+  {
+   "text": "+275760-09-14",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainDate/from/argument-string-limits.js",
+   "type": "PlainDate"
+  },
+  {
+   "text": "+275760-09-14T01:00",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainDate/from/argument-string-limits.js",
+   "type": "PlainDate"
+  },
+  {
+   "text": "1976-11-18T15:23:30.12−02:00",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainDate/from/argument-string-minus-sign.js",
+   "type": "PlainDate"
+  },
+  {
+   "text": "−009999-11-18T15:23:30.12",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainDate/from/argument-string-minus-sign.js",
+   "type": "PlainDate"
+  },
+  {
+   "text": "1970-01-01[u-ca=iso8601][!u-ca=iso8601]",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainDate/from/argument-string-multiple-calendar.js",
+   "type": "PlainDate"
+  },
+  {
+   "text": "1970-01-01[!u-ca=iso8601][u-ca=iso8601]",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainDate/from/argument-string-multiple-calendar.js",
+   "type": "PlainDate"
+  },
+  {
+   "text": "1970-01-01[UTC][u-ca=iso8601][!u-ca=iso8601]",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainDate/from/argument-string-multiple-calendar.js",
+   "type": "PlainDate"
+  },
+  {
+   "text": "1970-01-01[u-ca=iso8601][foo=bar][!u-ca=iso8601]",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainDate/from/argument-string-multiple-calendar.js",
+   "type": "PlainDate"
+  },
+  {
+   "text": "1970-01-01T00:00[u-ca=iso8601][!u-ca=iso8601]",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainDate/from/argument-string-multiple-calendar.js",
+   "type": "PlainDate"
+  },
+  {
+   "text": "1970-01-01T00:00[!u-ca=iso8601][u-ca=iso8601]",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainDate/from/argument-string-multiple-calendar.js",
+   "type": "PlainDate"
+  },
+  {
+   "text": "1970-01-01T00:00[UTC][u-ca=iso8601][!u-ca=iso8601]",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainDate/from/argument-string-multiple-calendar.js",
+   "type": "PlainDate"
+  },
+  {
+   "text": "1970-01-01T00:00[u-ca=iso8601][foo=bar][!u-ca=iso8601]",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainDate/from/argument-string-multiple-calendar.js",
+   "type": "PlainDate"
+  },
+  {
+   "text": "1970-01-01[UTC][UTC]",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainDate/from/argument-string-multiple-time-zone.js",
+   "type": "PlainDate"
+  },
+  {
+   "text": "1970-01-01T00:00[UTC][UTC]",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainDate/from/argument-string-multiple-time-zone.js",
+   "type": "PlainDate"
+  },
+  {
+   "text": "1970-01-01T00:00[!UTC][UTC]",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainDate/from/argument-string-multiple-time-zone.js",
+   "type": "PlainDate"
+  },
+  {
+   "text": "1970-01-01T00:00[UTC][!UTC]",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainDate/from/argument-string-multiple-time-zone.js",
+   "type": "PlainDate"
+  },
+  {
+   "text": "1970-01-01T00:00[UTC][u-ca=iso8601][UTC]",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainDate/from/argument-string-multiple-time-zone.js",
+   "type": "PlainDate"
+  },
+  {
+   "text": "1970-01-01T00:00[UTC][foo=bar][UTC]",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainDate/from/argument-string-multiple-time-zone.js",
+   "type": "PlainDate"
+  },
+  {
+   "text": "2000-05-02T15:23",
+   "expect": {
+    "fields": [
+     2000,
+     5,
+     2
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainDate/from/argument-string-time-separators.js",
+   "type": "PlainDate"
+  },
+  {
+   "text": "2000-05-02t15:23",
+   "expect": {
+    "fields": [
+     2000,
+     5,
+     2
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainDate/from/argument-string-time-separators.js",
+   "type": "PlainDate"
+  },
+  {
+   "text": "2000-05-02 15:23",
+   "expect": {
+    "fields": [
+     2000,
+     5,
+     2
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainDate/from/argument-string-time-separators.js",
+   "type": "PlainDate"
+  },
+  {
+   "text": "2000-05-02[Asia/Kolkata]",
+   "expect": {
+    "fields": [
+     2000,
+     5,
+     2
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainDate/from/argument-string-time-zone-annotation.js",
+   "type": "PlainDate"
+  },
+  {
+   "text": "2000-05-02[!Europe/Vienna]",
+   "expect": {
+    "fields": [
+     2000,
+     5,
+     2
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainDate/from/argument-string-time-zone-annotation.js",
+   "type": "PlainDate"
+  },
+  {
+   "text": "2000-05-02[+00:00]",
+   "expect": {
+    "fields": [
+     2000,
+     5,
+     2
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainDate/from/argument-string-time-zone-annotation.js",
+   "type": "PlainDate"
+  },
+  {
+   "text": "2000-05-02[!-02:30]",
+   "expect": {
+    "fields": [
+     2000,
+     5,
+     2
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainDate/from/argument-string-time-zone-annotation.js",
+   "type": "PlainDate"
+  },
+  {
+   "text": "2000-05-02T15:23[America/Sao_Paulo]",
+   "expect": {
+    "fields": [
+     2000,
+     5,
+     2
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainDate/from/argument-string-time-zone-annotation.js",
+   "type": "PlainDate"
+  },
+  {
+   "text": "2000-05-02T15:23[!Asia/Tokyo]",
+   "expect": {
+    "fields": [
+     2000,
+     5,
+     2
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainDate/from/argument-string-time-zone-annotation.js",
+   "type": "PlainDate"
+  },
+  {
+   "text": "2000-05-02T15:23[-02:30]",
+   "expect": {
+    "fields": [
+     2000,
+     5,
+     2
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainDate/from/argument-string-time-zone-annotation.js",
+   "type": "PlainDate"
+  },
+  {
+   "text": "2000-05-02T15:23[!+00:00]",
+   "expect": {
+    "fields": [
+     2000,
+     5,
+     2
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainDate/from/argument-string-time-zone-annotation.js",
+   "type": "PlainDate"
+  },
+  {
+   "text": "2000-05-02T15:23+00:00[America/New_York]",
+   "expect": {
+    "fields": [
+     2000,
+     5,
+     2
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainDate/from/argument-string-time-zone-annotation.js",
+   "type": "PlainDate"
+  },
+  {
+   "text": "2000-05-02T15:23+00:00[!UTC]",
+   "expect": {
+    "fields": [
+     2000,
+     5,
+     2
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainDate/from/argument-string-time-zone-annotation.js",
+   "type": "PlainDate"
+  },
+  {
+   "text": "2000-05-02T15:23+00:00[+01:00]",
+   "expect": {
+    "fields": [
+     2000,
+     5,
+     2
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainDate/from/argument-string-time-zone-annotation.js",
+   "type": "PlainDate"
+  },
+  {
+   "text": "2000-05-02T15:23+00:00[!-08:00]",
+   "expect": {
+    "fields": [
+     2000,
+     5,
+     2
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainDate/from/argument-string-time-zone-annotation.js",
+   "type": "PlainDate"
+  },
+  {
+   "text": "1976-11-18junk",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainDate/from/argument-string-trailing-junk.js",
+   "type": "PlainDate"
+  },
+  {
+   "text": "2000-05-02[foo=bar]",
+   "expect": {
+    "fields": [
+     2000,
+     5,
+     2
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainDate/from/argument-string-unknown-annotation.js",
+   "type": "PlainDate"
+  },
+  {
+   "text": "2000-05-02T15:23[foo=bar]",
+   "expect": {
+    "fields": [
+     2000,
+     5,
+     2
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainDate/from/argument-string-unknown-annotation.js",
+   "type": "PlainDate"
+  },
+  {
+   "text": "2000-05-02T15:23[UTC][foo=bar]",
+   "expect": {
+    "fields": [
+     2000,
+     5,
+     2
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainDate/from/argument-string-unknown-annotation.js",
+   "type": "PlainDate"
+  },
+  {
+   "text": "2000-05-02T15:23[u-ca=iso8601][foo=bar]",
+   "expect": {
+    "fields": [
+     2000,
+     5,
+     2
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainDate/from/argument-string-unknown-annotation.js",
+   "type": "PlainDate"
+  },
+  {
+   "text": "2000-05-02T15:23[UTC][foo=bar][u-ca=iso8601]",
+   "expect": {
+    "fields": [
+     2000,
+     5,
+     2
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainDate/from/argument-string-unknown-annotation.js",
+   "type": "PlainDate"
+  },
+  {
+   "text": "2000-05-02T15:23[foo=bar][_foo-bar0=Ignore-This-999999999999]",
+   "expect": {
+    "fields": [
+     2000,
+     5,
+     2
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainDate/from/argument-string-unknown-annotation.js",
+   "type": "PlainDate"
+  },
+  {
+   "text": "2019-10-01T09:00:00Z",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainDate/from/argument-string-with-utc-designator.js",
+   "type": "PlainDate"
+  },
+  {
+   "text": "2019-10-01T09:00:00Z[UTC]",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainDate/from/argument-string-with-utc-designator.js",
+   "type": "PlainDate"
+  },
+  {
+   "text": "1976-11-18",
+   "expect": {
+    "fields": [
+     1976,
+     11,
+     18
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainDate/from/argument-string.js",
+   "type": "PlainDate"
+  },
+  {
+   "text": "2019-06-30",
+   "expect": {
+    "fields": [
+     2019,
+     6,
+     30
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainDate/from/argument-string.js",
+   "type": "PlainDate"
+  },
+  {
+   "text": "+000050-06-30",
+   "expect": {
+    "fields": [
+     50,
+     6,
+     30
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainDate/from/argument-string.js",
+   "type": "PlainDate"
+  },
+  {
+   "text": "+010583-06-30",
+   "expect": {
+    "fields": [
+     10583,
+     6,
+     30
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainDate/from/argument-string.js",
+   "type": "PlainDate"
+  },
+  {
+   "text": "-010583-06-30",
+   "expect": {
+    "fields": [
+     -10583,
+     6,
+     30
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainDate/from/argument-string.js",
+   "type": "PlainDate"
+  },
+  {
+   "text": "-000333-06-30",
+   "expect": {
+    "fields": [
+     -333,
+     6,
+     30
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainDate/from/argument-string.js",
+   "type": "PlainDate"
+  },
+  {
+   "text": "19761118",
+   "expect": {
+    "fields": [
+     1976,
+     11,
+     18
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainDate/from/argument-string.js",
+   "type": "PlainDate"
+  },
+  {
+   "text": "+0019761118",
+   "expect": {
+    "fields": [
+     1976,
+     11,
+     18
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainDate/from/argument-string.js",
+   "type": "PlainDate"
+  },
+  {
+   "text": "1976-11-18T152330.1+00:00",
+   "expect": {
+    "fields": [
+     1976,
+     11,
+     18
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainDate/from/argument-string.js",
+   "type": "PlainDate"
+  },
+  {
+   "text": "19761118T15:23:30.1+00:00",
+   "expect": {
+    "fields": [
+     1976,
+     11,
+     18
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainDate/from/argument-string.js",
+   "type": "PlainDate"
+  },
+  {
+   "text": "1976-11-18T15:23:30.1+0000",
+   "expect": {
+    "fields": [
+     1976,
+     11,
+     18
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainDate/from/argument-string.js",
+   "type": "PlainDate"
+  },
+  {
+   "text": "1976-11-18T152330.1+0000",
+   "expect": {
+    "fields": [
+     1976,
+     11,
+     18
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainDate/from/argument-string.js",
+   "type": "PlainDate"
+  },
+  {
+   "text": "19761118T15:23:30.1+0000",
+   "expect": {
+    "fields": [
+     1976,
+     11,
+     18
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainDate/from/argument-string.js",
+   "type": "PlainDate"
+  },
+  {
+   "text": "19761118T152330.1+00:00",
+   "expect": {
+    "fields": [
+     1976,
+     11,
+     18
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainDate/from/argument-string.js",
+   "type": "PlainDate"
+  },
+  {
+   "text": "19761118T152330.1+0000",
+   "expect": {
+    "fields": [
+     1976,
+     11,
+     18
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainDate/from/argument-string.js",
+   "type": "PlainDate"
+  },
+  {
+   "text": "+001976-11-18T152330.1+00:00",
+   "expect": {
+    "fields": [
+     1976,
+     11,
+     18
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainDate/from/argument-string.js",
+   "type": "PlainDate"
+  },
+  {
+   "text": "+0019761118T15:23:30.1+00:00",
+   "expect": {
+    "fields": [
+     1976,
+     11,
+     18
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainDate/from/argument-string.js",
+   "type": "PlainDate"
+  },
+  {
+   "text": "+001976-11-18T15:23:30.1+0000",
+   "expect": {
+    "fields": [
+     1976,
+     11,
+     18
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainDate/from/argument-string.js",
+   "type": "PlainDate"
+  },
+  {
+   "text": "+001976-11-18T152330.1+0000",
+   "expect": {
+    "fields": [
+     1976,
+     11,
+     18
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainDate/from/argument-string.js",
+   "type": "PlainDate"
+  },
+  {
+   "text": "+0019761118T15:23:30.1+0000",
+   "expect": {
+    "fields": [
+     1976,
+     11,
+     18
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainDate/from/argument-string.js",
+   "type": "PlainDate"
+  },
+  {
+   "text": "+0019761118T152330.1+00:00",
+   "expect": {
+    "fields": [
+     1976,
+     11,
+     18
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainDate/from/argument-string.js",
+   "type": "PlainDate"
+  },
+  {
+   "text": "+0019761118T152330.1+0000",
+   "expect": {
+    "fields": [
+     1976,
+     11,
+     18
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainDate/from/argument-string.js",
+   "type": "PlainDate"
+  },
+  {
+   "text": "-271821-04-19",
+   "expect": {
+    "fields": [
+     -271821,
+     4,
+     19
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainDate/from/limits.js",
+   "type": "PlainDate"
+  },
+  {
+   "text": "+275760-09-13",
+   "expect": {
+    "fields": [
+     275760,
+     9,
+     13
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainDate/from/limits.js",
+   "type": "PlainDate"
+  },
+  {
+   "text": "2025-04-03T05:07.123",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainDate/from/no-fractional-minutes-hours.js",
+   "type": "PlainDate"
+  },
+  {
+   "text": "2025-04-03T12.5",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainDate/from/no-fractional-minutes-hours.js",
+   "type": "PlainDate"
+  },
+  {
+   "text": "2000-01-01",
+   "expect": {
+    "fields": [
+     2000,
+     1,
+     1
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainDate/from/roundtrip-from-string.js",
+   "type": "PlainDate"
+  },
+  {
+   "text": "0001-01-01",
+   "expect": {
+    "fields": [
+     1,
+     1,
+     1
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainDate/from/roundtrip-from-string.js",
+   "type": "PlainDate"
+  },
+  {
+   "text": "-000000-10-31",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainDate/from/year-zero.js",
+   "type": "PlainDate"
+  },
+  {
+   "text": "-000000-10-31T00:45",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainDate/from/year-zero.js",
+   "type": "PlainDate"
+  },
+  {
+   "text": "-000000-10-31T00:45+01:00",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainDate/from/year-zero.js",
+   "type": "PlainDate"
+  },
+  {
+   "text": "-000000-10-31T00:45+00:00[UTC]",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainDate/from/year-zero.js",
+   "type": "PlainDate"
+  },
+  {
+   "text": "1970-01-01T00:00[U-CA=iso8601]",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainDateTime/from/argument-string-calendar-annotation-invalid-key.js",
+   "type": "PlainDateTime"
+  },
+  {
+   "text": "1970-01-01T00:00[u-CA=iso8601]",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainDateTime/from/argument-string-calendar-annotation-invalid-key.js",
+   "type": "PlainDateTime"
+  },
+  {
+   "text": "1970-01-01T00:00[FOO=bar]",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainDateTime/from/argument-string-calendar-annotation-invalid-key.js",
+   "type": "PlainDateTime"
+  },
+  {
+   "text": "1976-11-18T15:23[u-ca=iso8601]",
+   "expect": {
+    "fields": [
+     1976,
+     11,
+     18,
+     15,
+     23,
+     0,
+     0,
+     0,
+     0
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainDateTime/from/argument-string-calendar-annotation.js",
+   "type": "PlainDateTime"
+  },
+  {
+   "text": "1976-11-18T15:23[UTC][u-ca=iso8601]",
+   "expect": {
+    "fields": [
+     1976,
+     11,
+     18,
+     15,
+     23,
+     0,
+     0,
+     0,
+     0
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainDateTime/from/argument-string-calendar-annotation.js",
+   "type": "PlainDateTime"
+  },
+  {
+   "text": "1976-11-18T15:23[!u-ca=iso8601]",
+   "expect": {
+    "fields": [
+     1976,
+     11,
+     18,
+     15,
+     23,
+     0,
+     0,
+     0,
+     0
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainDateTime/from/argument-string-calendar-annotation.js",
+   "type": "PlainDateTime"
+  },
+  {
+   "text": "1976-11-18T15:23[UTC][!u-ca=iso8601]",
+   "expect": {
+    "fields": [
+     1976,
+     11,
+     18,
+     15,
+     23,
+     0,
+     0,
+     0,
+     0
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainDateTime/from/argument-string-calendar-annotation.js",
+   "type": "PlainDateTime"
+  },
+  {
+   "text": "1976-11-18T15:23[u-ca=iso8601][u-ca=discord]",
+   "expect": {
+    "fields": [
+     1976,
+     11,
+     18,
+     15,
+     23,
+     0,
+     0,
+     0,
+     0
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainDateTime/from/argument-string-calendar-annotation.js",
+   "type": "PlainDateTime"
+  },
+  {
+   "text": "",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainDateTime/from/argument-string-calendar-invalid-iso-string.js",
+   "type": "PlainDateTime"
+  },
+  {
+   "text": "1997-12-04[u-ca=notacal]",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainDateTime/from/argument-string-calendar-invalid-iso-string.js",
+   "type": "PlainDateTime"
+  },
+  {
+   "text": "1997-12-04[u-ca=11111111]",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainDateTime/from/argument-string-calendar-invalid-iso-string.js",
+   "type": "PlainDateTime"
+  },
+  {
+   "text": "1997-12-04[u-ca=1111-11-11]",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainDateTime/from/argument-string-calendar-invalid-iso-string.js",
+   "type": "PlainDateTime"
+  },
+  {
+   "text": "1976-11-18T15:23:30,12",
+   "expect": {
+    "fields": [
+     1976,
+     11,
+     18,
+     15,
+     23,
+     30,
+     120,
+     0,
+     0
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainDateTime/from/argument-string-comma-decimal-separator.js",
+   "type": "PlainDateTime"
+  },
+  {
+   "text": "1970-01-01T00:00[!foo=bar]",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainDateTime/from/argument-string-critical-unknown-annotation.js",
+   "type": "PlainDateTime"
+  },
+  {
+   "text": "1970-01-01T00:00[UTC][!foo=bar]",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainDateTime/from/argument-string-critical-unknown-annotation.js",
+   "type": "PlainDateTime"
+  },
+  {
+   "text": "1970-01-01T00:00[u-ca=iso8601][!foo=bar]",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainDateTime/from/argument-string-critical-unknown-annotation.js",
+   "type": "PlainDateTime"
+  },
+  {
+   "text": "1970-01-01T00:00[UTC][!foo=bar][u-ca=iso8601]",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainDateTime/from/argument-string-critical-unknown-annotation.js",
+   "type": "PlainDateTime"
+  },
+  {
+   "text": "1970-01-01T00:00[foo=bar][!_foo-bar0=Dont-Ignore-This-99999999999]",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainDateTime/from/argument-string-critical-unknown-annotation.js",
+   "type": "PlainDateTime"
+  },
+  {
+   "text": "1976-11-18T15:23+00",
+   "expect": {
+    "fields": [
+     1976,
+     11,
+     18,
+     15,
+     23,
+     0,
+     0,
+     0,
+     0
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainDateTime/from/argument-string-date-with-utc-offset.js",
+   "type": "PlainDateTime"
+  },
+  {
+   "text": "1976-11-18T15:23+00:00",
+   "expect": {
+    "fields": [
+     1976,
+     11,
+     18,
+     15,
+     23,
+     0,
+     0,
+     0,
+     0
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainDateTime/from/argument-string-date-with-utc-offset.js",
+   "type": "PlainDateTime"
+  },
+  {
+   "text": "1976-11-18T15:23+00:00:00,0",
+   "expect": {
+    "fields": [
+     1976,
+     11,
+     18,
+     15,
+     23,
+     0,
+     0,
+     0,
+     0
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainDateTime/from/argument-string-date-with-utc-offset.js",
+   "type": "PlainDateTime"
+  },
+  {
+   "text": "1976-11-18T15:23+00:00:00.000000000",
+   "expect": {
+    "fields": [
+     1976,
+     11,
+     18,
+     15,
+     23,
+     0,
+     0,
+     0,
+     0
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainDateTime/from/argument-string-date-with-utc-offset.js",
+   "type": "PlainDateTime"
+  },
+  {
+   "text": "1976-11-18T15:23+0000",
+   "expect": {
+    "fields": [
+     1976,
+     11,
+     18,
+     15,
+     23,
+     0,
+     0,
+     0,
+     0
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainDateTime/from/argument-string-date-with-utc-offset.js",
+   "type": "PlainDateTime"
+  },
+  {
+   "text": "1976-11-18T15:23+000000,0",
+   "expect": {
+    "fields": [
+     1976,
+     11,
+     18,
+     15,
+     23,
+     0,
+     0,
+     0,
+     0
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainDateTime/from/argument-string-date-with-utc-offset.js",
+   "type": "PlainDateTime"
+  },
+  {
+   "text": "1976-11-18T15:23+000000.000000000",
+   "expect": {
+    "fields": [
+     1976,
+     11,
+     18,
+     15,
+     23,
+     0,
+     0,
+     0,
+     0
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainDateTime/from/argument-string-date-with-utc-offset.js",
+   "type": "PlainDateTime"
+  },
+  {
+   "text": "1976-11-18T15:23+00:00[UTC]",
+   "expect": {
+    "fields": [
+     1976,
+     11,
+     18,
+     15,
+     23,
+     0,
+     0,
+     0,
+     0
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainDateTime/from/argument-string-date-with-utc-offset.js",
+   "type": "PlainDateTime"
+  },
+  {
+   "text": "1976-11-18T15:23+00:00[!UTC]",
+   "expect": {
+    "fields": [
+     1976,
+     11,
+     18,
+     15,
+     23,
+     0,
+     0,
+     0,
+     0
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainDateTime/from/argument-string-date-with-utc-offset.js",
+   "type": "PlainDateTime"
+  },
+  {
+   "text": "1976-11-18T15:23+01[Europe/Vienna]",
+   "expect": {
+    "fields": [
+     1976,
+     11,
+     18,
+     15,
+     23,
+     0,
+     0,
+     0,
+     0
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainDateTime/from/argument-string-date-with-utc-offset.js",
+   "type": "PlainDateTime"
+  },
+  {
+   "text": "1976-11-18T15:23-02:30[America/St_Johns]",
+   "expect": {
+    "fields": [
+     1976,
+     11,
+     18,
+     15,
+     23,
+     0,
+     0,
+     0,
+     0
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainDateTime/from/argument-string-date-with-utc-offset.js",
+   "type": "PlainDateTime"
+  },
+  {
+   "text": "1976-11-18T15:23-02:30:00,0[America/St_Johns]",
+   "expect": {
+    "fields": [
+     1976,
+     11,
+     18,
+     15,
+     23,
+     0,
+     0,
+     0,
+     0
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainDateTime/from/argument-string-date-with-utc-offset.js",
+   "type": "PlainDateTime"
+  },
+  {
+   "text": "1976-11-18T15:23-02:30:00.000000000[America/St_Johns]",
+   "expect": {
+    "fields": [
+     1976,
+     11,
+     18,
+     15,
+     23,
+     0,
+     0,
+     0,
+     0
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainDateTime/from/argument-string-date-with-utc-offset.js",
+   "type": "PlainDateTime"
+  },
+  {
+   "text": "1976-11-18T15:23-0230[America/St_Johns]",
+   "expect": {
+    "fields": [
+     1976,
+     11,
+     18,
+     15,
+     23,
+     0,
+     0,
+     0,
+     0
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainDateTime/from/argument-string-date-with-utc-offset.js",
+   "type": "PlainDateTime"
+  },
+  {
+   "text": "1976-11-18T15:23-023000,0[America/St_Johns]",
+   "expect": {
+    "fields": [
+     1976,
+     11,
+     18,
+     15,
+     23,
+     0,
+     0,
+     0,
+     0
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainDateTime/from/argument-string-date-with-utc-offset.js",
+   "type": "PlainDateTime"
+  },
+  {
+   "text": "1976-11-18T15:23-023000.000000000[America/St_Johns]",
+   "expect": {
+    "fields": [
+     1976,
+     11,
+     18,
+     15,
+     23,
+     0,
+     0,
+     0,
+     0
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainDateTime/from/argument-string-date-with-utc-offset.js",
+   "type": "PlainDateTime"
+  },
+  {
+   "text": "2022-09-15Z",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainDateTime/from/argument-string-date-with-utc-offset.js",
+   "type": "PlainDateTime"
+  },
+  {
+   "text": "2022-09-15Z[UTC]",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainDateTime/from/argument-string-date-with-utc-offset.js",
+   "type": "PlainDateTime"
+  },
+  {
+   "text": "2022-09-15Z[Europe/Vienna]",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainDateTime/from/argument-string-date-with-utc-offset.js",
+   "type": "PlainDateTime"
+  },
+  {
+   "text": "2022-09-15+00:00",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainDateTime/from/argument-string-date-with-utc-offset.js",
+   "type": "PlainDateTime"
+  },
+  {
+   "text": "2022-09-15+00:00[UTC]",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainDateTime/from/argument-string-date-with-utc-offset.js",
+   "type": "PlainDateTime"
+  },
+  {
+   "text": "2022-09-15-02:30",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainDateTime/from/argument-string-date-with-utc-offset.js",
+   "type": "PlainDateTime"
+  },
+  {
+   "text": "2022-09-15-02:30[America/St_Johns]",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainDateTime/from/argument-string-date-with-utc-offset.js",
+   "type": "PlainDateTime"
+  },
+  {
+   "text": "",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainDateTime/from/argument-string-invalid.js",
+   "type": "PlainDateTime"
+  },
+  {
+   "text": "obviously invalid",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainDateTime/from/argument-string-invalid.js",
+   "type": "PlainDateTime"
+  },
+  {
+   "text": "2020-01-00",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainDateTime/from/argument-string-invalid.js",
+   "type": "PlainDateTime"
+  },
+  {
+   "text": "2020-01-32",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainDateTime/from/argument-string-invalid.js",
+   "type": "PlainDateTime"
+  },
+  {
+   "text": "2020-02-30",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainDateTime/from/argument-string-invalid.js",
+   "type": "PlainDateTime"
+  },
+  {
+   "text": "2021-02-29",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainDateTime/from/argument-string-invalid.js",
+   "type": "PlainDateTime"
+  },
+  {
+   "text": "2020-00-01",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainDateTime/from/argument-string-invalid.js",
+   "type": "PlainDateTime"
+  },
+  {
+   "text": "2020-13-01",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainDateTime/from/argument-string-invalid.js",
+   "type": "PlainDateTime"
+  },
+  {
+   "text": "2020-01-01T",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainDateTime/from/argument-string-invalid.js",
+   "type": "PlainDateTime"
+  },
+  {
+   "text": "2020-01-01T25:00:00",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainDateTime/from/argument-string-invalid.js",
+   "type": "PlainDateTime"
+  },
+  {
+   "text": "2020-01-01T01:60:00",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainDateTime/from/argument-string-invalid.js",
+   "type": "PlainDateTime"
+  },
+  {
+   "text": "2020-01-01T01:60:61",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainDateTime/from/argument-string-invalid.js",
+   "type": "PlainDateTime"
+  },
+  {
+   "text": "2020-01-01junk",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainDateTime/from/argument-string-invalid.js",
+   "type": "PlainDateTime"
+  },
+  {
+   "text": "2020-01-01T00:00:00junk",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainDateTime/from/argument-string-invalid.js",
+   "type": "PlainDateTime"
+  },
+  {
+   "text": "2020-01-01T00:00:00+00:00junk",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainDateTime/from/argument-string-invalid.js",
+   "type": "PlainDateTime"
+  },
+  {
+   "text": "2020-01-01T00:00:00+00:00[UTC]junk",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainDateTime/from/argument-string-invalid.js",
+   "type": "PlainDateTime"
+  },
+  {
+   "text": "2020-01-01T00:00:00+00:00[UTC][u-ca=iso8601]junk",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainDateTime/from/argument-string-invalid.js",
+   "type": "PlainDateTime"
+  },
+  {
+   "text": "02020-01-01",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainDateTime/from/argument-string-invalid.js",
+   "type": "PlainDateTime"
+  },
+  {
+   "text": "2020-001-01",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainDateTime/from/argument-string-invalid.js",
+   "type": "PlainDateTime"
+  },
+  {
+   "text": "2020-01-001",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainDateTime/from/argument-string-invalid.js",
+   "type": "PlainDateTime"
+  },
+  {
+   "text": "2020-01-01T001",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainDateTime/from/argument-string-invalid.js",
+   "type": "PlainDateTime"
+  },
+  {
+   "text": "2020-01-01T01:001",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainDateTime/from/argument-string-invalid.js",
+   "type": "PlainDateTime"
+  },
+  {
+   "text": "2020-01-01T01:01:001",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainDateTime/from/argument-string-invalid.js",
+   "type": "PlainDateTime"
+  },
+  {
+   "text": "2020-W01-1",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainDateTime/from/argument-string-invalid.js",
+   "type": "PlainDateTime"
+  },
+  {
+   "text": "2020-001",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainDateTime/from/argument-string-invalid.js",
+   "type": "PlainDateTime"
+  },
+  {
+   "text": "+0002020-01-01",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainDateTime/from/argument-string-invalid.js",
+   "type": "PlainDateTime"
+  },
+  {
+   "text": "2020-01-01[u-ca=notexist]",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainDateTime/from/argument-string-invalid.js",
+   "type": "PlainDateTime"
+  },
+  {
+   "text": "2020-01",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainDateTime/from/argument-string-invalid.js",
+   "type": "PlainDateTime"
+  },
+  {
+   "text": "+002020-01",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainDateTime/from/argument-string-invalid.js",
+   "type": "PlainDateTime"
+  },
+  {
+   "text": "01-01",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainDateTime/from/argument-string-invalid.js",
+   "type": "PlainDateTime"
+  },
+  {
+   "text": "2020-W01",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainDateTime/from/argument-string-invalid.js",
+   "type": "PlainDateTime"
+  },
+  {
+   "text": "P1Y",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainDateTime/from/argument-string-invalid.js",
+   "type": "PlainDateTime"
+  },
+  {
+   "text": "-P12Y",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainDateTime/from/argument-string-invalid.js",
+   "type": "PlainDateTime"
+  },
+  {
+   "text": "-999999-01-01",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainDateTime/from/argument-string-invalid.js",
+   "type": "PlainDateTime"
+  },
+  {
+   "text": "+999999-01-01",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainDateTime/from/argument-string-invalid.js",
+   "type": "PlainDateTime"
+  },
+  {
+   "text": "2025-01-01T00:00:00+00:0000",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainDateTime/from/argument-string-invalid.js",
+   "type": "PlainDateTime"
+  },
+  {
+   "text": "2025-01-01T00:00:00+0000:00",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainDateTime/from/argument-string-invalid.js",
+   "type": "PlainDateTime"
+  },
+  {
+   "text": "202501-01T00:00:00",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainDateTime/from/argument-string-invalid.js",
+   "type": "PlainDateTime"
+  },
+  {
+   "text": "2025-0101T00:00:00",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainDateTime/from/argument-string-invalid.js",
+   "type": "PlainDateTime"
+  },
+  {
+   "text": "2025-01-01T00:0000",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainDateTime/from/argument-string-invalid.js",
+   "type": "PlainDateTime"
+  },
+  {
+   "text": "2025-01-01T0000:00",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainDateTime/from/argument-string-invalid.js",
+   "type": "PlainDateTime"
+  },
+  {
+   "text": "-271821-04-19",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainDateTime/from/argument-string-limits.js",
+   "type": "PlainDateTime"
+  },
+  {
+   "text": "-271821-04-19T00:00",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainDateTime/from/argument-string-limits.js",
+   "type": "PlainDateTime"
+  },
+  {
+   "text": "+275760-09-14",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainDateTime/from/argument-string-limits.js",
+   "type": "PlainDateTime"
+  },
+  {
+   "text": "+275760-09-14T00:00",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainDateTime/from/argument-string-limits.js",
+   "type": "PlainDateTime"
+  },
+  {
+   "text": "1976-11-18T15:23:30.12−02:00",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainDateTime/from/argument-string-minus-sign.js",
+   "type": "PlainDateTime"
+  },
+  {
+   "text": "−009999-11-18T15:23:30.12",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainDateTime/from/argument-string-minus-sign.js",
+   "type": "PlainDateTime"
+  },
+  {
+   "text": "1970-01-01[u-ca=iso8601][!u-ca=iso8601]",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainDateTime/from/argument-string-multiple-calendar.js",
+   "type": "PlainDateTime"
+  },
+  {
+   "text": "1970-01-01[!u-ca=iso8601][u-ca=iso8601]",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainDateTime/from/argument-string-multiple-calendar.js",
+   "type": "PlainDateTime"
+  },
+  {
+   "text": "1970-01-01[UTC][u-ca=iso8601][!u-ca=iso8601]",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainDateTime/from/argument-string-multiple-calendar.js",
+   "type": "PlainDateTime"
+  },
+  {
+   "text": "1970-01-01[u-ca=iso8601][foo=bar][!u-ca=iso8601]",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainDateTime/from/argument-string-multiple-calendar.js",
+   "type": "PlainDateTime"
+  },
+  {
+   "text": "1970-01-01T00:00[u-ca=iso8601][!u-ca=iso8601]",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainDateTime/from/argument-string-multiple-calendar.js",
+   "type": "PlainDateTime"
+  },
+  {
+   "text": "1970-01-01T00:00[!u-ca=iso8601][u-ca=iso8601]",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainDateTime/from/argument-string-multiple-calendar.js",
+   "type": "PlainDateTime"
+  },
+  {
+   "text": "1970-01-01T00:00[UTC][u-ca=iso8601][!u-ca=iso8601]",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainDateTime/from/argument-string-multiple-calendar.js",
+   "type": "PlainDateTime"
+  },
+  {
+   "text": "1970-01-01T00:00[u-ca=iso8601][foo=bar][!u-ca=iso8601]",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainDateTime/from/argument-string-multiple-calendar.js",
+   "type": "PlainDateTime"
+  },
+  {
+   "text": "1970-01-01T00:00[UTC][UTC]",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainDateTime/from/argument-string-multiple-time-zone.js",
+   "type": "PlainDateTime"
+  },
+  {
+   "text": "1970-01-01T00:00[!UTC][UTC]",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainDateTime/from/argument-string-multiple-time-zone.js",
+   "type": "PlainDateTime"
+  },
+  {
+   "text": "1970-01-01T00:00[UTC][!UTC]",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainDateTime/from/argument-string-multiple-time-zone.js",
+   "type": "PlainDateTime"
+  },
+  {
+   "text": "1970-01-01T00:00[UTC][u-ca=iso8601][UTC]",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainDateTime/from/argument-string-multiple-time-zone.js",
+   "type": "PlainDateTime"
+  },
+  {
+   "text": "1970-01-01T00:00[UTC][foo=bar][UTC]",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainDateTime/from/argument-string-multiple-time-zone.js",
+   "type": "PlainDateTime"
+  },
+  {
+   "text": "1976-11-18T15:23:30+00",
+   "expect": {
+    "fields": [
+     1976,
+     11,
+     18,
+     15,
+     23,
+     30,
+     0,
+     0,
+     0
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainDateTime/from/argument-string-optional-data.js",
+   "type": "PlainDateTime"
+  },
+  {
+   "text": "1976-11-18T15",
+   "expect": {
+    "fields": [
+     1976,
+     11,
+     18,
+     15,
+     0,
+     0,
+     0,
+     0,
+     0
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainDateTime/from/argument-string-optional-data.js",
+   "type": "PlainDateTime"
+  },
+  {
+   "text": "1976-11-18",
+   "expect": {
+    "fields": [
+     1976,
+     11,
+     18,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainDateTime/from/argument-string-optional-data.js",
+   "type": "PlainDateTime"
+  },
+  {
+   "text": "1976-11-18T15:23:30.1",
+   "expect": {
+    "fields": [
+     1976,
+     11,
+     18,
+     15,
+     23,
+     30,
+     100,
+     0,
+     0
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainDateTime/from/argument-string-subsecond.js",
+   "type": "PlainDateTime"
+  },
+  {
+   "text": "1976-11-18T15:23:30.12",
+   "expect": {
+    "fields": [
+     1976,
+     11,
+     18,
+     15,
+     23,
+     30,
+     120,
+     0,
+     0
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainDateTime/from/argument-string-subsecond.js",
+   "type": "PlainDateTime"
+  },
+  {
+   "text": "1976-11-18T15:23:30.123",
+   "expect": {
+    "fields": [
+     1976,
+     11,
+     18,
+     15,
+     23,
+     30,
+     123,
+     0,
+     0
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainDateTime/from/argument-string-subsecond.js",
+   "type": "PlainDateTime"
+  },
+  {
+   "text": "1976-11-18T15:23:30.1234",
+   "expect": {
+    "fields": [
+     1976,
+     11,
+     18,
+     15,
+     23,
+     30,
+     123,
+     400,
+     0
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainDateTime/from/argument-string-subsecond.js",
+   "type": "PlainDateTime"
+  },
+  {
+   "text": "1976-11-18T15:23:30.12345",
+   "expect": {
+    "fields": [
+     1976,
+     11,
+     18,
+     15,
+     23,
+     30,
+     123,
+     450,
+     0
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainDateTime/from/argument-string-subsecond.js",
+   "type": "PlainDateTime"
+  },
+  {
+   "text": "1976-11-18T15:23:30.123456",
+   "expect": {
+    "fields": [
+     1976,
+     11,
+     18,
+     15,
+     23,
+     30,
+     123,
+     456,
+     0
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainDateTime/from/argument-string-subsecond.js",
+   "type": "PlainDateTime"
+  },
+  {
+   "text": "1976-11-18T15:23:30.1234567",
+   "expect": {
+    "fields": [
+     1976,
+     11,
+     18,
+     15,
+     23,
+     30,
+     123,
+     456,
+     700
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainDateTime/from/argument-string-subsecond.js",
+   "type": "PlainDateTime"
+  },
+  {
+   "text": "1976-11-18T15:23:30.12345678",
+   "expect": {
+    "fields": [
+     1976,
+     11,
+     18,
+     15,
+     23,
+     30,
+     123,
+     456,
+     780
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainDateTime/from/argument-string-subsecond.js",
+   "type": "PlainDateTime"
+  },
+  {
+   "text": "1976-11-18T15:23:30.123456789",
+   "expect": {
+    "fields": [
+     1976,
+     11,
+     18,
+     15,
+     23,
+     30,
+     123,
+     456,
+     789
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainDateTime/from/argument-string-subsecond.js",
+   "type": "PlainDateTime"
+  },
+  {
+   "text": "1976-11-18T15:23:30.1234567891",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainDateTime/from/argument-string-subsecond.js",
+   "type": "PlainDateTime"
+  },
+  {
+   "text": "1976-11-18T15:23",
+   "expect": {
+    "fields": [
+     1976,
+     11,
+     18,
+     15,
+     23,
+     0,
+     0,
+     0,
+     0
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainDateTime/from/argument-string-time-separators.js",
+   "type": "PlainDateTime"
+  },
+  {
+   "text": "1976-11-18t15:23",
+   "expect": {
+    "fields": [
+     1976,
+     11,
+     18,
+     15,
+     23,
+     0,
+     0,
+     0,
+     0
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainDateTime/from/argument-string-time-separators.js",
+   "type": "PlainDateTime"
+  },
+  {
+   "text": "1976-11-18 15:23",
+   "expect": {
+    "fields": [
+     1976,
+     11,
+     18,
+     15,
+     23,
+     0,
+     0,
+     0,
+     0
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainDateTime/from/argument-string-time-separators.js",
+   "type": "PlainDateTime"
+  },
+  {
+   "text": "1976-11-18T15:23[Asia/Kolkata]",
+   "expect": {
+    "fields": [
+     1976,
+     11,
+     18,
+     15,
+     23,
+     0,
+     0,
+     0,
+     0
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainDateTime/from/argument-string-time-zone-annotation.js",
+   "type": "PlainDateTime"
+  },
+  {
+   "text": "1976-11-18T15:23[!Europe/Vienna]",
+   "expect": {
+    "fields": [
+     1976,
+     11,
+     18,
+     15,
+     23,
+     0,
+     0,
+     0,
+     0
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainDateTime/from/argument-string-time-zone-annotation.js",
+   "type": "PlainDateTime"
+  },
+  {
+   "text": "1976-11-18T15:23[+00:00]",
+   "expect": {
+    "fields": [
+     1976,
+     11,
+     18,
+     15,
+     23,
+     0,
+     0,
+     0,
+     0
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainDateTime/from/argument-string-time-zone-annotation.js",
+   "type": "PlainDateTime"
+  },
+  {
+   "text": "1976-11-18T15:23[!-02:30]",
+   "expect": {
+    "fields": [
+     1976,
+     11,
+     18,
+     15,
+     23,
+     0,
+     0,
+     0,
+     0
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainDateTime/from/argument-string-time-zone-annotation.js",
+   "type": "PlainDateTime"
+  },
+  {
+   "text": "1976-11-18T15:23+00:00[UTC]",
+   "expect": {
+    "fields": [
+     1976,
+     11,
+     18,
+     15,
+     23,
+     0,
+     0,
+     0,
+     0
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainDateTime/from/argument-string-time-zone-annotation.js",
+   "type": "PlainDateTime"
+  },
+  {
+   "text": "1976-11-18T15:23+00:00[!Africa/Abidjan]",
+   "expect": {
+    "fields": [
+     1976,
+     11,
+     18,
+     15,
+     23,
+     0,
+     0,
+     0,
+     0
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainDateTime/from/argument-string-time-zone-annotation.js",
+   "type": "PlainDateTime"
+  },
+  {
+   "text": "1976-11-18T15:23+00:00[+01:00]",
+   "expect": {
+    "fields": [
+     1976,
+     11,
+     18,
+     15,
+     23,
+     0,
+     0,
+     0,
+     0
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainDateTime/from/argument-string-time-zone-annotation.js",
+   "type": "PlainDateTime"
+  },
+  {
+   "text": "1976-11-18T15:23+00:00[!-08:00]",
+   "expect": {
+    "fields": [
+     1976,
+     11,
+     18,
+     15,
+     23,
+     0,
+     0,
+     0,
+     0
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainDateTime/from/argument-string-time-zone-annotation.js",
+   "type": "PlainDateTime"
+  },
+  {
+   "text": "2020-01-01T01:23:45[Asia/Kolkata]",
+   "expect": {
+    "fields": [
+     2020,
+     1,
+     1,
+     1,
+     23,
+     45,
+     0,
+     0,
+     0
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainDateTime/from/argument-string-timezone.js",
+   "type": "PlainDateTime"
+  },
+  {
+   "text": "1976-11-18T15:23[foo=bar]",
+   "expect": {
+    "fields": [
+     1976,
+     11,
+     18,
+     15,
+     23,
+     0,
+     0,
+     0,
+     0
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainDateTime/from/argument-string-unknown-annotation.js",
+   "type": "PlainDateTime"
+  },
+  {
+   "text": "1976-11-18T15:23[UTC][foo=bar]",
+   "expect": {
+    "fields": [
+     1976,
+     11,
+     18,
+     15,
+     23,
+     0,
+     0,
+     0,
+     0
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainDateTime/from/argument-string-unknown-annotation.js",
+   "type": "PlainDateTime"
+  },
+  {
+   "text": "1976-11-18T15:23[u-ca=iso8601][foo=bar]",
+   "expect": {
+    "fields": [
+     1976,
+     11,
+     18,
+     15,
+     23,
+     0,
+     0,
+     0,
+     0
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainDateTime/from/argument-string-unknown-annotation.js",
+   "type": "PlainDateTime"
+  },
+  {
+   "text": "1976-11-18T15:23[UTC][foo=bar][u-ca=iso8601]",
+   "expect": {
+    "fields": [
+     1976,
+     11,
+     18,
+     15,
+     23,
+     0,
+     0,
+     0,
+     0
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainDateTime/from/argument-string-unknown-annotation.js",
+   "type": "PlainDateTime"
+  },
+  {
+   "text": "1976-11-18T15:23[foo=bar][_foo-bar0=Ignore-This-999999999999]",
+   "expect": {
+    "fields": [
+     1976,
+     11,
+     18,
+     15,
+     23,
+     0,
+     0,
+     0,
+     0
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainDateTime/from/argument-string-unknown-annotation.js",
+   "type": "PlainDateTime"
+  },
+  {
+   "text": "2019-10-01T09:00:00Z",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainDateTime/from/argument-string-with-utc-designator.js",
+   "type": "PlainDateTime"
+  },
+  {
+   "text": "2019-10-01T09:00:00Z[UTC]",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainDateTime/from/argument-string-with-utc-designator.js",
+   "type": "PlainDateTime"
+  },
+  {
+   "text": "1976-11-18T15:23:30",
+   "expect": {
+    "fields": [
+     1976,
+     11,
+     18,
+     15,
+     23,
+     30,
+     0,
+     0,
+     0
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainDateTime/from/argument-string.js",
+   "type": "PlainDateTime"
+  },
+  {
+   "text": "1976-11-18T15:23:30.001",
+   "expect": {
+    "fields": [
+     1976,
+     11,
+     18,
+     15,
+     23,
+     30,
+     1,
+     0,
+     0
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainDateTime/from/argument-string.js",
+   "type": "PlainDateTime"
+  },
+  {
+   "text": "1976-11-18T15:23:30.001123",
+   "expect": {
+    "fields": [
+     1976,
+     11,
+     18,
+     15,
+     23,
+     30,
+     1,
+     123,
+     0
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainDateTime/from/argument-string.js",
+   "type": "PlainDateTime"
+  },
+  {
+   "text": "1976-11-18T15:23:30.001123456",
+   "expect": {
+    "fields": [
+     1976,
+     11,
+     18,
+     15,
+     23,
+     30,
+     1,
+     123,
+     456
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainDateTime/from/argument-string.js",
+   "type": "PlainDateTime"
+  },
+  {
+   "text": "-271821-04-19T00:00:00.000000001",
+   "expect": {
+    "fields": [
+     -271821,
+     4,
+     19,
+     0,
+     0,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainDateTime/from/limits.js",
+   "type": "PlainDateTime"
+  },
+  {
+   "text": "+275760-09-13T23:59:59.999999999",
+   "expect": {
+    "fields": [
+     275760,
+     9,
+     13,
+     23,
+     59,
+     59,
+     999,
+     999,
+     999
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainDateTime/from/limits.js",
+   "type": "PlainDateTime"
+  },
+  {
+   "text": "-271821-04-19T00:00",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainDateTime/from/limits.js",
+   "type": "PlainDateTime"
+  },
+  {
+   "text": "+275760-09-14T00:00",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainDateTime/from/limits.js",
+   "type": "PlainDateTime"
+  },
+  {
+   "text": "2025-04-03T05:07.123",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainDateTime/from/no-fractional-minutes-hours.js",
+   "type": "PlainDateTime"
+  },
+  {
+   "text": "2025-04-03T12.5",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainDateTime/from/no-fractional-minutes-hours.js",
+   "type": "PlainDateTime"
+  },
+  {
+   "text": "2020-01-01T00:00:00+01:00[Custom]",
+   "expect": {
+    "fields": [
+     2020,
+     1,
+     1,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainDateTime/from/parser.js",
+   "type": "PlainDateTime"
+  },
+  {
+   "text": "2000-01-01T12:34:56.987654321",
+   "expect": {
+    "fields": [
+     2000,
+     1,
+     1,
+     12,
+     34,
+     56,
+     987,
+     654,
+     321
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainDateTime/from/roundtrip-from-string.js",
+   "type": "PlainDateTime"
+  },
+  {
+   "text": "0001-01-01T12:34:56.987654321",
+   "expect": {
+    "fields": [
+     1,
+     1,
+     1,
+     12,
+     34,
+     56,
+     987,
+     654,
+     321
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainDateTime/from/roundtrip-from-string.js",
+   "type": "PlainDateTime"
+  },
+  {
+   "text": "-000000-12-07",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainDateTime/from/year-zero.js",
+   "type": "PlainDateTime"
+  },
+  {
+   "text": "-000000-12-07T03:24:30",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainDateTime/from/year-zero.js",
+   "type": "PlainDateTime"
+  },
+  {
+   "text": "-000000-12-07T03:24:30+01:00",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainDateTime/from/year-zero.js",
+   "type": "PlainDateTime"
+  },
+  {
+   "text": "-000000-12-07T03:24:30+00:00[UTC]",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainDateTime/from/year-zero.js",
+   "type": "PlainDateTime"
+  },
+  {
+   "text": "00:00[U-CA=iso8601]",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainTime/from/argument-string-calendar-annotation-invalid-key.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "T00:00[U-CA=iso8601]",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainTime/from/argument-string-calendar-annotation-invalid-key.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "1970-01-01T00:00[U-CA=iso8601]",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainTime/from/argument-string-calendar-annotation-invalid-key.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "00:00[u-CA=iso8601]",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainTime/from/argument-string-calendar-annotation-invalid-key.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "T00:00[u-CA=iso8601]",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainTime/from/argument-string-calendar-annotation-invalid-key.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "1970-01-01T00:00[u-CA=iso8601]",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainTime/from/argument-string-calendar-annotation-invalid-key.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "00:00[FOO=bar]",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainTime/from/argument-string-calendar-annotation-invalid-key.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "T00:00[FOO=bar]",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainTime/from/argument-string-calendar-annotation-invalid-key.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "1970-01-01T00:00[FOO=bar]",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainTime/from/argument-string-calendar-annotation-invalid-key.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "12:34:56.987654321[u-ca=iso8601]",
+   "expect": {
+    "fields": [
+     12,
+     34,
+     56,
+     987,
+     654,
+     321
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainTime/from/argument-string-calendar-annotation.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "12:34:56.987654321[UTC][u-ca=iso8601]",
+   "expect": {
+    "fields": [
+     12,
+     34,
+     56,
+     987,
+     654,
+     321
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainTime/from/argument-string-calendar-annotation.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "12:34:56.987654321[!u-ca=iso8601]",
+   "expect": {
+    "fields": [
+     12,
+     34,
+     56,
+     987,
+     654,
+     321
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainTime/from/argument-string-calendar-annotation.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "12:34:56.987654321[UTC][!u-ca=iso8601]",
+   "expect": {
+    "fields": [
+     12,
+     34,
+     56,
+     987,
+     654,
+     321
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainTime/from/argument-string-calendar-annotation.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "T12:34:56.987654321[u-ca=iso8601]",
+   "expect": {
+    "fields": [
+     12,
+     34,
+     56,
+     987,
+     654,
+     321
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainTime/from/argument-string-calendar-annotation.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "T12:34:56.987654321[UTC][u-ca=iso8601]",
+   "expect": {
+    "fields": [
+     12,
+     34,
+     56,
+     987,
+     654,
+     321
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainTime/from/argument-string-calendar-annotation.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "T12:34:56.987654321[!u-ca=iso8601]",
+   "expect": {
+    "fields": [
+     12,
+     34,
+     56,
+     987,
+     654,
+     321
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainTime/from/argument-string-calendar-annotation.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "T12:34:56.987654321[UTC][!u-ca=iso8601]",
+   "expect": {
+    "fields": [
+     12,
+     34,
+     56,
+     987,
+     654,
+     321
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainTime/from/argument-string-calendar-annotation.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "1970-01-01T12:34:56.987654321[u-ca=iso8601]",
+   "expect": {
+    "fields": [
+     12,
+     34,
+     56,
+     987,
+     654,
+     321
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainTime/from/argument-string-calendar-annotation.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "1970-01-01T12:34:56.987654321[UTC][u-ca=iso8601]",
+   "expect": {
+    "fields": [
+     12,
+     34,
+     56,
+     987,
+     654,
+     321
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainTime/from/argument-string-calendar-annotation.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "1970-01-01T12:34:56.987654321[!u-ca=iso8601]",
+   "expect": {
+    "fields": [
+     12,
+     34,
+     56,
+     987,
+     654,
+     321
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainTime/from/argument-string-calendar-annotation.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "1970-01-01T12:34:56.987654321[UTC][!u-ca=iso8601]",
+   "expect": {
+    "fields": [
+     12,
+     34,
+     56,
+     987,
+     654,
+     321
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainTime/from/argument-string-calendar-annotation.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "12:34:56.987654321[u-ca=hebrew]",
+   "expect": {
+    "fields": [
+     12,
+     34,
+     56,
+     987,
+     654,
+     321
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainTime/from/argument-string-calendar-annotation.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "12:34:56.987654321[u-ca=unknown]",
+   "expect": {
+    "fields": [
+     12,
+     34,
+     56,
+     987,
+     654,
+     321
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainTime/from/argument-string-calendar-annotation.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "12:34:56.987654321[!u-ca=unknown]",
+   "expect": {
+    "fields": [
+     12,
+     34,
+     56,
+     987,
+     654,
+     321
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainTime/from/argument-string-calendar-annotation.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "1970-01-01T12:34:56.987654321[u-ca=iso8601][u-ca=discord]",
+   "expect": {
+    "fields": [
+     12,
+     34,
+     56,
+     987,
+     654,
+     321
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainTime/from/argument-string-calendar-annotation.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "00:00[!foo=bar]",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainTime/from/argument-string-critical-unknown-annotation.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "T00:00[!foo=bar]",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainTime/from/argument-string-critical-unknown-annotation.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "1970-01-01T00:00[!foo=bar]",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainTime/from/argument-string-critical-unknown-annotation.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "1970-01-01T00:00[UTC][!foo=bar]",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainTime/from/argument-string-critical-unknown-annotation.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "1970-01-01T00:00[u-ca=iso8601][!foo=bar]",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainTime/from/argument-string-critical-unknown-annotation.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "1970-01-01T00:00[UTC][!foo=bar][u-ca=iso8601]",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainTime/from/argument-string-critical-unknown-annotation.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "1970-01-01T00:00[foo=bar][!_foo-bar0=Dont-Ignore-This-99999999999]",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainTime/from/argument-string-critical-unknown-annotation.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "12:34:56.987654321+00",
+   "expect": {
+    "fields": [
+     12,
+     34,
+     56,
+     987,
+     654,
+     321
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainTime/from/argument-string-date-with-utc-offset.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "12:34:56.987654321+00:00",
+   "expect": {
+    "fields": [
+     12,
+     34,
+     56,
+     987,
+     654,
+     321
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainTime/from/argument-string-date-with-utc-offset.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "12:34:56.987654321+00:00:00,0",
+   "expect": {
+    "fields": [
+     12,
+     34,
+     56,
+     987,
+     654,
+     321
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainTime/from/argument-string-date-with-utc-offset.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "12:34:56.987654321+00:00:00.000000000",
+   "expect": {
+    "fields": [
+     12,
+     34,
+     56,
+     987,
+     654,
+     321
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainTime/from/argument-string-date-with-utc-offset.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "12:34:56.987654321+0000",
+   "expect": {
+    "fields": [
+     12,
+     34,
+     56,
+     987,
+     654,
+     321
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainTime/from/argument-string-date-with-utc-offset.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "12:34:56.987654321+000000,0",
+   "expect": {
+    "fields": [
+     12,
+     34,
+     56,
+     987,
+     654,
+     321
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainTime/from/argument-string-date-with-utc-offset.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "12:34:56.987654321+000000.000000000",
+   "expect": {
+    "fields": [
+     12,
+     34,
+     56,
+     987,
+     654,
+     321
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainTime/from/argument-string-date-with-utc-offset.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "12:34:56.987654321+00:00[UTC]",
+   "expect": {
+    "fields": [
+     12,
+     34,
+     56,
+     987,
+     654,
+     321
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainTime/from/argument-string-date-with-utc-offset.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "12:34:56.987654321+00:00[!UTC]",
+   "expect": {
+    "fields": [
+     12,
+     34,
+     56,
+     987,
+     654,
+     321
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainTime/from/argument-string-date-with-utc-offset.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "12:34:56.987654321+01[Europe/Vienna]",
+   "expect": {
+    "fields": [
+     12,
+     34,
+     56,
+     987,
+     654,
+     321
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainTime/from/argument-string-date-with-utc-offset.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "12:34:56.987654321-02:30[America/St_Johns]",
+   "expect": {
+    "fields": [
+     12,
+     34,
+     56,
+     987,
+     654,
+     321
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainTime/from/argument-string-date-with-utc-offset.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "12:34:56.987654321-02:30:00,0[America/St_Johns]",
+   "expect": {
+    "fields": [
+     12,
+     34,
+     56,
+     987,
+     654,
+     321
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainTime/from/argument-string-date-with-utc-offset.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "12:34:56.987654321-02:30:00.000000000[America/St_Johns]",
+   "expect": {
+    "fields": [
+     12,
+     34,
+     56,
+     987,
+     654,
+     321
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainTime/from/argument-string-date-with-utc-offset.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "12:34:56.987654321-0230[America/St_Johns]",
+   "expect": {
+    "fields": [
+     12,
+     34,
+     56,
+     987,
+     654,
+     321
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainTime/from/argument-string-date-with-utc-offset.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "12:34:56.987654321-023000,0[America/St_Johns]",
+   "expect": {
+    "fields": [
+     12,
+     34,
+     56,
+     987,
+     654,
+     321
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainTime/from/argument-string-date-with-utc-offset.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "12:34:56.987654321-023000.000000000[America/St_Johns]",
+   "expect": {
+    "fields": [
+     12,
+     34,
+     56,
+     987,
+     654,
+     321
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainTime/from/argument-string-date-with-utc-offset.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "1976-11-18T12:34:56.987654321+00:00",
+   "expect": {
+    "fields": [
+     12,
+     34,
+     56,
+     987,
+     654,
+     321
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainTime/from/argument-string-date-with-utc-offset.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "1976-11-18T12:34:56.987654321+00:00[UTC]",
+   "expect": {
+    "fields": [
+     12,
+     34,
+     56,
+     987,
+     654,
+     321
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainTime/from/argument-string-date-with-utc-offset.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "1976-11-18T12:34:56.987654321+00:00[!UTC]",
+   "expect": {
+    "fields": [
+     12,
+     34,
+     56,
+     987,
+     654,
+     321
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainTime/from/argument-string-date-with-utc-offset.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "1976-11-18T12:34:56.987654321-02:30[America/St_Johns]",
+   "expect": {
+    "fields": [
+     12,
+     34,
+     56,
+     987,
+     654,
+     321
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainTime/from/argument-string-date-with-utc-offset.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "2022-09-15Z",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainTime/from/argument-string-date-with-utc-offset.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "2022-09-15Z[UTC]",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainTime/from/argument-string-date-with-utc-offset.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "2022-09-15Z[Europe/Vienna]",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainTime/from/argument-string-date-with-utc-offset.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "2022-09-15+00:00",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainTime/from/argument-string-date-with-utc-offset.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "2022-09-15+00:00[UTC]",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainTime/from/argument-string-date-with-utc-offset.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "2022-09-15-02:30",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainTime/from/argument-string-date-with-utc-offset.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "2022-09-15-02:30[America/St_Johns]",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainTime/from/argument-string-date-with-utc-offset.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainTime/from/argument-string-invalid.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "invalid iso8601",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainTime/from/argument-string-invalid.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "00:00Z",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainTime/from/argument-string-invalid.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "Z",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainTime/from/argument-string-invalid.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "25:00:00Z",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainTime/from/argument-string-invalid.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "01:60:00Z",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainTime/from/argument-string-invalid.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "01:60:61Z",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainTime/from/argument-string-invalid.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "00:00Zjunk",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainTime/from/argument-string-invalid.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "00:00:00Zjunk",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainTime/from/argument-string-invalid.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "00:00:00.000000000Zjunk",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainTime/from/argument-string-invalid.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "00:00:00+00:00junk",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainTime/from/argument-string-invalid.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "00:00:00+00:00[UTC]junk",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainTime/from/argument-string-invalid.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "00:00:00+00:00[UTC][u-ca=iso8601]junk",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainTime/from/argument-string-invalid.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "001Z",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainTime/from/argument-string-invalid.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "01:001Z",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainTime/from/argument-string-invalid.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "01:01:001Z",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainTime/from/argument-string-invalid.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "00:00-24:00",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainTime/from/argument-string-invalid.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "00:00+24:00",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainTime/from/argument-string-invalid.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "00:00:00+00:0000",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainTime/from/argument-string-invalid.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "0000:00",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainTime/from/argument-string-invalid.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "00:0000",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainTime/from/argument-string-invalid.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "00:00:00+0000:00",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainTime/from/argument-string-invalid.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "1976-11-18T15:23:30.12−02:00",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainTime/from/argument-string-minus-sign.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "−009999-11-18T15:23:30.12",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainTime/from/argument-string-minus-sign.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "00:00[u-ca=iso8601][!u-ca=iso8601]",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainTime/from/argument-string-multiple-calendar.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "00:00[!u-ca=iso8601][u-ca=iso8601]",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainTime/from/argument-string-multiple-calendar.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "00:00[UTC][u-ca=iso8601][!u-ca=iso8601]",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainTime/from/argument-string-multiple-calendar.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "00:00[u-ca=iso8601][foo=bar][!u-ca=iso8601]",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainTime/from/argument-string-multiple-calendar.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "1970-01-01T00:00[u-ca=iso8601][!u-ca=iso8601]",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainTime/from/argument-string-multiple-calendar.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "1970-01-01T00:00[!u-ca=iso8601][u-ca=iso8601]",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainTime/from/argument-string-multiple-calendar.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "1970-01-01T00:00[UTC][u-ca=iso8601][!u-ca=iso8601]",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainTime/from/argument-string-multiple-calendar.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "1970-01-01T00:00[u-ca=iso8601][foo=bar][!u-ca=iso8601]",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainTime/from/argument-string-multiple-calendar.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "00:00[UTC][UTC]",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainTime/from/argument-string-multiple-time-zone.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "T00:00[UTC][UTC]",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainTime/from/argument-string-multiple-time-zone.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "1970-01-01T00:00[UTC][UTC]",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainTime/from/argument-string-multiple-time-zone.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "1970-01-01T00:00[!UTC][UTC]",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainTime/from/argument-string-multiple-time-zone.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "1970-01-01T00:00[UTC][!UTC]",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainTime/from/argument-string-multiple-time-zone.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "1970-01-01T00:00[UTC][u-ca=iso8601][UTC]",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainTime/from/argument-string-multiple-time-zone.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "1970-01-01T00:00[UTC][foo=bar][UTC]",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainTime/from/argument-string-multiple-time-zone.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "1976-11-18T12:34:56.987654321",
+   "expect": {
+    "fields": [
+     12,
+     34,
+     56,
+     987,
+     654,
+     321
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainTime/from/argument-string-time-separators.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "1976-11-18t12:34:56.987654321",
+   "expect": {
+    "fields": [
+     12,
+     34,
+     56,
+     987,
+     654,
+     321
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainTime/from/argument-string-time-separators.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "1976-11-18 12:34:56.987654321",
+   "expect": {
+    "fields": [
+     12,
+     34,
+     56,
+     987,
+     654,
+     321
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainTime/from/argument-string-time-separators.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "T12:34:56.987654321",
+   "expect": {
+    "fields": [
+     12,
+     34,
+     56,
+     987,
+     654,
+     321
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainTime/from/argument-string-time-separators.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "t12:34:56.987654321",
+   "expect": {
+    "fields": [
+     12,
+     34,
+     56,
+     987,
+     654,
+     321
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainTime/from/argument-string-time-separators.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "12:34:56.987654321[Asia/Kolkata]",
+   "expect": {
+    "fields": [
+     12,
+     34,
+     56,
+     987,
+     654,
+     321
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainTime/from/argument-string-time-zone-annotation.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "12:34:56.987654321[!Europe/Vienna]",
+   "expect": {
+    "fields": [
+     12,
+     34,
+     56,
+     987,
+     654,
+     321
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainTime/from/argument-string-time-zone-annotation.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "12:34:56.987654321[+00:00]",
+   "expect": {
+    "fields": [
+     12,
+     34,
+     56,
+     987,
+     654,
+     321
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainTime/from/argument-string-time-zone-annotation.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "12:34:56.987654321[!-02:30]",
+   "expect": {
+    "fields": [
+     12,
+     34,
+     56,
+     987,
+     654,
+     321
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainTime/from/argument-string-time-zone-annotation.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "T12:34:56.987654321[UTC]",
+   "expect": {
+    "fields": [
+     12,
+     34,
+     56,
+     987,
+     654,
+     321
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainTime/from/argument-string-time-zone-annotation.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "T12:34:56.987654321[!Africa/Abidjan]",
+   "expect": {
+    "fields": [
+     12,
+     34,
+     56,
+     987,
+     654,
+     321
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainTime/from/argument-string-time-zone-annotation.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "T12:34:56.987654321[+01:00]",
+   "expect": {
+    "fields": [
+     12,
+     34,
+     56,
+     987,
+     654,
+     321
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainTime/from/argument-string-time-zone-annotation.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "T12:34:56.987654321[!-08:00]",
+   "expect": {
+    "fields": [
+     12,
+     34,
+     56,
+     987,
+     654,
+     321
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainTime/from/argument-string-time-zone-annotation.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "12:34:56.987654321+00:00[America/Sao_Paulo]",
+   "expect": {
+    "fields": [
+     12,
+     34,
+     56,
+     987,
+     654,
+     321
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainTime/from/argument-string-time-zone-annotation.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "12:34:56.987654321+00:00[!Asia/Tokyo]",
+   "expect": {
+    "fields": [
+     12,
+     34,
+     56,
+     987,
+     654,
+     321
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainTime/from/argument-string-time-zone-annotation.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "12:34:56.987654321+00:00[-02:30]",
+   "expect": {
+    "fields": [
+     12,
+     34,
+     56,
+     987,
+     654,
+     321
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainTime/from/argument-string-time-zone-annotation.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "12:34:56.987654321+00:00[!+00:00]",
+   "expect": {
+    "fields": [
+     12,
+     34,
+     56,
+     987,
+     654,
+     321
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainTime/from/argument-string-time-zone-annotation.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "T12:34:56.987654321+00:00[America/New_York]",
+   "expect": {
+    "fields": [
+     12,
+     34,
+     56,
+     987,
+     654,
+     321
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainTime/from/argument-string-time-zone-annotation.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "T12:34:56.987654321+00:00[!UTC]",
+   "expect": {
+    "fields": [
+     12,
+     34,
+     56,
+     987,
+     654,
+     321
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainTime/from/argument-string-time-zone-annotation.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "T12:34:56.987654321+00:00[-08:00]",
+   "expect": {
+    "fields": [
+     12,
+     34,
+     56,
+     987,
+     654,
+     321
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainTime/from/argument-string-time-zone-annotation.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "T12:34:56.987654321+00:00[!+01:00]",
+   "expect": {
+    "fields": [
+     12,
+     34,
+     56,
+     987,
+     654,
+     321
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainTime/from/argument-string-time-zone-annotation.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "1970-01-01T12:34:56.987654321[Africa/Lagos]",
+   "expect": {
+    "fields": [
+     12,
+     34,
+     56,
+     987,
+     654,
+     321
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainTime/from/argument-string-time-zone-annotation.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "1970-01-01T12:34:56.987654321[!America/Vancouver]",
+   "expect": {
+    "fields": [
+     12,
+     34,
+     56,
+     987,
+     654,
+     321
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainTime/from/argument-string-time-zone-annotation.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "1970-01-01T12:34:56.987654321[+00:00]",
+   "expect": {
+    "fields": [
+     12,
+     34,
+     56,
+     987,
+     654,
+     321
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainTime/from/argument-string-time-zone-annotation.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "1970-01-01T12:34:56.987654321[!-02:30]",
+   "expect": {
+    "fields": [
+     12,
+     34,
+     56,
+     987,
+     654,
+     321
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainTime/from/argument-string-time-zone-annotation.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "1970-01-01T12:34:56.987654321+00:00[Europe/London]",
+   "expect": {
+    "fields": [
+     12,
+     34,
+     56,
+     987,
+     654,
+     321
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainTime/from/argument-string-time-zone-annotation.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "1970-01-01T12:34:56.987654321+00:00[!Asia/Seoul]",
+   "expect": {
+    "fields": [
+     12,
+     34,
+     56,
+     987,
+     654,
+     321
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainTime/from/argument-string-time-zone-annotation.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "1970-01-01T12:34:56.987654321+00:00[+01:00]",
+   "expect": {
+    "fields": [
+     12,
+     34,
+     56,
+     987,
+     654,
+     321
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainTime/from/argument-string-time-zone-annotation.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "1970-01-01T12:34:56.987654321+00:00[!-08:00]",
+   "expect": {
+    "fields": [
+     12,
+     34,
+     56,
+     987,
+     654,
+     321
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainTime/from/argument-string-time-zone-annotation.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "12:34:56.987654321[foo=bar]",
+   "expect": {
+    "fields": [
+     12,
+     34,
+     56,
+     987,
+     654,
+     321
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainTime/from/argument-string-unknown-annotation.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "12:34:56.987654321[UTC][foo=bar]",
+   "expect": {
+    "fields": [
+     12,
+     34,
+     56,
+     987,
+     654,
+     321
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainTime/from/argument-string-unknown-annotation.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "12:34:56.987654321[u-ca=iso8601][foo=bar]",
+   "expect": {
+    "fields": [
+     12,
+     34,
+     56,
+     987,
+     654,
+     321
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainTime/from/argument-string-unknown-annotation.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "12:34:56.987654321[UTC][foo=bar][u-ca=iso8601]",
+   "expect": {
+    "fields": [
+     12,
+     34,
+     56,
+     987,
+     654,
+     321
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainTime/from/argument-string-unknown-annotation.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "T12:34:56.987654321[foo=bar]",
+   "expect": {
+    "fields": [
+     12,
+     34,
+     56,
+     987,
+     654,
+     321
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainTime/from/argument-string-unknown-annotation.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "T12:34:56.987654321[UTC][foo=bar]",
+   "expect": {
+    "fields": [
+     12,
+     34,
+     56,
+     987,
+     654,
+     321
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainTime/from/argument-string-unknown-annotation.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "T12:34:56.987654321[u-ca=iso8601][foo=bar]",
+   "expect": {
+    "fields": [
+     12,
+     34,
+     56,
+     987,
+     654,
+     321
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainTime/from/argument-string-unknown-annotation.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "T12:34:56.987654321[UTC][foo=bar][u-ca=iso8601]",
+   "expect": {
+    "fields": [
+     12,
+     34,
+     56,
+     987,
+     654,
+     321
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainTime/from/argument-string-unknown-annotation.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "1970-01-01T12:34:56.987654321[foo=bar]",
+   "expect": {
+    "fields": [
+     12,
+     34,
+     56,
+     987,
+     654,
+     321
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainTime/from/argument-string-unknown-annotation.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "1970-01-01T12:34:56.987654321[UTC][foo=bar]",
+   "expect": {
+    "fields": [
+     12,
+     34,
+     56,
+     987,
+     654,
+     321
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainTime/from/argument-string-unknown-annotation.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "1970-01-01T12:34:56.987654321[u-ca=iso8601][foo=bar]",
+   "expect": {
+    "fields": [
+     12,
+     34,
+     56,
+     987,
+     654,
+     321
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainTime/from/argument-string-unknown-annotation.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "1970-01-01T12:34:56.987654321[UTC][foo=bar][u-ca=iso8601]",
+   "expect": {
+    "fields": [
+     12,
+     34,
+     56,
+     987,
+     654,
+     321
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainTime/from/argument-string-unknown-annotation.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "1970-01-01T12:34:56.987654321[foo=bar][_foo-bar0=Ignore-This-999999999999]",
+   "expect": {
+    "fields": [
+     12,
+     34,
+     56,
+     987,
+     654,
+     321
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainTime/from/argument-string-unknown-annotation.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "T00:30",
+   "expect": {
+    "fields": [
+     0,
+     30,
+     0,
+     0,
+     0,
+     0
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainTime/from/argument-string-with-time-designator.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "t00:30",
+   "expect": {
+    "fields": [
+     0,
+     30,
+     0,
+     0,
+     0,
+     0
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainTime/from/argument-string-with-time-designator.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "T0030",
+   "expect": {
+    "fields": [
+     0,
+     30,
+     0,
+     0,
+     0,
+     0
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainTime/from/argument-string-with-time-designator.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "t0030",
+   "expect": {
+    "fields": [
+     0,
+     30,
+     0,
+     0,
+     0,
+     0
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainTime/from/argument-string-with-time-designator.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "T00:30:00",
+   "expect": {
+    "fields": [
+     0,
+     30,
+     0,
+     0,
+     0,
+     0
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainTime/from/argument-string-with-time-designator.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "t00:30:00",
+   "expect": {
+    "fields": [
+     0,
+     30,
+     0,
+     0,
+     0,
+     0
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainTime/from/argument-string-with-time-designator.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "T003000",
+   "expect": {
+    "fields": [
+     0,
+     30,
+     0,
+     0,
+     0,
+     0
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainTime/from/argument-string-with-time-designator.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "t003000",
+   "expect": {
+    "fields": [
+     0,
+     30,
+     0,
+     0,
+     0,
+     0
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainTime/from/argument-string-with-time-designator.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "T00:30:00.000000000",
+   "expect": {
+    "fields": [
+     0,
+     30,
+     0,
+     0,
+     0,
+     0
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainTime/from/argument-string-with-time-designator.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "t00:30:00.000000000",
+   "expect": {
+    "fields": [
+     0,
+     30,
+     0,
+     0,
+     0,
+     0
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainTime/from/argument-string-with-time-designator.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "T003000.000000000",
+   "expect": {
+    "fields": [
+     0,
+     30,
+     0,
+     0,
+     0,
+     0
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainTime/from/argument-string-with-time-designator.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "t003000.000000000",
+   "expect": {
+    "fields": [
+     0,
+     30,
+     0,
+     0,
+     0,
+     0
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainTime/from/argument-string-with-time-designator.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "2019-10-01T09:00:00Z",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainTime/from/argument-string-with-utc-designator.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "2019-10-01T09:00:00Z[UTC]",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainTime/from/argument-string-with-utc-designator.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "09:00:00Z[UTC]",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainTime/from/argument-string-with-utc-designator.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "09:00:00Z",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainTime/from/argument-string-with-utc-designator.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "15:23",
+   "expect": {
+    "fields": [
+     15,
+     23,
+     0,
+     0,
+     0,
+     0
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainTime/from/argument-string.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "15:23:30",
+   "expect": {
+    "fields": [
+     15,
+     23,
+     30,
+     0,
+     0,
+     0
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainTime/from/argument-string.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "15:23:30.123",
+   "expect": {
+    "fields": [
+     15,
+     23,
+     30,
+     123,
+     0,
+     0
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainTime/from/argument-string.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "15:23:30.123456",
+   "expect": {
+    "fields": [
+     15,
+     23,
+     30,
+     123,
+     456,
+     0
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainTime/from/argument-string.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "15:23:30.123456789",
+   "expect": {
+    "fields": [
+     15,
+     23,
+     30,
+     123,
+     456,
+     789
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainTime/from/argument-string.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "1976-11-18T15:23:30.1",
+   "expect": {
+    "fields": [
+     15,
+     23,
+     30,
+     100,
+     0,
+     0
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainTime/from/argument-string.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "1976-11-18T15:23:30.12",
+   "expect": {
+    "fields": [
+     15,
+     23,
+     30,
+     120,
+     0,
+     0
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainTime/from/argument-string.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "1976-11-18T15:23:30.123",
+   "expect": {
+    "fields": [
+     15,
+     23,
+     30,
+     123,
+     0,
+     0
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainTime/from/argument-string.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "1976-11-18T15:23:30.1234",
+   "expect": {
+    "fields": [
+     15,
+     23,
+     30,
+     123,
+     400,
+     0
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainTime/from/argument-string.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "1976-11-18T15:23:30.12345",
+   "expect": {
+    "fields": [
+     15,
+     23,
+     30,
+     123,
+     450,
+     0
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainTime/from/argument-string.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "1976-11-18T15:23:30.123456",
+   "expect": {
+    "fields": [
+     15,
+     23,
+     30,
+     123,
+     456,
+     0
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainTime/from/argument-string.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "1976-11-18T15:23:30.1234567",
+   "expect": {
+    "fields": [
+     15,
+     23,
+     30,
+     123,
+     456,
+     700
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainTime/from/argument-string.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "1976-11-18T15:23:30.12345678",
+   "expect": {
+    "fields": [
+     15,
+     23,
+     30,
+     123,
+     456,
+     780
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainTime/from/argument-string.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "1976-11-18T15:23:30.123456789",
+   "expect": {
+    "fields": [
+     15,
+     23,
+     30,
+     123,
+     456,
+     789
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainTime/from/argument-string.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "1976-11-18T15:23:30,12",
+   "expect": {
+    "fields": [
+     15,
+     23,
+     30,
+     120,
+     0,
+     0
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainTime/from/argument-string.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "1976-11-18T15:23:30.12-02:00",
+   "expect": {
+    "fields": [
+     15,
+     23,
+     30,
+     120,
+     0,
+     0
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainTime/from/argument-string.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "152330",
+   "expect": {
+    "fields": [
+     15,
+     23,
+     30,
+     0,
+     0,
+     0
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainTime/from/argument-string.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "152330.1",
+   "expect": {
+    "fields": [
+     15,
+     23,
+     30,
+     100,
+     0,
+     0
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainTime/from/argument-string.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "152330-08",
+   "expect": {
+    "fields": [
+     15,
+     23,
+     30,
+     0,
+     0,
+     0
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainTime/from/argument-string.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "152330.1-08",
+   "expect": {
+    "fields": [
+     15,
+     23,
+     30,
+     100,
+     0,
+     0
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainTime/from/argument-string.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "152330-0800",
+   "expect": {
+    "fields": [
+     15,
+     23,
+     30,
+     0,
+     0,
+     0
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainTime/from/argument-string.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "152330.1-0800",
+   "expect": {
+    "fields": [
+     15,
+     23,
+     30,
+     100,
+     0,
+     0
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainTime/from/argument-string.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "1976-11-18T152330.1+00:00",
+   "expect": {
+    "fields": [
+     15,
+     23,
+     30,
+     100,
+     0,
+     0
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainTime/from/argument-string.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "19761118T15:23:30.1+00:00",
+   "expect": {
+    "fields": [
+     15,
+     23,
+     30,
+     100,
+     0,
+     0
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainTime/from/argument-string.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "1976-11-18T15:23:30.1+0000",
+   "expect": {
+    "fields": [
+     15,
+     23,
+     30,
+     100,
+     0,
+     0
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainTime/from/argument-string.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "1976-11-18T152330.1+0000",
+   "expect": {
+    "fields": [
+     15,
+     23,
+     30,
+     100,
+     0,
+     0
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainTime/from/argument-string.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "19761118T15:23:30.1+0000",
+   "expect": {
+    "fields": [
+     15,
+     23,
+     30,
+     100,
+     0,
+     0
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainTime/from/argument-string.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "19761118T152330.1+00:00",
+   "expect": {
+    "fields": [
+     15,
+     23,
+     30,
+     100,
+     0,
+     0
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainTime/from/argument-string.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "19761118T152330.1+0000",
+   "expect": {
+    "fields": [
+     15,
+     23,
+     30,
+     100,
+     0,
+     0
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainTime/from/argument-string.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "+001976-11-18T152330.1+00:00",
+   "expect": {
+    "fields": [
+     15,
+     23,
+     30,
+     100,
+     0,
+     0
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainTime/from/argument-string.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "+0019761118T15:23:30.1+00:00",
+   "expect": {
+    "fields": [
+     15,
+     23,
+     30,
+     100,
+     0,
+     0
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainTime/from/argument-string.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "+001976-11-18T15:23:30.1+0000",
+   "expect": {
+    "fields": [
+     15,
+     23,
+     30,
+     100,
+     0,
+     0
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainTime/from/argument-string.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "+001976-11-18T152330.1+0000",
+   "expect": {
+    "fields": [
+     15,
+     23,
+     30,
+     100,
+     0,
+     0
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainTime/from/argument-string.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "+0019761118T15:23:30.1+0000",
+   "expect": {
+    "fields": [
+     15,
+     23,
+     30,
+     100,
+     0,
+     0
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainTime/from/argument-string.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "+0019761118T152330.1+00:00",
+   "expect": {
+    "fields": [
+     15,
+     23,
+     30,
+     100,
+     0,
+     0
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainTime/from/argument-string.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "+0019761118T152330.1+0000",
+   "expect": {
+    "fields": [
+     15,
+     23,
+     30,
+     100,
+     0,
+     0
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainTime/from/argument-string.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "15",
+   "expect": {
+    "fields": [
+     15,
+     0,
+     0,
+     0,
+     0,
+     0
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainTime/from/argument-string.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "T15:23:30",
+   "expect": {
+    "fields": [
+     15,
+     23,
+     30,
+     0,
+     0,
+     0
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainTime/from/argument-string.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "t152330",
+   "expect": {
+    "fields": [
+     15,
+     23,
+     30,
+     0,
+     0,
+     0
+    ]
+   },
+   "path": "test/built-ins/Temporal/PlainTime/from/argument-string.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "05:07.123",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainTime/from/no-fractional-minutes-hours.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "12.5",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainTime/from/no-fractional-minutes-hours.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "-000000-12-07T03:24:30",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainTime/from/year-zero.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "-000000-12-07T03:24:30+01:00",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainTime/from/year-zero.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "-000000-12-07T03:24:30+00:00[UTC]",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/PlainTime/from/year-zero.js",
+   "type": "PlainTime"
+  },
+  {
+   "text": "1970-01-01T00:00Z[U-CA=iso8601]",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/Instant/from/argument-string-calendar-annotation-invalid-key.js",
+   "type": "Instant"
+  },
+  {
+   "text": "1970-01-01T00:00Z[u-CA=iso8601]",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/Instant/from/argument-string-calendar-annotation-invalid-key.js",
+   "type": "Instant"
+  },
+  {
+   "text": "1970-01-01T00:00Z[FOO=bar]",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/Instant/from/argument-string-calendar-annotation-invalid-key.js",
+   "type": "Instant"
+  },
+  {
+   "text": "1970-01-01T00:00Z[!foo=bar]",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/Instant/from/argument-string-critical-unknown-annotation.js",
+   "type": "Instant"
+  },
+  {
+   "text": "1970-01-01T00:00Z[UTC][!foo=bar]",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/Instant/from/argument-string-critical-unknown-annotation.js",
+   "type": "Instant"
+  },
+  {
+   "text": "1970-01-01T00:00Z[u-ca=iso8601][!foo=bar]",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/Instant/from/argument-string-critical-unknown-annotation.js",
+   "type": "Instant"
+  },
+  {
+   "text": "1970-01-01T00:00Z[UTC][!foo=bar][u-ca=iso8601]",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/Instant/from/argument-string-critical-unknown-annotation.js",
+   "type": "Instant"
+  },
+  {
+   "text": "1970-01-01T00:00Z[foo=bar][!_foo-bar0=Dont-Ignore-This-99999999999]",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/Instant/from/argument-string-critical-unknown-annotation.js",
+   "type": "Instant"
+  },
+  {
+   "text": "2022-09-15Z",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/Instant/from/argument-string-date-with-utc-offset.js",
+   "type": "Instant"
+  },
+  {
+   "text": "2022-09-15Z[UTC]",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/Instant/from/argument-string-date-with-utc-offset.js",
+   "type": "Instant"
+  },
+  {
+   "text": "2022-09-15Z[Europe/Vienna]",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/Instant/from/argument-string-date-with-utc-offset.js",
+   "type": "Instant"
+  },
+  {
+   "text": "2022-09-15+00:00",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/Instant/from/argument-string-date-with-utc-offset.js",
+   "type": "Instant"
+  },
+  {
+   "text": "2022-09-15+00:00[UTC]",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/Instant/from/argument-string-date-with-utc-offset.js",
+   "type": "Instant"
+  },
+  {
+   "text": "2022-09-15-02:30",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/Instant/from/argument-string-date-with-utc-offset.js",
+   "type": "Instant"
+  },
+  {
+   "text": "2022-09-15-02:30[America/St_Johns]",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/Instant/from/argument-string-date-with-utc-offset.js",
+   "type": "Instant"
+  },
+  {
+   "text": "",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/Instant/from/argument-string-invalid.js",
+   "type": "Instant"
+  },
+  {
+   "text": "invalid iso8601",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/Instant/from/argument-string-invalid.js",
+   "type": "Instant"
+  },
+  {
+   "text": "2020-01-00T00:00Z",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/Instant/from/argument-string-invalid.js",
+   "type": "Instant"
+  },
+  {
+   "text": "2020-01-32T00:00Z",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/Instant/from/argument-string-invalid.js",
+   "type": "Instant"
+  },
+  {
+   "text": "2020-02-30T00:00Z",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/Instant/from/argument-string-invalid.js",
+   "type": "Instant"
+  },
+  {
+   "text": "2021-02-29T00:00Z",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/Instant/from/argument-string-invalid.js",
+   "type": "Instant"
+  },
+  {
+   "text": "2020-00-01T00:00Z",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/Instant/from/argument-string-invalid.js",
+   "type": "Instant"
+  },
+  {
+   "text": "2020-13-01T00:00Z",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/Instant/from/argument-string-invalid.js",
+   "type": "Instant"
+  },
+  {
+   "text": "2020-01-01TZ",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/Instant/from/argument-string-invalid.js",
+   "type": "Instant"
+  },
+  {
+   "text": "2020-01-01T25:00:00Z",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/Instant/from/argument-string-invalid.js",
+   "type": "Instant"
+  },
+  {
+   "text": "2020-01-01T01:60:00Z",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/Instant/from/argument-string-invalid.js",
+   "type": "Instant"
+  },
+  {
+   "text": "2020-01-01T01:60:61Z",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/Instant/from/argument-string-invalid.js",
+   "type": "Instant"
+  },
+  {
+   "text": "2020-01-01T00:00Zjunk",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/Instant/from/argument-string-invalid.js",
+   "type": "Instant"
+  },
+  {
+   "text": "2020-01-01T00:00:00Zjunk",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/Instant/from/argument-string-invalid.js",
+   "type": "Instant"
+  },
+  {
+   "text": "2020-01-01T00:00:00.000000000Zjunk",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/Instant/from/argument-string-invalid.js",
+   "type": "Instant"
+  },
+  {
+   "text": "2020-01-01T00:00:00+00:00junk",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/Instant/from/argument-string-invalid.js",
+   "type": "Instant"
+  },
+  {
+   "text": "2020-01-01T00:00:00+00:00[UTC]junk",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/Instant/from/argument-string-invalid.js",
+   "type": "Instant"
+  },
+  {
+   "text": "2020-01-01T00:00:00+00:00[UTC][u-ca=iso8601]junk",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/Instant/from/argument-string-invalid.js",
+   "type": "Instant"
+  },
+  {
+   "text": "02020-01-01T00:00Z",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/Instant/from/argument-string-invalid.js",
+   "type": "Instant"
+  },
+  {
+   "text": "2020-001-01T00:00Z",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/Instant/from/argument-string-invalid.js",
+   "type": "Instant"
+  },
+  {
+   "text": "2020-01-001T00:00Z",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/Instant/from/argument-string-invalid.js",
+   "type": "Instant"
+  },
+  {
+   "text": "2020-01-01T001Z",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/Instant/from/argument-string-invalid.js",
+   "type": "Instant"
+  },
+  {
+   "text": "2020-01-01T01:001Z",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/Instant/from/argument-string-invalid.js",
+   "type": "Instant"
+  },
+  {
+   "text": "2020-01-01T01:01:001Z",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/Instant/from/argument-string-invalid.js",
+   "type": "Instant"
+  },
+  {
+   "text": "2020-01-01T00:00-24:00",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/Instant/from/argument-string-invalid.js",
+   "type": "Instant"
+  },
+  {
+   "text": "2020-01-01T00:00+24:00",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/Instant/from/argument-string-invalid.js",
+   "type": "Instant"
+  },
+  {
+   "text": "2020-W01-1T00:00Z",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/Instant/from/argument-string-invalid.js",
+   "type": "Instant"
+  },
+  {
+   "text": "2020-001T00:00Z",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/Instant/from/argument-string-invalid.js",
+   "type": "Instant"
+  },
+  {
+   "text": "+0002020-01-01T00:00Z",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/Instant/from/argument-string-invalid.js",
+   "type": "Instant"
+  },
+  {
+   "text": "2020-01",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/Instant/from/argument-string-invalid.js",
+   "type": "Instant"
+  },
+  {
+   "text": "+002020-01",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/Instant/from/argument-string-invalid.js",
+   "type": "Instant"
+  },
+  {
+   "text": "01-01",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/Instant/from/argument-string-invalid.js",
+   "type": "Instant"
+  },
+  {
+   "text": "2020-W01",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/Instant/from/argument-string-invalid.js",
+   "type": "Instant"
+  },
+  {
+   "text": "P1Y",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/Instant/from/argument-string-invalid.js",
+   "type": "Instant"
+  },
+  {
+   "text": "-P12Y",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/Instant/from/argument-string-invalid.js",
+   "type": "Instant"
+  },
+  {
+   "text": "2020-01-01",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/Instant/from/argument-string-invalid.js",
+   "type": "Instant"
+  },
+  {
+   "text": "2020-01-01T00",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/Instant/from/argument-string-invalid.js",
+   "type": "Instant"
+  },
+  {
+   "text": "2020-01-01T00:00",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/Instant/from/argument-string-invalid.js",
+   "type": "Instant"
+  },
+  {
+   "text": "2020-01-01T00:00:00",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/Instant/from/argument-string-invalid.js",
+   "type": "Instant"
+  },
+  {
+   "text": "2020-01-01T00:00:00.000000000",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/Instant/from/argument-string-invalid.js",
+   "type": "Instant"
+  },
+  {
+   "text": "-999999-01-01T00:00Z",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/Instant/from/argument-string-invalid.js",
+   "type": "Instant"
+  },
+  {
+   "text": "+999999-01-01T00:00Z",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/Instant/from/argument-string-invalid.js",
+   "type": "Instant"
+  },
+  {
+   "text": "2025-01-01T00:00:00+00:0000",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/Instant/from/argument-string-invalid.js",
+   "type": "Instant"
+  },
+  {
+   "text": "-271821-04-19T23:59:59.999999999Z",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/Instant/from/argument-string-limits.js",
+   "type": "Instant"
+  },
+  {
+   "text": "-271821-04-19T23:00-00:59:59.999999999",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/Instant/from/argument-string-limits.js",
+   "type": "Instant"
+  },
+  {
+   "text": "-271821-04-19T00:00:00-23:59:59.999999999",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/Instant/from/argument-string-limits.js",
+   "type": "Instant"
+  },
+  {
+   "text": "+275760-09-13T00:00:00.000000001Z",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/Instant/from/argument-string-limits.js",
+   "type": "Instant"
+  },
+  {
+   "text": "+275760-09-13T01:00+00:59:59.999999999",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/Instant/from/argument-string-limits.js",
+   "type": "Instant"
+  },
+  {
+   "text": "+275760-09-14T00:00+23:59:59.999999999",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/Instant/from/argument-string-limits.js",
+   "type": "Instant"
+  },
+  {
+   "text": "1976-11-18T15:23:30.12−02:00",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/Instant/from/argument-string-minus-sign.js",
+   "type": "Instant"
+  },
+  {
+   "text": "−009999-11-18T15:23:30.12",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/Instant/from/argument-string-minus-sign.js",
+   "type": "Instant"
+  },
+  {
+   "text": "1970-01-01T00:00Z[u-ca=iso8601][!u-ca=iso8601]",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/Instant/from/argument-string-multiple-calendar.js",
+   "type": "Instant"
+  },
+  {
+   "text": "1970-01-01T00:00Z[!u-ca=iso8601][u-ca=iso8601]",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/Instant/from/argument-string-multiple-calendar.js",
+   "type": "Instant"
+  },
+  {
+   "text": "1970-01-01T00:00Z[UTC][u-ca=iso8601][!u-ca=iso8601]",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/Instant/from/argument-string-multiple-calendar.js",
+   "type": "Instant"
+  },
+  {
+   "text": "1970-01-01T00:00Z[u-ca=iso8601][foo=bar][!u-ca=iso8601]",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/Instant/from/argument-string-multiple-calendar.js",
+   "type": "Instant"
+  },
+  {
+   "text": "1970-01-01T00:00Z[UTC][UTC]",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/Instant/from/argument-string-multiple-time-zone.js",
+   "type": "Instant"
+  },
+  {
+   "text": "1970-01-01T00:00Z[!UTC][UTC]",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/Instant/from/argument-string-multiple-time-zone.js",
+   "type": "Instant"
+  },
+  {
+   "text": "1970-01-01T00:00Z[UTC][!UTC]",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/Instant/from/argument-string-multiple-time-zone.js",
+   "type": "Instant"
+  },
+  {
+   "text": "1970-01-01T00:00Z[UTC][u-ca=iso8601][UTC]",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/Instant/from/argument-string-multiple-time-zone.js",
+   "type": "Instant"
+  },
+  {
+   "text": "1970-01-01T00:00Z[UTC][foo=bar][UTC]",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/Instant/from/argument-string-multiple-time-zone.js",
+   "type": "Instant"
+  },
+  {
+   "text": "1976-11-18T15:23z",
+   "expect": {
+    "epoch_ns": "217178580000000000"
+   },
+   "path": "test/built-ins/Temporal/Instant/from/argument-string.js",
+   "type": "Instant"
+  },
+  {
+   "text": "1976-11-18T15:23:30.1Z",
+   "expect": {
+    "epoch_ns": "217178610100000000"
+   },
+   "path": "test/built-ins/Temporal/Instant/from/argument-string.js",
+   "type": "Instant"
+  },
+  {
+   "text": "1976-11-18T15:23:30.12Z",
+   "expect": {
+    "epoch_ns": "217178610120000000"
+   },
+   "path": "test/built-ins/Temporal/Instant/from/argument-string.js",
+   "type": "Instant"
+  },
+  {
+   "text": "1976-11-18T15:23:30.123Z",
+   "expect": {
+    "epoch_ns": "217178610123000000"
+   },
+   "path": "test/built-ins/Temporal/Instant/from/argument-string.js",
+   "type": "Instant"
+  },
+  {
+   "text": "1976-11-18T15:23:30.1234Z",
+   "expect": {
+    "epoch_ns": "217178610123400000"
+   },
+   "path": "test/built-ins/Temporal/Instant/from/argument-string.js",
+   "type": "Instant"
+  },
+  {
+   "text": "1976-11-18T15:23:30.12345Z",
+   "expect": {
+    "epoch_ns": "217178610123450000"
+   },
+   "path": "test/built-ins/Temporal/Instant/from/argument-string.js",
+   "type": "Instant"
+  },
+  {
+   "text": "1976-11-18T15:23:30.123456Z",
+   "expect": {
+    "epoch_ns": "217178610123456000"
+   },
+   "path": "test/built-ins/Temporal/Instant/from/argument-string.js",
+   "type": "Instant"
+  },
+  {
+   "text": "1976-11-18T15:23:30.1234567Z",
+   "expect": {
+    "epoch_ns": "217178610123456700"
+   },
+   "path": "test/built-ins/Temporal/Instant/from/argument-string.js",
+   "type": "Instant"
+  },
+  {
+   "text": "1976-11-18T15:23:30.12345678Z",
+   "expect": {
+    "epoch_ns": "217178610123456780"
+   },
+   "path": "test/built-ins/Temporal/Instant/from/argument-string.js",
+   "type": "Instant"
+  },
+  {
+   "text": "1976-11-18T15:23:30.123456789Z",
+   "expect": {
+    "epoch_ns": "217178610123456789"
+   },
+   "path": "test/built-ins/Temporal/Instant/from/argument-string.js",
+   "type": "Instant"
+  },
+  {
+   "text": "1976-11-18T15:23:30,12Z",
+   "expect": {
+    "epoch_ns": "217178610120000000"
+   },
+   "path": "test/built-ins/Temporal/Instant/from/argument-string.js",
+   "type": "Instant"
+  },
+  {
+   "text": "1976-11-18T15:23:30.12-02:00",
+   "expect": {
+    "epoch_ns": "217185810120000000"
+   },
+   "path": "test/built-ins/Temporal/Instant/from/argument-string.js",
+   "type": "Instant"
+  },
+  {
+   "text": "-009999-11-18T15:23:30.12Z",
+   "expect": {
+    "epoch_ns": "-377677326989880000000"
+   },
+   "path": "test/built-ins/Temporal/Instant/from/argument-string.js",
+   "type": "Instant"
+  },
+  {
+   "text": "19761118T15:23:30.1+00:00",
+   "expect": {
+    "epoch_ns": "217178610100000000"
+   },
+   "path": "test/built-ins/Temporal/Instant/from/argument-string.js",
+   "type": "Instant"
+  },
+  {
+   "text": "1976-11-18T152330.1+00:00",
+   "expect": {
+    "epoch_ns": "217178610100000000"
+   },
+   "path": "test/built-ins/Temporal/Instant/from/argument-string.js",
+   "type": "Instant"
+  },
+  {
+   "text": "1976-11-18T15:23:30.1+0000",
+   "expect": {
+    "epoch_ns": "217178610100000000"
+   },
+   "path": "test/built-ins/Temporal/Instant/from/argument-string.js",
+   "type": "Instant"
+  },
+  {
+   "text": "1976-11-18T152330.1+0000",
+   "expect": {
+    "epoch_ns": "217178610100000000"
+   },
+   "path": "test/built-ins/Temporal/Instant/from/argument-string.js",
+   "type": "Instant"
+  },
+  {
+   "text": "19761118T15:23:30.1+0000",
+   "expect": {
+    "epoch_ns": "217178610100000000"
+   },
+   "path": "test/built-ins/Temporal/Instant/from/argument-string.js",
+   "type": "Instant"
+  },
+  {
+   "text": "19761118T152330.1+00:00",
+   "expect": {
+    "epoch_ns": "217178610100000000"
+   },
+   "path": "test/built-ins/Temporal/Instant/from/argument-string.js",
+   "type": "Instant"
+  },
+  {
+   "text": "+0019761118T15:23:30.1+00:00",
+   "expect": {
+    "epoch_ns": "217178610100000000"
+   },
+   "path": "test/built-ins/Temporal/Instant/from/argument-string.js",
+   "type": "Instant"
+  },
+  {
+   "text": "+001976-11-18T152330.1+00:00",
+   "expect": {
+    "epoch_ns": "217178610100000000"
+   },
+   "path": "test/built-ins/Temporal/Instant/from/argument-string.js",
+   "type": "Instant"
+  },
+  {
+   "text": "+001976-11-18T15:23:30.1+0000",
+   "expect": {
+    "epoch_ns": "217178610100000000"
+   },
+   "path": "test/built-ins/Temporal/Instant/from/argument-string.js",
+   "type": "Instant"
+  },
+  {
+   "text": "+001976-11-18T152330.1+0000",
+   "expect": {
+    "epoch_ns": "217178610100000000"
+   },
+   "path": "test/built-ins/Temporal/Instant/from/argument-string.js",
+   "type": "Instant"
+  },
+  {
+   "text": "+0019761118T15:23:30.1+0000",
+   "expect": {
+    "epoch_ns": "217178610100000000"
+   },
+   "path": "test/built-ins/Temporal/Instant/from/argument-string.js",
+   "type": "Instant"
+  },
+  {
+   "text": "+0019761118T152330.1+00:00",
+   "expect": {
+    "epoch_ns": "217178610100000000"
+   },
+   "path": "test/built-ins/Temporal/Instant/from/argument-string.js",
+   "type": "Instant"
+  },
+  {
+   "text": "+0019761118T152330.1+0000",
+   "expect": {
+    "epoch_ns": "217178610100000000"
+   },
+   "path": "test/built-ins/Temporal/Instant/from/argument-string.js",
+   "type": "Instant"
+  },
+  {
+   "text": "1976-11-18T15:23:30+00",
+   "expect": {
+    "epoch_ns": "217178610000000000"
+   },
+   "path": "test/built-ins/Temporal/Instant/from/argument-string.js",
+   "type": "Instant"
+  },
+  {
+   "text": "1976-11-18T15:23:30.123456789-00:00:00",
+   "expect": {
+    "epoch_ns": "217178610123456789"
+   },
+   "path": "test/built-ins/Temporal/Instant/from/argument-string.js",
+   "type": "Instant"
+  },
+  {
+   "text": "1976-11-18T15:23:30.123456789-00:00:00.0",
+   "expect": {
+    "epoch_ns": "217178610123456789"
+   },
+   "path": "test/built-ins/Temporal/Instant/from/argument-string.js",
+   "type": "Instant"
+  },
+  {
+   "text": "1976-11-18T15:23:30.123456789-00:00:00.00",
+   "expect": {
+    "epoch_ns": "217178610123456789"
+   },
+   "path": "test/built-ins/Temporal/Instant/from/argument-string.js",
+   "type": "Instant"
+  },
+  {
+   "text": "1976-11-18T15:23:30.123456789-00:00:00.000",
+   "expect": {
+    "epoch_ns": "217178610123456789"
+   },
+   "path": "test/built-ins/Temporal/Instant/from/argument-string.js",
+   "type": "Instant"
+  },
+  {
+   "text": "1976-11-18T15:23:30.123456789-00:00:00.0000",
+   "expect": {
+    "epoch_ns": "217178610123456789"
+   },
+   "path": "test/built-ins/Temporal/Instant/from/argument-string.js",
+   "type": "Instant"
+  },
+  {
+   "text": "1976-11-18T15:23:30.123456789-00:00:00.00000",
+   "expect": {
+    "epoch_ns": "217178610123456789"
+   },
+   "path": "test/built-ins/Temporal/Instant/from/argument-string.js",
+   "type": "Instant"
+  },
+  {
+   "text": "1976-11-18T15:23:30.123456789-00:00:00.000000",
+   "expect": {
+    "epoch_ns": "217178610123456789"
+   },
+   "path": "test/built-ins/Temporal/Instant/from/argument-string.js",
+   "type": "Instant"
+  },
+  {
+   "text": "1976-11-18T15:23:30.123456789-00:00:00.0000000",
+   "expect": {
+    "epoch_ns": "217178610123456789"
+   },
+   "path": "test/built-ins/Temporal/Instant/from/argument-string.js",
+   "type": "Instant"
+  },
+  {
+   "text": "1976-11-18T15:23:30.123456789-00:00:00.00000000",
+   "expect": {
+    "epoch_ns": "217178610123456789"
+   },
+   "path": "test/built-ins/Temporal/Instant/from/argument-string.js",
+   "type": "Instant"
+  },
+  {
+   "text": "1976-11-18T15:23:30.123456789-00:00:00.000000000",
+   "expect": {
+    "epoch_ns": "217178610123456789"
+   },
+   "path": "test/built-ins/Temporal/Instant/from/argument-string.js",
+   "type": "Instant"
+  },
+  {
+   "text": "1976-11-18T15:23:30.123456789-00:00:00.1",
+   "expect": {
+    "epoch_ns": "217178610223456789"
+   },
+   "path": "test/built-ins/Temporal/Instant/from/argument-string.js",
+   "type": "Instant"
+  },
+  {
+   "text": "1976-11-18T15:23:30.123456789-00:00:00.01",
+   "expect": {
+    "epoch_ns": "217178610133456789"
+   },
+   "path": "test/built-ins/Temporal/Instant/from/argument-string.js",
+   "type": "Instant"
+  },
+  {
+   "text": "1976-11-18T15:23:30.123456789-00:00:00.001",
+   "expect": {
+    "epoch_ns": "217178610124456789"
+   },
+   "path": "test/built-ins/Temporal/Instant/from/argument-string.js",
+   "type": "Instant"
+  },
+  {
+   "text": "1976-11-18T15:23:30.123456789-00:00:00.0001",
+   "expect": {
+    "epoch_ns": "217178610123556789"
+   },
+   "path": "test/built-ins/Temporal/Instant/from/argument-string.js",
+   "type": "Instant"
+  },
+  {
+   "text": "1976-11-18T15:23:30.123456789-00:00:00.00001",
+   "expect": {
+    "epoch_ns": "217178610123466789"
+   },
+   "path": "test/built-ins/Temporal/Instant/from/argument-string.js",
+   "type": "Instant"
+  },
+  {
+   "text": "1976-11-18T15:23:30.123456789-00:00:00.000001",
+   "expect": {
+    "epoch_ns": "217178610123457789"
+   },
+   "path": "test/built-ins/Temporal/Instant/from/argument-string.js",
+   "type": "Instant"
+  },
+  {
+   "text": "1976-11-18T15:23:30.123456789-00:00:00.0000001",
+   "expect": {
+    "epoch_ns": "217178610123456889"
+   },
+   "path": "test/built-ins/Temporal/Instant/from/argument-string.js",
+   "type": "Instant"
+  },
+  {
+   "text": "1976-11-18T15:23:30.123456789-00:00:00.00000001",
+   "expect": {
+    "epoch_ns": "217178610123456799"
+   },
+   "path": "test/built-ins/Temporal/Instant/from/argument-string.js",
+   "type": "Instant"
+  },
+  {
+   "text": "1976-11-18T15:23:30.123456789-00:00:00.000000001",
+   "expect": {
+    "epoch_ns": "217178610123456790"
+   },
+   "path": "test/built-ins/Temporal/Instant/from/argument-string.js",
+   "type": "Instant"
+  },
+  {
+   "text": "1976-11-18T15:23:30.123456789-00:00:00.100000000",
+   "expect": {
+    "epoch_ns": "217178610223456789"
+   },
+   "path": "test/built-ins/Temporal/Instant/from/argument-string.js",
+   "type": "Instant"
+  },
+  {
+   "text": "1976-11-18T15:23:30.123456789-00:00:00.010000000",
+   "expect": {
+    "epoch_ns": "217178610133456789"
+   },
+   "path": "test/built-ins/Temporal/Instant/from/argument-string.js",
+   "type": "Instant"
+  },
+  {
+   "text": "1976-11-18T15:23:30.123456789-00:00:00.001000000",
+   "expect": {
+    "epoch_ns": "217178610124456789"
+   },
+   "path": "test/built-ins/Temporal/Instant/from/argument-string.js",
+   "type": "Instant"
+  },
+  {
+   "text": "1976-11-18T15:23:30.123456789-00:00:00.000100000",
+   "expect": {
+    "epoch_ns": "217178610123556789"
+   },
+   "path": "test/built-ins/Temporal/Instant/from/argument-string.js",
+   "type": "Instant"
+  },
+  {
+   "text": "1976-11-18T15:23:30.123456789-00:00:00.000010000",
+   "expect": {
+    "epoch_ns": "217178610123466789"
+   },
+   "path": "test/built-ins/Temporal/Instant/from/argument-string.js",
+   "type": "Instant"
+  },
+  {
+   "text": "1976-11-18T15:23:30.123456789-00:00:00.000001000",
+   "expect": {
+    "epoch_ns": "217178610123457789"
+   },
+   "path": "test/built-ins/Temporal/Instant/from/argument-string.js",
+   "type": "Instant"
+  },
+  {
+   "text": "1976-11-18T15:23:30.123456789-00:00:00.000000100",
+   "expect": {
+    "epoch_ns": "217178610123456889"
+   },
+   "path": "test/built-ins/Temporal/Instant/from/argument-string.js",
+   "type": "Instant"
+  },
+  {
+   "text": "1976-11-18T15:23:30.123456789-00:00:00.000000010",
+   "expect": {
+    "epoch_ns": "217178610123456799"
+   },
+   "path": "test/built-ins/Temporal/Instant/from/argument-string.js",
+   "type": "Instant"
+  },
+  {
+   "text": "1976-11-18T15Z",
+   "expect": {
+    "epoch_ns": "217177200000000000"
+   },
+   "path": "test/built-ins/Temporal/Instant/from/argument-string.js",
+   "type": "Instant"
+  },
+  {
+   "text": "1976-11-18T15:23:30.123456789Z[u-ca=discord]",
+   "expect": {
+    "epoch_ns": "217178610123456789"
+   },
+   "path": "test/built-ins/Temporal/Instant/from/argument-string.js",
+   "type": "Instant"
+  },
+  {
+   "text": "1976-11-18T15:23:30.123456789Z[+00]",
+   "expect": {
+    "epoch_ns": "217178610123456789"
+   },
+   "path": "test/built-ins/Temporal/Instant/from/argument-string.js",
+   "type": "Instant"
+  },
+  {
+   "text": "1976-11-18T15:23:30.123456789Z[-00]",
+   "expect": {
+    "epoch_ns": "217178610123456789"
+   },
+   "path": "test/built-ins/Temporal/Instant/from/argument-string.js",
+   "type": "Instant"
+  },
+  {
+   "text": "1976-11-18T15:23:30.123456789Z[-00:00]",
+   "expect": {
+    "epoch_ns": "217178610123456789"
+   },
+   "path": "test/built-ins/Temporal/Instant/from/argument-string.js",
+   "type": "Instant"
+  },
+  {
+   "text": "1976-11-18T15:23:30.123456789Z[+12]",
+   "expect": {
+    "epoch_ns": "217178610123456789"
+   },
+   "path": "test/built-ins/Temporal/Instant/from/argument-string.js",
+   "type": "Instant"
+  },
+  {
+   "text": "1976-11-18T15:23:30.123456789Z[NotATimeZone]",
+   "expect": {
+    "epoch_ns": "217178610123456789"
+   },
+   "path": "test/built-ins/Temporal/Instant/from/argument-string.js",
+   "type": "Instant"
+  },
+  {
+   "text": "2025-04-03T05:07.123[UTC]",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/Instant/from/no-fractional-minutes-hours.js",
+   "type": "Instant"
+  },
+  {
+   "text": "2025-04-03T12.5[UTC]",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/Instant/from/no-fractional-minutes-hours.js",
+   "type": "Instant"
+  },
+  {
+   "text": "-000000-03-30T00:45Z",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/Instant/from/year-zero.js",
+   "type": "Instant"
+  },
+  {
+   "text": "-000000-03-30T01:45+01:00",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/Instant/from/year-zero.js",
+   "type": "Instant"
+  },
+  {
+   "text": "-000000-03-30T01:45:00+00:00[UTC]",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/Instant/from/year-zero.js",
+   "type": "Instant"
+  },
+  {
+   "text": "PT1.03125H",
+   "expect": {
+    "fields": [
+     0,
+     0,
+     0,
+     0,
+     1,
+     1,
+     52,
+     500,
+     0,
+     0
+    ]
+   },
+   "path": "test/built-ins/Temporal/Duration/from/argument-string-fractional-units-rounding-mode.js",
+   "type": "Duration"
+  },
+  {
+   "text": "-PT1.03125H",
+   "expect": {
+    "fields": [
+     0,
+     0,
+     0,
+     0,
+     -1,
+     -1,
+     -52,
+     -500,
+     0,
+     0
+    ]
+   },
+   "path": "test/built-ins/Temporal/Duration/from/argument-string-fractional-units-rounding-mode.js",
+   "type": "Duration"
+  },
+  {
+   "text": "PT3.125M",
+   "expect": {
+    "fields": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     3,
+     7,
+     500,
+     0,
+     0
+    ]
+   },
+   "path": "test/built-ins/Temporal/Duration/from/argument-string-fractional-units-rounding-mode.js",
+   "type": "Duration"
+  },
+  {
+   "text": "-PT3,025M",
+   "expect": {
+    "fields": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     -3,
+     -1,
+     -500,
+     0,
+     0
+    ]
+   },
+   "path": "test/built-ins/Temporal/Duration/from/argument-string-fractional-units-rounding-mode.js",
+   "type": "Duration"
+  },
+  {
+   "text": "PT46H66M71.50040904S",
+   "expect": {
+    "fields": [
+     0,
+     0,
+     0,
+     0,
+     46,
+     66,
+     71,
+     500,
+     409,
+     40
+    ]
+   },
+   "path": "test/built-ins/Temporal/Duration/from/argument-string-fractional-units-rounding-mode.js",
+   "type": "Duration"
+  },
+  {
+   "text": "-PT46H66M71.50040904S",
+   "expect": {
+    "fields": [
+     0,
+     0,
+     0,
+     0,
+     -46,
+     -66,
+     -71,
+     -500,
+     -409,
+     -40
+    ]
+   },
+   "path": "test/built-ins/Temporal/Duration/from/argument-string-fractional-units-rounding-mode.js",
+   "type": "Duration"
+  },
+  {
+   "text": "P1Y1M1W1DT1H1M1.123456789123S",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/Duration/from/argument-string-invalid.js",
+   "type": "Duration"
+  },
+  {
+   "text": "P0.5Y",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/Duration/from/argument-string-invalid.js",
+   "type": "Duration"
+  },
+  {
+   "text": "P1Y0,5M",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/Duration/from/argument-string-invalid.js",
+   "type": "Duration"
+  },
+  {
+   "text": "P1Y1M0.5W",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/Duration/from/argument-string-invalid.js",
+   "type": "Duration"
+  },
+  {
+   "text": "P1Y1M1W0,5D",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/Duration/from/argument-string-invalid.js",
+   "type": "Duration"
+  },
+  {
+   "text": "P1Y1M1W1DT0.5H5S",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/Duration/from/argument-string-invalid.js",
+   "type": "Duration"
+  },
+  {
+   "text": "P1Y1M1W1DT1.5H0,5M",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/Duration/from/argument-string-invalid.js",
+   "type": "Duration"
+  },
+  {
+   "text": "P1Y1M1W1DT1H0.5M0.5S",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/Duration/from/argument-string-invalid.js",
+   "type": "Duration"
+  },
+  {
+   "text": "P",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/Duration/from/argument-string-invalid.js",
+   "type": "Duration"
+  },
+  {
+   "text": "PT",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/Duration/from/argument-string-invalid.js",
+   "type": "Duration"
+  },
+  {
+   "text": "P1DT",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/Duration/from/argument-string-invalid.js",
+   "type": "Duration"
+  },
+  {
+   "text": "-P",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/Duration/from/argument-string-invalid.js",
+   "type": "Duration"
+  },
+  {
+   "text": "-PT",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/Duration/from/argument-string-invalid.js",
+   "type": "Duration"
+  },
+  {
+   "text": "+P",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/Duration/from/argument-string-invalid.js",
+   "type": "Duration"
+  },
+  {
+   "text": "+PT",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/Duration/from/argument-string-invalid.js",
+   "type": "Duration"
+  },
+  {
+   "text": "P1Y1M1W1DT1H1M1.01Sjunk",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/Duration/from/argument-string-invalid.js",
+   "type": "Duration"
+  },
+  {
+   "text": "P-1Y1M",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/Duration/from/argument-string-invalid.js",
+   "type": "Duration"
+  },
+  {
+   "text": "P1Y-1M",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/Duration/from/argument-string-invalid.js",
+   "type": "Duration"
+  },
+  {
+   "text": "P2H",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/Duration/from/argument-string-invalid.js",
+   "type": "Duration"
+  },
+  {
+   "text": "P2.5M",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/Duration/from/argument-string-invalid.js",
+   "type": "Duration"
+  },
+  {
+   "text": "P2,5M",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/Duration/from/argument-string-invalid.js",
+   "type": "Duration"
+  },
+  {
+   "text": "P2S",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/Duration/from/argument-string-invalid.js",
+   "type": "Duration"
+  },
+  {
+   "text": "PT2.H3M",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/Duration/from/argument-string-invalid.js",
+   "type": "Duration"
+  },
+  {
+   "text": "PT2,H3M",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/Duration/from/argument-string-invalid.js",
+   "type": "Duration"
+  },
+  {
+   "text": "PT2.H3S",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/Duration/from/argument-string-invalid.js",
+   "type": "Duration"
+  },
+  {
+   "text": "PT2,H3S",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/Duration/from/argument-string-invalid.js",
+   "type": "Duration"
+  },
+  {
+   "text": "PT2.H0.5M",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/Duration/from/argument-string-invalid.js",
+   "type": "Duration"
+  },
+  {
+   "text": "PT2,H0,5M",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/Duration/from/argument-string-invalid.js",
+   "type": "Duration"
+  },
+  {
+   "text": "PT2.H0.5S",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/Duration/from/argument-string-invalid.js",
+   "type": "Duration"
+  },
+  {
+   "text": "PT2,H0,5S",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/Duration/from/argument-string-invalid.js",
+   "type": "Duration"
+  },
+  {
+   "text": "PT2H3.2M3S",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/Duration/from/argument-string-invalid.js",
+   "type": "Duration"
+  },
+  {
+   "text": "PT2H3,2M3S",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/Duration/from/argument-string-invalid.js",
+   "type": "Duration"
+  },
+  {
+   "text": "PT2H3.2M0.3S",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/Duration/from/argument-string-invalid.js",
+   "type": "Duration"
+  },
+  {
+   "text": "PT2H3,2M0,3S",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/Duration/from/argument-string-invalid.js",
+   "type": "Duration"
+  },
+  {
+   "text": "PT.1H",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/Duration/from/argument-string-invalid.js",
+   "type": "Duration"
+  },
+  {
+   "text": "PT,1H",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/Duration/from/argument-string-invalid.js",
+   "type": "Duration"
+  },
+  {
+   "text": "PT.1M",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/Duration/from/argument-string-invalid.js",
+   "type": "Duration"
+  },
+  {
+   "text": "PT,1M",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/Duration/from/argument-string-invalid.js",
+   "type": "Duration"
+  },
+  {
+   "text": "PT.1S",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/Duration/from/argument-string-invalid.js",
+   "type": "Duration"
+  },
+  {
+   "text": "PT,1S",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/Duration/from/argument-string-invalid.js",
+   "type": "Duration"
+  },
+  {
+   "text": "",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/Duration/from/argument-string-invalid.js",
+   "type": "Duration"
+  },
+  {
+   "text": "-PT24.567890123H",
+   "expect": {
+    "fields": [
+     0,
+     0,
+     0,
+     0,
+     -24,
+     -34,
+     -4,
+     -404,
+     -442,
+     -800
+    ]
+   },
+   "path": "test/built-ins/Temporal/Duration/from/argument-string-negative-fractional-units.js",
+   "type": "Duration"
+  },
+  {
+   "text": "-PT1440.567890123M",
+   "expect": {
+    "fields": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     -1440,
+     -34,
+     -73,
+     -407,
+     -380
+    ]
+   },
+   "path": "test/built-ins/Temporal/Duration/from/argument-string-negative-fractional-units.js",
+   "type": "Duration"
+  },
+  {
+   "text": "P1D",
+   "expect": {
+    "fields": [
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ]
+   },
+   "path": "test/built-ins/Temporal/Duration/from/argument-string.js",
+   "type": "Duration"
+  },
+  {
+   "text": "p1y1m1dt1h1m1s",
+   "expect": {
+    "fields": [
+     1,
+     1,
+     0,
+     1,
+     1,
+     1,
+     1,
+     0,
+     0,
+     0
+    ]
+   },
+   "path": "test/built-ins/Temporal/Duration/from/argument-string.js",
+   "type": "Duration"
+  },
+  {
+   "text": "P1Y1M1W1DT1H1M1.1S",
+   "expect": {
+    "fields": [
+     1,
+     1,
+     1,
+     1,
+     1,
+     1,
+     1,
+     100,
+     0,
+     0
+    ]
+   },
+   "path": "test/built-ins/Temporal/Duration/from/argument-string.js",
+   "type": "Duration"
+  },
+  {
+   "text": "P1Y1M1W1DT1H1M1.12S",
+   "expect": {
+    "fields": [
+     1,
+     1,
+     1,
+     1,
+     1,
+     1,
+     1,
+     120,
+     0,
+     0
+    ]
+   },
+   "path": "test/built-ins/Temporal/Duration/from/argument-string.js",
+   "type": "Duration"
+  },
+  {
+   "text": "P1Y1M1W1DT1H1M1.123S",
+   "expect": {
+    "fields": [
+     1,
+     1,
+     1,
+     1,
+     1,
+     1,
+     1,
+     123,
+     0,
+     0
+    ]
+   },
+   "path": "test/built-ins/Temporal/Duration/from/argument-string.js",
+   "type": "Duration"
+  },
+  {
+   "text": "P1Y1M1W1DT1H1M1.1234S",
+   "expect": {
+    "fields": [
+     1,
+     1,
+     1,
+     1,
+     1,
+     1,
+     1,
+     123,
+     400,
+     0
+    ]
+   },
+   "path": "test/built-ins/Temporal/Duration/from/argument-string.js",
+   "type": "Duration"
+  },
+  {
+   "text": "P1Y1M1W1DT1H1M1.12345S",
+   "expect": {
+    "fields": [
+     1,
+     1,
+     1,
+     1,
+     1,
+     1,
+     1,
+     123,
+     450,
+     0
+    ]
+   },
+   "path": "test/built-ins/Temporal/Duration/from/argument-string.js",
+   "type": "Duration"
+  },
+  {
+   "text": "P1Y1M1W1DT1H1M1.123456S",
+   "expect": {
+    "fields": [
+     1,
+     1,
+     1,
+     1,
+     1,
+     1,
+     1,
+     123,
+     456,
+     0
+    ]
+   },
+   "path": "test/built-ins/Temporal/Duration/from/argument-string.js",
+   "type": "Duration"
+  },
+  {
+   "text": "P1Y1M1W1DT1H1M1.1234567S",
+   "expect": {
+    "fields": [
+     1,
+     1,
+     1,
+     1,
+     1,
+     1,
+     1,
+     123,
+     456,
+     700
+    ]
+   },
+   "path": "test/built-ins/Temporal/Duration/from/argument-string.js",
+   "type": "Duration"
+  },
+  {
+   "text": "P1Y1M1W1DT1H1M1.12345678S",
+   "expect": {
+    "fields": [
+     1,
+     1,
+     1,
+     1,
+     1,
+     1,
+     1,
+     123,
+     456,
+     780
+    ]
+   },
+   "path": "test/built-ins/Temporal/Duration/from/argument-string.js",
+   "type": "Duration"
+  },
+  {
+   "text": "P1Y1M1W1DT1H1M1.123456789S",
+   "expect": {
+    "fields": [
+     1,
+     1,
+     1,
+     1,
+     1,
+     1,
+     1,
+     123,
+     456,
+     789
+    ]
+   },
+   "path": "test/built-ins/Temporal/Duration/from/argument-string.js",
+   "type": "Duration"
+  },
+  {
+   "text": "P1Y1M1W1DT1H1M1,12S",
+   "expect": {
+    "fields": [
+     1,
+     1,
+     1,
+     1,
+     1,
+     1,
+     1,
+     120,
+     0,
+     0
+    ]
+   },
+   "path": "test/built-ins/Temporal/Duration/from/argument-string.js",
+   "type": "Duration"
+  },
+  {
+   "text": "P1DT0.5M",
+   "expect": {
+    "fields": [
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     30,
+     0,
+     0,
+     0
+    ]
+   },
+   "path": "test/built-ins/Temporal/Duration/from/argument-string.js",
+   "type": "Duration"
+  },
+  {
+   "text": "P1DT0,5H",
+   "expect": {
+    "fields": [
+     0,
+     0,
+     0,
+     1,
+     0,
+     30,
+     0,
+     0,
+     0,
+     0
+    ]
+   },
+   "path": "test/built-ins/Temporal/Duration/from/argument-string.js",
+   "type": "Duration"
+  },
+  {
+   "text": "+P1D",
+   "expect": {
+    "fields": [
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ]
+   },
+   "path": "test/built-ins/Temporal/Duration/from/argument-string.js",
+   "type": "Duration"
+  },
+  {
+   "text": "-P1D",
+   "expect": {
+    "fields": [
+     0,
+     0,
+     0,
+     -1,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ]
+   },
+   "path": "test/built-ins/Temporal/Duration/from/argument-string.js",
+   "type": "Duration"
+  },
+  {
+   "text": "-P1Y1M1W1DT1H1M1.123456789S",
+   "expect": {
+    "fields": [
+     -1,
+     -1,
+     -1,
+     -1,
+     -1,
+     -1,
+     -1,
+     -123,
+     -456,
+     -789
+    ]
+   },
+   "path": "test/built-ins/Temporal/Duration/from/argument-string.js",
+   "type": "Duration"
+  },
+  {
+   "text": "PT100M",
+   "expect": {
+    "fields": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     100,
+     0,
+     0,
+     0,
+     0
+    ]
+   },
+   "path": "test/built-ins/Temporal/Duration/from/argument-string.js",
+   "type": "Duration"
+  },
+  {
+   "text": "P3Y4W",
+   "expect": {
+    "fields": [
+     3,
+     0,
+     4,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ]
+   },
+   "path": "test/built-ins/Temporal/Duration/from/string-with-skipped-units.js",
+   "type": "Duration"
+  },
+  {
+   "text": "P3Y4D",
+   "expect": {
+    "fields": [
+     3,
+     0,
+     0,
+     4,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ]
+   },
+   "path": "test/built-ins/Temporal/Duration/from/string-with-skipped-units.js",
+   "type": "Duration"
+  },
+  {
+   "text": "P3M4D",
+   "expect": {
+    "fields": [
+     0,
+     3,
+     0,
+     4,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ]
+   },
+   "path": "test/built-ins/Temporal/Duration/from/string-with-skipped-units.js",
+   "type": "Duration"
+  },
+  {
+   "text": "PT3H4.123456789S",
+   "expect": {
+    "fields": [
+     0,
+     0,
+     0,
+     0,
+     3,
+     0,
+     4,
+     123,
+     456,
+     789
+    ]
+   },
+   "path": "test/built-ins/Temporal/Duration/from/string-with-skipped-units.js",
+   "type": "Duration"
+  },
+  {
+   "text": "1970-01-01T00:00[UTC][U-CA=iso8601]",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/ZonedDateTime/from/argument-string-calendar-annotation-invalid-key.js",
+   "type": "ZonedDateTime"
+  },
+  {
+   "text": "1970-01-01T00:00[UTC][u-CA=iso8601]",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/ZonedDateTime/from/argument-string-calendar-annotation-invalid-key.js",
+   "type": "ZonedDateTime"
+  },
+  {
+   "text": "1970-01-01T00:00[UTC][FOO=bar]",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/ZonedDateTime/from/argument-string-calendar-annotation-invalid-key.js",
+   "type": "ZonedDateTime"
+  },
+  {
+   "text": "",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/ZonedDateTime/from/argument-string-calendar-invalid-iso-string.js",
+   "type": "ZonedDateTime"
+  },
+  {
+   "text": "1997-12-04[u-ca=notacal]",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/ZonedDateTime/from/argument-string-calendar-invalid-iso-string.js",
+   "type": "ZonedDateTime"
+  },
+  {
+   "text": "1997-12-04[u-ca=11111111]",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/ZonedDateTime/from/argument-string-calendar-invalid-iso-string.js",
+   "type": "ZonedDateTime"
+  },
+  {
+   "text": "1997-12-04[u-ca=1111-11-11]",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/ZonedDateTime/from/argument-string-calendar-invalid-iso-string.js",
+   "type": "ZonedDateTime"
+  },
+  {
+   "text": "1970-01-01T00:00[UTC][!foo=bar]",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/ZonedDateTime/from/argument-string-critical-unknown-annotation.js",
+   "type": "ZonedDateTime"
+  },
+  {
+   "text": "1970-01-01T00:00[UTC][!foo=bar][u-ca=iso8601]",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/ZonedDateTime/from/argument-string-critical-unknown-annotation.js",
+   "type": "ZonedDateTime"
+  },
+  {
+   "text": "1970-01-01T00:00[UTC][u-ca=iso8601][!foo=bar]",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/ZonedDateTime/from/argument-string-critical-unknown-annotation.js",
+   "type": "ZonedDateTime"
+  },
+  {
+   "text": "1970-01-01T00:00[foo=bar][!_foo-bar0=Dont-Ignore-This-99999999999]",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/ZonedDateTime/from/argument-string-critical-unknown-annotation.js",
+   "type": "ZonedDateTime"
+  },
+  {
+   "text": "2022-09-15Z[UTC]",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/ZonedDateTime/from/argument-string-date-with-utc-offset.js",
+   "type": "ZonedDateTime"
+  },
+  {
+   "text": "2022-09-15Z[Europe/Vienna]",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/ZonedDateTime/from/argument-string-date-with-utc-offset.js",
+   "type": "ZonedDateTime"
+  },
+  {
+   "text": "2022-09-15+00:00[UTC]",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/ZonedDateTime/from/argument-string-date-with-utc-offset.js",
+   "type": "ZonedDateTime"
+  },
+  {
+   "text": "2022-09-15-02:30[America/St_Johns]",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/ZonedDateTime/from/argument-string-date-with-utc-offset.js",
+   "type": "ZonedDateTime"
+  },
+  {
+   "text": "2025-01-01T00:00:00+00:0000[UTC]",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/ZonedDateTime/from/argument-string-invalid.js",
+   "type": "ZonedDateTime"
+  },
+  {
+   "text": "2025-01-01T00:00:00+0000:00[UTC]",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/ZonedDateTime/from/argument-string-invalid.js",
+   "type": "ZonedDateTime"
+  },
+  {
+   "text": "202501-01T00:00:00+00:00[UTC]",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/ZonedDateTime/from/argument-string-invalid.js",
+   "type": "ZonedDateTime"
+  },
+  {
+   "text": "2025-0101T00:00:00+00:00[UTC]",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/ZonedDateTime/from/argument-string-invalid.js",
+   "type": "ZonedDateTime"
+  },
+  {
+   "text": "2025-01-01T00:0000+00:00[UTC]",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/ZonedDateTime/from/argument-string-invalid.js",
+   "type": "ZonedDateTime"
+  },
+  {
+   "text": "2025-01-01T0000:00+00:00[UTC]",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/ZonedDateTime/from/argument-string-invalid.js",
+   "type": "ZonedDateTime"
+  },
+  {
+   "text": "1976-11-18T15:23:30.12−02:00",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/ZonedDateTime/from/argument-string-minus-sign.js",
+   "type": "ZonedDateTime"
+  },
+  {
+   "text": "1976-11-18T15:23:30.12-02:00[−02:00]",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/ZonedDateTime/from/argument-string-minus-sign.js",
+   "type": "ZonedDateTime"
+  },
+  {
+   "text": "1976-11-18T15:23:30.12−02:00[−02:00]",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/ZonedDateTime/from/argument-string-minus-sign.js",
+   "type": "ZonedDateTime"
+  },
+  {
+   "text": "−009999-11-18T15:23:30.12[UTC]",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/ZonedDateTime/from/argument-string-minus-sign.js",
+   "type": "ZonedDateTime"
+  },
+  {
+   "text": "1970-01-01T00:00[UTC][u-ca=iso8601][!u-ca=iso8601]",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/ZonedDateTime/from/argument-string-multiple-calendar.js",
+   "type": "ZonedDateTime"
+  },
+  {
+   "text": "1970-01-01T00:00[UTC][!u-ca=iso8601][u-ca=iso8601]",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/ZonedDateTime/from/argument-string-multiple-calendar.js",
+   "type": "ZonedDateTime"
+  },
+  {
+   "text": "1970-01-01T00:00[UTC][u-ca=iso8601][foo=bar][!u-ca=iso8601]",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/ZonedDateTime/from/argument-string-multiple-calendar.js",
+   "type": "ZonedDateTime"
+  },
+  {
+   "text": "1970-01-01T00:00[UTC][UTC]",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/ZonedDateTime/from/argument-string-multiple-time-zone.js",
+   "type": "ZonedDateTime"
+  },
+  {
+   "text": "1970-01-01T00:00[!UTC][UTC]",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/ZonedDateTime/from/argument-string-multiple-time-zone.js",
+   "type": "ZonedDateTime"
+  },
+  {
+   "text": "1970-01-01T00:00[UTC][!UTC]",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/ZonedDateTime/from/argument-string-multiple-time-zone.js",
+   "type": "ZonedDateTime"
+  },
+  {
+   "text": "1970-01-01T00:00[UTC][u-ca=iso8601][UTC]",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/ZonedDateTime/from/argument-string-multiple-time-zone.js",
+   "type": "ZonedDateTime"
+  },
+  {
+   "text": "1970-01-01T00:00[UTC][foo=bar][UTC]",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/ZonedDateTime/from/argument-string-multiple-time-zone.js",
+   "type": "ZonedDateTime"
+  },
+  {
+   "text": "1976-11-18T15:23:30.123456789-08:00[-08:00]junk",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/ZonedDateTime/from/argument-string-no-junk-at-end.js",
+   "type": "ZonedDateTime"
+  },
+  {
+   "text": "-271821-04-20[+01]",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/ZonedDateTime/from/argument-string-start-of-day-not-valid-epoch-nanoseconds.js",
+   "type": "ZonedDateTime"
+  },
+  {
+   "text": "+275760-09-13[-01]",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/ZonedDateTime/from/argument-string-start-of-day-not-valid-epoch-nanoseconds.js",
+   "type": "ZonedDateTime"
+  },
+  {
+   "text": "2025-04-03T05:07.123",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/ZonedDateTime/from/no-fractional-minutes-hours.js",
+   "type": "ZonedDateTime"
+  },
+  {
+   "text": "2025-04-03T12.5",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/ZonedDateTime/from/no-fractional-minutes-hours.js",
+   "type": "ZonedDateTime"
+  },
+  {
+   "text": "2020-03-08T01:00-04:00[UTC]",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/ZonedDateTime/from/offset-does-not-match-iana-time-zone.js",
+   "type": "ZonedDateTime"
+  },
+  {
+   "text": "-0000000-01-01T00:02Z[UTC]",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/ZonedDateTime/from/year-zero.js",
+   "type": "ZonedDateTime"
+  },
+  {
+   "text": "-0000000-01-01T00:02+00:00[UTC]",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/ZonedDateTime/from/year-zero.js",
+   "type": "ZonedDateTime"
+  },
+  {
+   "text": "-0000000-01-01T00:02:00.000000000+00:00[UTC]",
+   "expect": "throws",
+   "path": "test/built-ins/Temporal/ZonedDateTime/from/year-zero.js",
+   "type": "ZonedDateTime"
+  }
+ ]
+}
