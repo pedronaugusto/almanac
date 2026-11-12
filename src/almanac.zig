@@ -1,5 +1,5 @@
-//! almanac: civil time. Calendar dates and times, instants, spans and their arithmetic, time zones
-//! and zoned times; text arrives stage by stage (docs/design.md says what is built).
+//! almanac: civil time. Calendar dates and times, instants, spans and their arithmetic, time zones,
+//! the zone database and zoned times; text arrives stage by stage (docs/design.md says what is built).
 pub const units = @import("units.zig");
 pub const calendar = @import("calendar.zig");
 pub const Date = @import("Date.zig");
@@ -10,6 +10,9 @@ pub const instant = @import("instant.zig");
 pub const TimeZone = @import("TimeZone.zig");
 pub const Zoned = @import("Zoned.zig");
 pub const resolve = @import("resolve.zig");
+pub const Database = @import("Database.zig");
+pub const Zone = Database.Zone;
+pub const ZoneError = Database.ZoneError;
 
 /// An instant in a zone.
 pub const toZoned = Zoned.init;

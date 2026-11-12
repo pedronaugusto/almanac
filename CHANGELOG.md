@@ -27,3 +27,6 @@ follow [Semantic Versioning](https://semver.org/).
 - Resolution and zoned values: `TimeZone.candidates`, `resolve` (every `Disambiguation`, a written offset under
   every `OffsetConflict`, the start of a day), and `Zoned` (Temporal's `ZonedDateTime`: `add`, `subtract`, `until`,
   `since`, `round`, `startOfDay`, `hoursInDay`); a zoned value as a span's `relativeTo`.
+- The zone database: `Database` with counted `Zone` handles (`aegis.Shared`), a cache under `aegis.RwGuarded`,
+  zones read beneath the caller's zoneinfo directory (links followed only while they stay beneath it), the local
+  zone from the caller's `$TZ` or the `localtime` link, and `refresh`, which frees nothing in use.

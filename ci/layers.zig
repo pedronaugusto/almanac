@@ -12,6 +12,7 @@ pub const layers: []const gantry.rules.Layer = &.{
     .{ .name = "zone", .patterns = &.{"src/TimeZone.zig"} },
     .{ .name = "resolve", .patterns = &.{"src/resolve.zig"} },
     .{ .name = "zoned", .patterns = &.{"src/Zoned.zig"} },
+    .{ .name = "database", .patterns = &.{"src/Database.zig"} },
     .{ .name = "root", .patterns = &.{"src/almanac.zig"} },
 };
 
@@ -46,6 +47,7 @@ pub const required = [_][]const u8{
     "src/TimeZone.zig",
     "src/resolve.zig",
     "src/Zoned.zig",
+    "src/Database.zig",
     "src/Date.zig",
     "src/Time.zig",
     "src/DateTime.zig",

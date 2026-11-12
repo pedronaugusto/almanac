@@ -13,7 +13,7 @@ invariant or a decision changes.
 (`calendar.zig`, the calendar's conversions; `round.zig`, rounding), the arithmetic (`arithmetic.zig`,
 Temporal's abstract operations over plain records), the span (`Span.zig`), the civil values (`Date.zig`,
 `Time.zig`, `DateTime.zig`), instants (`instant.zig`), the zone's sources (`zone/posix.zig`, `zone/tzif.zig`, which sit beneath the
-arithmetic beside the kernels), the zone (`TimeZone.zig`), resolution (`resolve.zig`), zoned values (`Zoned.zig`), and the root.
+arithmetic beside the kernels), the zone (`TimeZone.zig`), resolution (`resolve.zig`), zoned values (`Zoned.zig`), the zone database (`Database.zig`), and the root.
 Arithmetic in a zone reaches the zone through `arithmetic.Zone`, two functions (the wall clock at an
 instant, and a wall clock's instant under `compatible`), since the zone sits above the arithmetic. The span sits beneath the types it is added to, so what gives its
 calendar units a length (`Span.RelativeTo`) holds their records and is made by them (`Date.relativeTo`).
@@ -125,6 +125,28 @@ refused where its wall clock would leave the calendar. Its arithmetic, differenc
 largest unit), rounding and `startOfDay` are Temporal's `ZonedDateTime`'s; differences in date units need
 the same zone (the same zone value, or the same IANA name).
 
+## The zone database
+
+`Database` finds and loads zones and caches one counted handle per name. Each zone is its own
+`aegis.Shared` block, so handles stay valid after a `refresh` replaced their zone and after the
+database itself is gone; the cache sits under an `aegis.RwGuarded` taken through the caller's `Io`, and
+a loaded zone's lookup is a shared read. A miss is loaded with no lock held, then inserted, keeping
+whichever load another caller finished first.
+
+Names are untrusted. A name is components of letters, digits, `_`, `-` and `+` joined by `/`, none
+empty, `.` or `..`; anything else names no zone, so no path outside the zoneinfo directory is formed
+from one. The system's files are read beneath the caller's `zoneinfo` directory handle: every prefix
+of the path is checked for a link, and a link is followed only while it stays beneath (an absolute
+target or one that climbs out names no zone), at most eight links deep. A file over `max_zone_bytes`
+is `TooLarge` before it is read; a damaged one is `Corrupt`, never a silent fallback to the embedded
+data, which is consulted only where the system has no such zone.
+
+`local` takes the caller's `$TZ` (almanac reads no environment) as POSIX reads it: empty is UTC,
+`:name` or a zone name is that zone, anything else a POSIX TZ string. Unset, it is the zone the
+`localtime` link names (its target past `zoneinfo/`), or the file it reaches where that names none,
+or UTC where there is no `localtime`. `refresh` compares each cached system file's inode, size and
+modification time with what was loaded and loads the changed ones again as new zones.
+
 ## Validation
 
 The kernels are checked against Hinnant's independent `days_from_civil` on every day of the range, ISO
@@ -146,8 +168,13 @@ refused and, when parsed, answer consistently. Resolution is checked on New York
 every disambiguation and offset policy, Lisbon's local mean time written to the minute, a day whose
 midnight is skipped, zoned arithmetic, differences, rounding and spans across changes of offset, and a
 property that the candidates and the `compatible` resolution agree with a brute-force search over every
-offset the zone uses.
+offset the zone uses. The database is checked on a temporary zoneinfo tree: names that climb out, links
+inside and escaping it, a link loop, damaged and oversized files, the cache's handles, `$TZ`'s forms
+and the `localtime` link, a refresh that replaces and removes zones while the old ones are held, under
+shakedown's quarantine allocator (where a use after free faults), and failures, a short read and a
+cancel of the reads under shakedown's FaultIo, after which the cache loads the zone as before.
 
 ## Not built yet
 
-The embedded database, the database (finding, loading and caching zones; the local zone), and text.
+The embedded database (and with it the `embedded` source), Windows' zone mapping and its local zone,
+and text.

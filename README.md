@@ -7,8 +7,8 @@ Temporal's semantics: an explicit policy at every ambiguous point, and no hidden
 ## Status
 
 Unreleased and being built: the calendar (dates, times, the proleptic Gregorian kernels), civil arithmetic (spans,
-adding, differences, rounding), instants, time zones (TZif files, POSIX TZ strings) and zoned times are in; the zone
-database, text and the embedded database follow. [The design](docs/design.md) says what is built.
+adding, differences, rounding), instants, time zones (TZif files, POSIX TZ strings), the zone database over the system's
+files and zoned times are in; text and the embedded database follow. [The design](docs/design.md) says what is built.
 
 ## License
 
