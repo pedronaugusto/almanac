@@ -44,6 +44,9 @@ follow [Semantic Versioning](https://semver.org/).
   (listed by file), 2 use calendar eras.
 - `Time.add`, `subtract`, `until`, `since` and `round`; `DateTime.round`; `Span.total`.
 
+- `lint_rules` for glint; the benchmark rows (`bench/main.zig`, compiled in CI); a usage example run with the
+  tests and shown in the README.
+
 ### Changed
 
 - Text reading follows test262: U+2212 is no minus sign; offsets are read to the nanosecond; only the first

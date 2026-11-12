@@ -383,3 +383,21 @@ test "each type publishes the text-form contract: parse, format, max_text_len" {
         try testing.expect(back.eql(value));
     }
 }
+
+test "the README's example is examples/usage.zig, which the tests run" {
+    const readme = @import("readme");
+    const usage = readme.usage;
+    const begin = std.mem.find(u8, usage, "    // README-BEGIN\n").? + "    // README-BEGIN\n".len;
+    const end = std.mem.find(u8, usage, "    // README-END").?;
+    var shown: std.Io.Writer.Allocating = .init(testing.allocator);
+    defer shown.deinit();
+    try shown.writer.writeAll("```zig\n");
+    var lines = std.mem.splitScalar(u8, usage[begin..end], '\n');
+    while (lines.next()) |line| {
+        if (line.len == 0 and lines.peek() == null) break;
+        try shown.writer.writeAll(if (std.mem.startsWith(u8, line, "    ")) line[4..] else line);
+        try shown.writer.writeByte('\n');
+    }
+    try shown.writer.writeAll("```\n");
+    try testing.expect(std.mem.find(u8, readme.text, shown.written()) != null);
+}

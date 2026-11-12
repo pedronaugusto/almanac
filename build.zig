@@ -52,6 +52,7 @@ pub fn dev(b: *std.Build, tools: type) void {
                 .{ .name = "tzdata", .module = tzdata(b, p) },
                 .{ .name = "json_schema", .module = jsonSchema(b, p) },
                 .{ .name = "test262", .module = test262Cases(b, p) },
+                .{ .name = "readme", .module = readme(b, p) },
             },
         }),
     });
@@ -118,7 +119,38 @@ pub fn dev(b: *std.Build, tools: type) void {
     }
     b.getInstallStep().dependOn(&tests.step);
     // The release tier runs every property under Zig's fuzzer, and the suite with safety on.
-    tools.preflight.addCi(b, p, .{ .tests = test_step, .portable_tests = true, .hardened = .{ .fuzz_step = "test", .tsan_step = "test" } });
+    // The README's example, run with the tests.
+    const example = b.addExecutable(.{
+        .name = "usage",
+        .root_module = b.createModule(.{ .root_source_file = p.path("examples/usage.zig"), .target = target, .optimize = optimize, .imports = &.{.{ .name = "almanac", .module = package.module("almanac") }} }),
+    });
+    const examples = b.step("examples", "Build and run the usage example");
+    examples.dependOn(&b.addRunArtifact(example).step);
+    test_step.dependOn(examples);
+    check.dependOn(&example.step);
+    tools.preflight.addCi(b, p, .{
+        .tests = test_step,
+        .portable_tests = true,
+        .hardened = .{ .fuzz_step = "test", .tsan_step = "test" },
+        // The benchmark rows (design §8): CI compiles them; timings are the running machine's.
+        .bench = .{
+            .programs = &.{.{ .name = "bench", .source = "bench/main.zig" }},
+            .imports = tools.preflight.Bench.importsFrom(benchImports),
+            .target = target,
+            .optimize = optimize,
+        },
+    });
+}
+
+/// almanac again, in the mode a benchmark builds in: an imported module keeps its own mode.
+fn benchImports(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.lang.Optimize) []const std.Build.Module.Import {
+    const p = b.dependency("almanac", .{ .target = target, .optimize = optimize }).builder;
+    const module = b.createModule(.{ .root_source_file = p.path("src/almanac.zig"), .target = target, .optimize = optimize });
+    module.addImport("aegis", p.dependency("aegis", .{ .target = target, .optimize = optimize }).module("aegis"));
+    const options = b.addOptions();
+    options.addOption(bool, "embedded", true);
+    module.addOptions("almanac_options", options);
+    return b.allocator.dupe(std.Build.Module.Import, &.{.{ .name = "almanac", .module = module }}) catch @panic("OOM");
 }
 
 /// The zones the tests read (testdata/zoneinfo: compiled by zic from tzdata 2026f, public domain), as a
@@ -163,7 +195,15 @@ fn jsonSchema(b: *std.Build, p: *std.Build) *std.Build.Module {
     return b.createModule(.{ .root_source_file = files.add("json_schema.zig", source.items) });
 }
 
-/// test262's Temporal string cases (testdata/test262/temporal.json), as a module.
+/// The README and the example it shows, for the test that keeps them the same.
+fn readme(b: *std.Build, p: *std.Build) *std.Build.Module {
+    const files = b.addWriteFiles();
+    _ = files.addCopyFile(p.path("README.md"), "README.md");
+    _ = files.addCopyFile(p.path("examples/usage.zig"), "usage.zig");
+    return b.createModule(.{ .root_source_file = files.add("readme.zig", "pub const text = @embedFile(\"README.md\");\npub const usage = @embedFile(\"usage.zig\");\n") });
+}
+
+/// test262's Temporal cases (testdata/test262/temporal.json), as a module.
 fn test262Cases(b: *std.Build, p: *std.Build) *std.Build.Module {
     const files = b.addWriteFiles();
     _ = files.addCopyFile(p.path("testdata/test262/temporal.json"), "temporal.json");

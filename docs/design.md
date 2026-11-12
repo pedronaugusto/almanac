@@ -267,6 +267,10 @@ strings, calendar eras) and 143 are applicable and unread, none in a group of mo
 applicable files, 1259 are read. No test262 case at this commit exercises rounding from a zoned value in
 a fold, so almanac's reading of the origin instant there (§ Arithmetic) rests on its own reasoning.
 
-## Not built yet
+## Lint rules and benchmark rows
 
-Lint rules and the benchmark rows.
+`almanac.lint_rules` tells glint what almanac replaces in a program that imports it: std's
+`time.epoch.EpochSeconds`, `EpochDay`, `isLeapYear` and `getDaysInMonth`, which read UTC only and check
+no range, by `toZoned` and `Date`. `bench/main.zig` holds the benchmark rows (civil conversions, zoned
+conversions in UTC, New York and Lisbon, RFC 3339 and RFC 9557 reading and writing, span arithmetic,
+zone loading); CI compiles them, and their timings are the machine's that runs them.

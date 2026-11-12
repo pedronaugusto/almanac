@@ -40,3 +40,15 @@ pub const DifferenceError = units.DifferenceError;
 pub const ArithmeticError = units.ArithmeticError;
 pub const ResolveError = resolve.ResolveError;
 pub const OffsetError = resolve.OffsetError;
+
+/// What glint replaces in a program that imports almanac: std's epoch arithmetic, which reads UTC
+/// only and checks no range, by almanac's checked civil time.
+pub const lint_rules = .{
+    .version = 1,
+    .replaces = .{
+        .{ .std = "time.epoch.EpochSeconds", .with = toZoned, .why = "UTC only and no range check; almanac's civil time takes any zone and refuses out of range" },
+        .{ .std = "time.epoch.EpochDay", .with = Date, .why = "a Date is checked against its month and range; EpochDay's arithmetic is unchecked" },
+        .{ .std = "time.epoch.isLeapYear", .with = Date.init, .why = "a Date checks its day; leap years are the calendar's, not the caller's" },
+        .{ .std = "time.epoch.getDaysInMonth", .with = Date.init, .why = "a Date checks its day against its month" },
+    },
+};

@@ -118,6 +118,11 @@ pub fn ianaForWindows(name: []const u8) ?[]const u8 {
     return null;
 }
 
+/// The TZif bytes of a zone or link in the embedded data, or null.
+pub fn embeddedBytes(name: []const u8) ?[]const u8 {
+    return embedded.find(name);
+}
+
 /// The IANA release the embedded data is (`2026f`), or empty where it is not linked.
 pub fn embeddedVersion() []const u8 {
     return embedded.version();
