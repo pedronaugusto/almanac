@@ -6,7 +6,22 @@ follow [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Changed
+
+- Time is carried as aegis units through the arithmetic: a length as `Duration(.nanosecond, i128)`, a place on the
+  timeline as `Instant(.real, .nanosecond, i128)`, an offset converted from its ranged seconds, so seconds and
+  nanoseconds cannot be mixed. `resolve.wallClock`, `resolve.checked`, `resolve.resolveWallClock`, `resolve.resolve`,
+  `resolve.resolveWithOffset` and `resolve.startOfDay` take and return `resolve.Epoch`;
+  `TimeZone.candidatesAt`, `TimeZone.offsetAtNanoseconds` (now returning an `Offset`) and `TimeZone.nextChange` take
+  one, and `TimeZone.Candidates.instants` holds them.
+- `Database.Options.zoneinfo` and `Database.Options.localtime` are `aegis.own.Unowned(Io.Dir)`: directories the
+  caller opens and closes, given as `.of(dir)`.
+- `text`'s written offset holds its length as a nanosecond `Duration`.
+
 ### Added
+
+- `Time.sinceMidnight`, `Time.fromSinceMidnight` and `Time.wrapped`; `Offset.nanoseconds` and `Offset.eql`;
+  `instant.inside` and `instant.checked`.
 
 - The calendar: the proleptic Gregorian calendar's date to day count conversions by Neri and Schneider's Euclidean
   affine functions, ISO weekdays and week dates, days of the year, leap years and month lengths, over the years -9999

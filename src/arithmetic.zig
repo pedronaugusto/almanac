@@ -8,18 +8,43 @@ const std = @import("std");
 const units = @import("units.zig");
 const calendar = @import("calendar.zig");
 const round = @import("round.zig");
+const aegis = @import("aegis");
 const Unit = units.Unit;
 const RoundingMode = units.RoundingMode;
 const Overflow = units.Overflow;
 
 pub const RangeError = units.RangeError;
 
-pub const ns_per_day: i128 = 86_400 * std.time.ns_per_s;
+/// An exact length of time in nanoseconds: a duration's time part, a difference of instants, the
+/// length of a unit. Wide enough for Temporal's bound and any product the rounding forms.
+pub const Ns = aegis.units.Duration(.nanosecond, i128);
+/// A place on the timeline in nanoseconds since 1970-01-01T00:00:00Z; a wall clock read as if UTC
+/// is one too.
+pub const Epoch = aegis.units.Instant(.real, .nanosecond, i128);
+
+/// A length counted in `unit` as nanoseconds, where it fits: every length almanac converts is
+/// far inside an i128. Nanoseconds are already nanoseconds.
+pub fn toNs(comptime unit: aegis.units.Unit, d: aegis.units.Duration(unit, i128)) Ns {
+    if (comptime unit == .nanosecond) return d;
+    return d.convert(.nanosecond, i128, .exact) catch aegis.assert.never("the length fits an i128 of nanoseconds");
+}
+
+/// One of `unit`, in nanoseconds.
+fn unitLength(comptime unit: aegis.units.Unit) Ns {
+    return toNs(unit, .fromRaw(1));
+}
+
+/// A day of 24 hours.
+pub const one_day: Ns = unitLength(.day);
 /// Temporal's bound on years, months and weeks: below 2^32.
 pub const max_calendar: i64 = (1 << 32) - 1;
 /// Temporal's bound on the days and time together: below 2^53 seconds (MaxTimeDuration).
-pub const max_time: i128 = (1 << 53) * std.time.ns_per_s - 1;
-pub const max_days: i64 = @intCast(@divTrunc(max_time, ns_per_day));
+pub const max_time: Ns = toNs(.second, .fromRaw(1 << 53)).sub(.fromRaw(1)) catch aegis.assert.never("2^53 seconds less a nanosecond is no overflow");
+/// `max_time` as a count, for the ranges that bound a span's fields.
+pub const max_time_count: u128 = (max_time.convert(.nanosecond, u128, .exact) catch aegis.assert.never("Temporal's bound is no negative length")).raw();
+pub const max_days: i64 = @intCast(max_time.ratio(one_day) catch aegis.assert.never("a day is no zero"));
+/// No time at all.
+pub const zero: Ns = .fromRaw(0);
 
 /// The calendar part of a duration, each field signed and all of one sign.
 pub const DateRec = struct {
@@ -37,16 +62,25 @@ pub const DateRec = struct {
 /// Temporal's internal duration record: a date part and a time part in nanoseconds.
 pub const Internal = struct {
     date: DateRec = .{},
-    time: i128 = 0,
+    time: Ns = zero,
 
     pub fn sign(d: Internal) i2 {
         const s = d.date.sign();
-        return if (s != 0) s else signOf(d.time);
+        return if (s != 0) s else signOfNs(d.time);
     }
 };
 
 pub fn signOf(v: anytype) i2 {
     return if (v < 0) -1 else if (v > 0) 1 else 0;
+}
+
+/// A length's sign: -1 before zero, 1 after.
+pub fn signOfNs(t: Ns) i2 {
+    return switch (t.compare(zero)) {
+        .lt => -1,
+        .eq => 0,
+        .gt => 1,
+    };
 }
 
 /// IsValidDuration over a date part, as CreateDateDurationRecord checks it.
@@ -62,13 +96,15 @@ pub fn checkDate(d: DateRec) RangeError!void {
     if (positive and negative) return error.OutOfRange;
 }
 
-pub fn checkTime(t: i128) RangeError!i128 {
-    return if (@abs(t) > max_time) error.OutOfRange else t;
+pub fn checkTime(t: Ns) RangeError!Ns {
+    const size = t.abs() catch return error.OutOfRange;
+    return if (size.compare(max_time) == .gt) error.OutOfRange else t;
 }
 
 /// Add24HourDaysToTimeDuration.
-pub fn addDays(t: i128, days: i64) RangeError!i128 {
-    return checkTime(t + days * ns_per_day);
+pub fn addDays(t: Ns, days: i64) RangeError!Ns {
+    const whole = one_day.mul(days) catch return error.OutOfRange;
+    return checkTime(t.add(whole) catch return error.OutOfRange);
 }
 
 // Units.
@@ -88,17 +124,23 @@ pub fn isDate(u: Unit) bool {
 }
 
 /// A day or a time unit's length.
-pub fn nanoseconds(u: Unit) i128 {
+pub fn length(u: Unit) Ns {
     return switch (u) {
-        .day => ns_per_day,
-        .hour => 3600 * std.time.ns_per_s,
-        .minute => 60 * std.time.ns_per_s,
-        .second => std.time.ns_per_s,
-        .millisecond => std.time.ns_per_ms,
-        .microsecond => std.time.ns_per_us,
-        .nanosecond => 1,
-        .year, .month, .week => unreachable,
+        .day => one_day,
+        .hour => unitLength(.hour),
+        .minute => unitLength(.minute),
+        .second => unitLength(.second),
+        .millisecond => unitLength(.millisecond),
+        .microsecond => unitLength(.microsecond),
+        .nanosecond => unitLength(.nanosecond),
+        .year, .month, .week => aegis.assert.never("a calendar unit has no fixed length"),
     };
+}
+
+/// `increment` of a day or a time unit, as one length: an increment checked by `checkIncrement`
+/// stays well inside an i128.
+pub fn lengthOf(u: Unit, increment: u32) Ns {
+    return length(u).mul(increment) catch aegis.assert.never("a checked increment of a unit fits an i128");
 }
 
 /// GetRoundingIncrementOption's range, then MaximumTemporalDurationRoundingIncrement and
@@ -128,11 +170,13 @@ pub const IsoDate = struct {
 
 pub const IsoDateTime = struct {
     date: IsoDate,
-    /// Nanoseconds since midnight.
-    time: i64 = 0,
+    /// The time since midnight, under a day.
+    time: Ns = zero,
 
-    pub fn epochNs(dt: IsoDateTime) i128 {
-        return @as(i128, dt.date.epochDays()) * ns_per_day + dt.time;
+    /// The wall clock read as if UTC.
+    pub fn epochNs(dt: IsoDateTime) Epoch {
+        const days = one_day.mul(dt.date.epochDays()) catch aegis.assert.never("a date's days fit an i128 of nanoseconds");
+        return .fromSinceEpoch(days.add(dt.time) catch aegis.assert.never("a date's days and a time of day fit an i128"));
     }
 };
 
@@ -142,7 +186,7 @@ pub fn inRange(days: i64) bool {
 
 /// The date of a day count inside almanac's range.
 pub fn fromEpochDays(days: i64) IsoDate {
-    std.debug.assert(inRange(days));
+    aegis.assert.invariant(inRange(days), "inRange(days)");
     const c = calendar.civilFromDays(@intCast(days));
     return .{ .year = c.year, .month = @intCast(c.month), .day = @intCast(c.day) };
 }
@@ -193,7 +237,7 @@ fn surpasses(sign: i2, year: i64, month: u8, day: u8, two: IsoDate) bool {
 /// unit up one at a time while the date reached does not surpass `two`; surpassing is monotone in
 /// the count, so the count is the distance in that unit, less one where the day overshoots.
 pub fn dateUntil(one: IsoDate, two: IsoDate, largest: Unit) DateRec {
-    std.debug.assert(isDate(largest));
+    aegis.assert.invariant(isDate(largest), "isDate(largest)");
     const sign = -compare(one, two);
     if (sign == 0) return .{};
     var years: i64 = 0;
@@ -208,7 +252,7 @@ pub fn dateUntil(one: IsoDate, two: IsoDate, largest: Unit) DateRec {
         const at = balanceYearMonth(one.year + years, @as(i64, one.month) + months);
         if (surpasses(sign, at.year, at.month, one.day, two)) months -= sign;
     }
-    const constrained = regulate(balanceYearMonth(one.year + years, @as(i64, one.month) + months), one.day, .constrain) catch unreachable;
+    const constrained = regulate(balanceYearMonth(one.year + years, @as(i64, one.month) + months), one.day, .constrain) catch aegis.assert.never("constrain clamps the day to its month, and refuses nothing");
     const diff = two.epochDays() - constrained.epochDays();
     const weeks: i64 = if (largest == .week) @divTrunc(diff, 7) else 0;
     return .{ .years = years, .months = months, .weeks = weeks, .days = diff - 7 * weeks };
@@ -216,12 +260,12 @@ pub fn dateUntil(one: IsoDate, two: IsoDate, largest: Unit) DateRec {
 
 /// DifferenceISODateTime: the time difference borrows a day where its sign opposes the dates'.
 pub fn dateTimeUntil(one: IsoDateTime, two: IsoDateTime, largest: Unit) RangeError!Internal {
-    var time: i128 = two.time - one.time;
-    const time_sign = signOf(time);
+    var time = two.time.sub(one.time) catch return error.OutOfRange;
+    const time_sign = signOfNs(time);
     var adjusted = two.date;
     if (time_sign != 0 and time_sign == compare(one.date, two.date)) {
         adjusted = fromEpochDays(two.date.epochDays() + time_sign);
-        time -= time_sign * ns_per_day;
+        time = time.sub(one_day.mul(time_sign) catch return error.OutOfRange) catch return error.OutOfRange;
     }
     const date_largest = larger(.day, largest);
     var date = dateUntil(one.date, adjusted, date_largest);
@@ -241,7 +285,7 @@ pub const Rounding = struct {
 
 /// DifferencePlainDateTimeWithRounding: the difference, rounded unless to one nanosecond.
 pub fn dateTimeUntilRounded(one: IsoDateTime, two: IsoDateTime, r: Rounding) RangeError!Internal {
-    if (one.epochNs() == two.epochNs()) return .{};
+    if (one.epochNs().eql(two.epochNs())) return .{};
     const diff = try dateTimeUntil(one, two, r.largest);
     if (r.smallest == .nanosecond and r.increment == 1) return diff;
     return roundRelative(diff, one.epochNs(), two.epochNs(), one, null, r);
@@ -252,20 +296,20 @@ pub fn dateTimeUntilRounded(one: IsoDateTime, two: IsoDateTime, r: Rounding) Ran
 /// zone sits above the arithmetic, so it is reached through these.
 pub const Zone = struct {
     context: *const anyopaque,
-    wall_clock: *const fn (context: *const anyopaque, ns: i128) RangeError!IsoDateTime,
-    instant_of: *const fn (context: *const anyopaque, dt: IsoDateTime) RangeError!i128,
+    wall_clock: *const fn (context: *const anyopaque, at: Epoch) RangeError!IsoDateTime,
+    instant_of: *const fn (context: *const anyopaque, dt: IsoDateTime) RangeError!Epoch,
 
-    pub fn wallClock(z: Zone, ns: i128) RangeError!IsoDateTime {
-        return z.wall_clock(z.context, ns);
+    pub fn wallClock(z: Zone, at: Epoch) RangeError!IsoDateTime {
+        return z.wall_clock(z.context, at);
     }
 
-    fn instantOf(z: Zone, dt: IsoDateTime) RangeError!i128 {
+    fn instantOf(z: Zone, dt: IsoDateTime) RangeError!Epoch {
         return z.instant_of(z.context, dt);
     }
 };
 
 /// A wall clock's instant: in the zone, or read as UTC where there is none.
-fn epochOf(zone: ?Zone, dt: IsoDateTime) RangeError!i128 {
+fn epochOf(zone: ?Zone, dt: IsoDateTime) RangeError!Epoch {
     return if (zone) |z| z.instantOf(dt) else dt.epochNs();
 }
 
@@ -278,33 +322,33 @@ fn nextDay(dt: IsoDateTime, sign: i2) RangeError!IsoDateTime {
 
 /// AddZonedDateTime: the date part added to the wall clock and resolved, then the time on the
 /// timeline. Without a date part, the time alone.
-pub fn zonedAdd(zone: Zone, ns: i128, d: Internal, overflow: Overflow) RangeError!i128 {
-    var at = ns;
+pub fn zonedAdd(zone: Zone, from: Epoch, d: Internal, overflow: Overflow) RangeError!Epoch {
+    var at = from;
     if (d.date.sign() != 0) {
-        const wall = try zone.wallClock(ns);
+        const wall = try zone.wallClock(from);
         at = try zone.instantOf(.{ .date = try dateAdd(wall.date, d.date, overflow), .time = wall.time });
     }
-    return at + d.time;
+    return at.add(d.time) catch error.OutOfRange;
 }
 
 /// DifferenceZonedDateTime: whole days by the wall clock, found by stepping back from the end's
 /// date until the time left runs the same way as the whole; the date part by the calendar, the
 /// rest on the timeline.
-pub fn zonedUntil(zone: Zone, one: i128, two: i128, largest: Unit) RangeError!Internal {
-    if (one == two) return .{};
+pub fn zonedUntil(zone: Zone, one: Epoch, two: Epoch, largest: Unit) RangeError!Internal {
+    if (one.eql(two)) return .{};
     const start = try zone.wallClock(one);
     const end = try zone.wallClock(two);
-    if (compare(start.date, end.date) == 0) return .{ .time = two - one };
-    const sign: i2 = if (two < one) -1 else 1;
+    if (compare(start.date, end.date) == 0) return .{ .time = one.durationTo(two) catch return error.OutOfRange };
+    const sign: i2 = if (two.compare(one) == .lt) -1 else 1;
     const max_correction: i64 = if (sign == 1) 2 else 1;
     var correction: i64 = 0;
-    if (signOf(@as(i128, end.time) - start.time) == -sign) correction += 1;
+    if (signOfNs(end.time.sub(start.time) catch return error.OutOfRange) == -sign) correction += 1;
     while (correction <= max_correction) : (correction += 1) {
         const days = end.date.epochDays() - correction * sign;
         if (!inRange(days)) return error.OutOfRange;
         const intermediate: IsoDateTime = .{ .date = fromEpochDays(days), .time = start.time };
-        const time = two - try zone.instantOf(intermediate);
-        if (sign != -signOf(time)) {
+        const time = (try zone.instantOf(intermediate)).durationTo(two) catch return error.OutOfRange;
+        if (sign != -signOfNs(time)) {
             const date = dateUntil(start.date, intermediate.date, larger(largest, .day));
             return .{ .date = date, .time = time };
         }
@@ -314,7 +358,7 @@ pub fn zonedUntil(zone: Zone, one: i128, two: i128, largest: Unit) RangeError!In
 }
 
 /// DifferenceZonedDateTimeWithRounding, `largest` a date unit.
-pub fn zonedUntilRounded(zone: Zone, one: i128, two: i128, r: Rounding) RangeError!Internal {
+pub fn zonedUntilRounded(zone: Zone, one: Epoch, two: Epoch, r: Rounding) RangeError!Internal {
     const diff = try zonedUntil(zone, one, two, r.largest);
     if (r.smallest == .nanosecond and r.increment == 1) return diff;
     return roundRelative(diff, one, two, try zone.wallClock(one), zone, r);
@@ -344,20 +388,21 @@ pub fn differenceSettings(operation: Operation, options: units.Difference, date_
 
 const Nudge = struct {
     duration: Internal,
-    nudged: i128,
+    nudged: Epoch,
     expanded: bool,
     /// NudgeToCalendarUnit's total: `numerator / denominator` of the unit.
-    numerator: i128 = 0,
-    denominator: i128 = 1,
+    numerator: Ns = zero,
+    denominator: Ns = .fromRaw(1),
 };
 
-/// A ratio of integers as the nearest f64, rounded once (ties to even): Temporal's 𝔽(total).
-pub fn ratioToF64(numerator: i128, denominator: i128) f64 {
-    std.debug.assert(denominator != 0);
-    if (numerator == 0) return 0;
-    const negative = (numerator < 0) != (denominator < 0);
-    const n: u512 = @abs(numerator);
-    const d: u512 = @abs(denominator);
+/// A ratio of two lengths as the nearest f64, rounded once (ties to even): Temporal's 𝔽(total).
+pub fn ratioToF64(numerator: Ns, denominator: Ns) f64 {
+    aegis.assert.invariant(!denominator.eql(zero), "a total is of a unit of some length");
+    if (numerator.eql(zero)) return 0;
+    const negative = (numerator.compare(zero) == .lt) != (denominator.compare(zero) == .lt);
+    // The units cancel: what is left is a ratio of two counts of nanoseconds.
+    const n: u512 = @abs(numerator.raw());
+    const d: u512 = @abs(denominator.raw());
     // The quotient scaled by 2^k to 55 bits (2^54 <= q < 2^55): 53 kept, a rounding bit, a guard.
     var k: i32 = 55 - @as(i32, 512 - @clz(n)) + @as(i32, 512 - @clz(d));
     var q: u512 = undefined;
@@ -382,7 +427,7 @@ pub fn ratioToF64(numerator: i128, denominator: i128) f64 {
 }
 
 /// TotalRelativeDuration: `duration`, measured from `origin` to `dest`, in `unit` as a ratio.
-pub fn totalRelative(duration: Internal, origin_ns: i128, dest: i128, origin: IsoDateTime, zone: ?Zone, unit: Unit) RangeError!f64 {
+pub fn totalRelative(duration: Internal, origin_ns: Epoch, dest: Epoch, origin: IsoDateTime, zone: ?Zone, unit: Unit) RangeError!f64 {
     if (isCalendar(unit) or (zone != null and unit == .day)) {
         const sign: i2 = if (duration.sign() < 0) -1 else 1;
         const r: Rounding = .{ .largest = unit, .smallest = unit, .increment = 1, .mode = .trunc };
@@ -390,12 +435,12 @@ pub fn totalRelative(duration: Internal, origin_ns: i128, dest: i128, origin: Is
         return ratioToF64(nudge.numerator, nudge.denominator);
     }
     const time = try addDays(duration.time, duration.date.days);
-    return ratioToF64(time, nanoseconds(unit));
+    return ratioToF64(time, length(unit));
 }
 
 /// RoundRelativeDuration: `duration` measured from `origin` (the instant `origin_ns`, the wall
 /// clock `origin`) to `dest`, in `zone` or on a timeline without one.
-pub fn roundRelative(duration: Internal, origin_ns: i128, dest: i128, origin: IsoDateTime, zone: ?Zone, r: Rounding) RangeError!Internal {
+pub fn roundRelative(duration: Internal, origin_ns: Epoch, dest: Epoch, origin: IsoDateTime, zone: ?Zone, r: Rounding) RangeError!Internal {
     const sign: i2 = if (duration.sign() < 0) -1 else 1;
     // A day in a zone may be 23 or 25 hours long: a calendar unit there.
     const irregular = isCalendar(r.smallest) or (zone != null and r.smallest == .day);
@@ -412,7 +457,7 @@ pub fn roundRelative(duration: Internal, origin_ns: i128, dest: i128, origin: Is
 
 /// NudgeToCalendarUnit: the duration truncated to a multiple of the increment in `unit`, and that
 /// plus one increment, as dates from the origin; the destination's progress between them picks one.
-fn nudgeToCalendarUnit(sign: i2, duration: Internal, origin_ns: i128, dest: i128, origin: IsoDateTime, zone: ?Zone, r: Rounding) RangeError!Nudge {
+fn nudgeToCalendarUnit(sign: i2, duration: Internal, origin_ns: Epoch, dest: Epoch, origin: IsoDateTime, zone: ?Zone, r: Rounding) RangeError!Nudge {
     const d = duration.date;
     const increment: i64 = r.increment;
     var start: DateRec = undefined;
@@ -453,7 +498,7 @@ fn nudgeToCalendarUnit(sign: i2, duration: Internal, origin_ns: i128, dest: i128
     // Where a month's end was constrained, the destination can lie past the window's end (a year
     // from February 29 ends on February 28): the window moves on by an increment until it holds it.
     var moved: usize = 0;
-    while (@as(i128, sign) * (dest - end_ns) > 0 and moved < 4) : (moved += 1) {
+    while (signOfNs(end_ns.durationTo(dest) catch return error.OutOfRange) == sign and moved < 4) : (moved += 1) {
         r1 += increment * sign;
         start = end;
         start_ns = end_ns;
@@ -467,17 +512,19 @@ fn nudgeToCalendarUnit(sign: i2, duration: Internal, origin_ns: i128, dest: i128
         try checkDate(end);
         end_ns = try epochOf(zone, .{ .date = try dateAdd(origin.date, end, .constrain), .time = origin.time });
     }
-    var num = dest - start_ns;
-    var den = end_ns - start_ns;
+    var num = start_ns.durationTo(dest) catch return error.OutOfRange;
+    var den = start_ns.durationTo(end_ns) catch return error.OutOfRange;
     if (sign < 0) {
-        num = -num;
-        den = -den;
+        num = num.negate() catch return error.OutOfRange;
+        den = den.negate() catch return error.OutOfRange;
     }
-    if (!(den > 0 and num >= 0 and num <= den)) return error.OutOfRange;
+    if (!(den.compare(zero) == .gt and num.compare(zero) != .lt and num.compare(den) != .gt)) return error.OutOfRange;
     const r1_abs: i64 = @intCast(@abs(r1));
-    const up = round.toSecond(num, den, round.unsignedMode(r.mode, sign < 0), @mod(@divTrunc(r1_abs, increment), 2) == 0);
+    const up = round.toSecondNs(num, den, round.unsignedMode(r.mode, sign < 0), @mod(@divTrunc(r1_abs, increment), 2) == 0);
     // The total: r1 + progress × increment × sign, as one ratio.
-    const numerator = @as(i128, r1) * den + @as(i128, sign) * increment * num;
+    const whole = den.mul(r1) catch return error.OutOfRange;
+    const progress = num.mul(@as(i128, sign) * increment) catch return error.OutOfRange;
+    const numerator = whole.add(progress) catch return error.OutOfRange;
     return if (up)
         .{ .duration = .{ .date = end }, .nudged = end_ns, .expanded = true, .numerator = numerator, .denominator = den }
     else
@@ -490,21 +537,22 @@ fn truncate(x: i64, increment: i64) i64 {
 
 /// NudgeToDayOrTime: the days and time as one exact count, rounded; whether that carried into a
 /// new day (in the duration's direction) decides bubbling.
-fn nudgeToDayOrTime(duration: Internal, dest: i128, r: Rounding) RangeError!Nudge {
+fn nudgeToDayOrTime(duration: Internal, dest: Epoch, r: Rounding) RangeError!Nudge {
     const time = try addDays(duration.time, duration.date.days);
-    const rounded = try checkTime(round.toIncrement(time, nanoseconds(r.smallest) * r.increment, r.mode));
-    const whole_days = @divTrunc(time, ns_per_day);
-    const rounded_days = @divTrunc(rounded, ns_per_day);
-    const expanded = signOf(rounded_days - whole_days) == signOf(time);
+    const rounded = try checkTime(try round.toIncrementNs(time, lengthOf(r.smallest, r.increment), r.mode));
+    const whole_days = time.ratio(one_day) catch return error.OutOfRange;
+    const rounded_days = rounded.ratio(one_day) catch return error.OutOfRange;
+    const expanded = signOf(rounded_days - whole_days) == signOfNs(time);
     var date = duration.date;
     date.days = 0;
     var remainder = rounded;
     if (isDate(r.largest)) {
         date.days = @intCast(rounded_days);
-        remainder = rounded - rounded_days * ns_per_day;
+        remainder = rounded.sub(one_day.mul(rounded_days) catch return error.OutOfRange) catch return error.OutOfRange;
     }
     try checkDate(date);
-    return .{ .duration = .{ .date = date, .time = remainder }, .nudged = dest + (rounded - time), .expanded = expanded };
+    const moved = rounded.sub(time) catch return error.OutOfRange;
+    return .{ .duration = .{ .date = date, .time = remainder }, .nudged = dest.add(moved) catch return error.OutOfRange, .expanded = expanded };
 }
 
 /// NudgeToZonedTime: the time rounded within the day the date part reaches, that day as long as
@@ -514,20 +562,20 @@ fn nudgeToZonedTime(sign: i2, duration: Internal, origin: IsoDateTime, zone: Zon
     const end = try nextDay(start, sign);
     const start_ns = try zone.instantOf(start);
     const end_ns = try zone.instantOf(end);
-    const day_span = end_ns - start_ns;
-    const length = nanoseconds(r.smallest) * r.increment;
-    var rounded = try checkTime(round.toIncrement(duration.time, length, r.mode));
-    const beyond = rounded - day_span;
+    const day_span = start_ns.durationTo(end_ns) catch return error.OutOfRange;
+    const step = lengthOf(r.smallest, r.increment);
+    var rounded = try checkTime(try round.toIncrementNs(duration.time, step, r.mode));
+    const beyond = rounded.sub(day_span) catch return error.OutOfRange;
     var date = duration.date;
-    var nudged: i128 = undefined;
+    var nudged: Epoch = undefined;
     var expanded = false;
-    if (signOf(beyond) != -sign) {
+    if (signOfNs(beyond) != -sign) {
         expanded = true;
         date.days += sign;
-        rounded = try checkTime(round.toIncrement(beyond, length, r.mode));
-        nudged = end_ns + rounded;
+        rounded = try checkTime(try round.toIncrementNs(beyond, step, r.mode));
+        nudged = end_ns.add(rounded) catch return error.OutOfRange;
     } else {
-        nudged = start_ns + rounded;
+        nudged = start_ns.add(rounded) catch return error.OutOfRange;
     }
     try checkDate(date);
     return .{ .duration = .{ .date = date, .time = rounded }, .nudged = nudged, .expanded = expanded };
@@ -535,7 +583,7 @@ fn nudgeToZonedTime(sign: i2, duration: Internal, origin: IsoDateTime, zone: Zon
 
 /// BubbleRelativeDuration: after rounding carried into a larger unit, each unit up to `largest`
 /// takes one more where the rounded end reaches that unit's next boundary.
-fn bubble(sign: i2, duration: Internal, nudged: i128, origin: IsoDateTime, zone: ?Zone, largest: Unit, smallest: Unit) RangeError!Internal {
+fn bubble(sign: i2, duration: Internal, nudged: Epoch, origin: IsoDateTime, zone: ?Zone, largest: Unit, smallest: Unit) RangeError!Internal {
     var out = duration;
     var index: usize = @backingInt(smallest);
     while (index > @backingInt(largest)) {
@@ -551,7 +599,7 @@ fn bubble(sign: i2, duration: Internal, nudged: i128, origin: IsoDateTime, zone:
         };
         try checkDate(end);
         const end_ns = try epochOf(zone, .{ .date = try dateAdd(origin.date, end, .constrain), .time = origin.time });
-        if (signOf(nudged - end_ns) == -sign) break;
+        if (signOfNs(end_ns.durationTo(nudged) catch return error.OutOfRange) == -sign) break;
         out = .{ .date = end };
     }
     return out;
@@ -588,7 +636,7 @@ fn loops(one: IsoDate, two: IsoDate, largest: Unit) DateRec {
             at = balanceYearMonth(at.year, @as(i64, at.month) + sign);
         }
     }
-    const constrained = regulate(balanceYearMonth(one.year + years, @as(i64, one.month) + months), one.day, .constrain) catch unreachable;
+    const constrained = regulate(balanceYearMonth(one.year + years, @as(i64, one.month) + months), one.day, .constrain) catch aegis.assert.never("constrain clamps the day to its month, and refuses nothing");
     var weeks: i64 = 0;
     if (largest == .week) {
         var candidate: i64 = sign;
@@ -610,12 +658,12 @@ fn loops(one: IsoDate, two: IsoDate, largest: Unit) DateRec {
 
 test "a ratio to the nearest f64, rounded once" {
     const t = std.testing;
-    try t.expectEqual(@as(f64, 1.5), ratioToF64(3, 2));
-    try t.expectEqual(@as(f64, -0.1), ratioToF64(-1, 10));
-    try t.expectEqual(@as(f64, 1.0 / 3.0), ratioToF64(1, 3));
-    try t.expectEqual(@as(f64, 9007199254740992), ratioToF64(9007199254740993, 1));
-    try t.expectEqual(@as(f64, 9007199254740996), ratioToF64(9007199254740995, 1));
+    try t.expectEqual(@as(f64, 1.5), ratioToF64(.fromRaw(3), .fromRaw(2)));
+    try t.expectEqual(@as(f64, -0.1), ratioToF64(.fromRaw(-1), .fromRaw(10)));
+    try t.expectEqual(@as(f64, 1.0 / 3.0), ratioToF64(.fromRaw(1), .fromRaw(3)));
+    try t.expectEqual(@as(f64, 9007199254740992), ratioToF64(.fromRaw(9007199254740993), .fromRaw(1)));
+    try t.expectEqual(@as(f64, 9007199254740996), ratioToF64(.fromRaw(9007199254740995), .fromRaw(1)));
     // Past an i64, and a ratio whose naive f64 division rounds twice.
-    try t.expectEqual(@as(f64, 1e30), ratioToF64(1_000_000_000_000_000_000_000_000_000_000, 1));
-    try t.expectEqual(@as(f64, 2.0 / 3.0), ratioToF64(2 * 86_400_000_000_000, 3 * 86_400_000_000_000));
+    try t.expectEqual(@as(f64, 1e30), ratioToF64(.fromRaw(1_000_000_000_000_000_000_000_000_000_000), .fromRaw(1)));
+    try t.expectEqual(@as(f64, 2.0 / 3.0), ratioToF64(.fromRaw(2 * 86_400_000_000_000), .fromRaw(3 * 86_400_000_000_000)));
 }

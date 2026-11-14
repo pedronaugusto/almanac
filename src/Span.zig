@@ -17,7 +17,7 @@ const Unit = units.Unit;
 pub const RangeError = units.RangeError;
 pub const ArithmeticError = units.ArithmeticError;
 
-const ns_per_s = std.time.ns_per_s;
+const Ns = arithmetic.Ns;
 const max_seconds: u128 = (1 << 53) - 1;
 
 pub const Calendar = Ranged(u32, 0, std.math.maxInt(u32));
@@ -32,7 +32,7 @@ minutes: Ranged(u64, 0, max_seconds / 60) = .literal(0),
 seconds: Ranged(u64, 0, max_seconds) = .literal(0),
 milliseconds: Ranged(u64, 0, (max_seconds + 1) * 1000 - 1) = .literal(0),
 microseconds: Ranged(u128, 0, (max_seconds + 1) * 1_000_000 - 1) = .literal(0),
-nanoseconds: Ranged(u128, 0, arithmetic.max_time) = .literal(0),
+nanoseconds: Ranged(u128, 0, arithmetic.max_time_count) = .literal(0),
 
 pub const Sign = enum { positive, negative };
 
@@ -72,9 +72,9 @@ pub fn init(sign: Sign, fields: Fields) RangeError!Span {
     var out: Span = .{
         .sign = sign,
         // Every u32 is in range.
-        .years = Calendar.init(fields.years) catch unreachable,
-        .months = Calendar.init(fields.months) catch unreachable,
-        .weeks = Calendar.init(fields.weeks) catch unreachable,
+        .years = Calendar.init(fields.years) catch aegis.assert.never("every u32 is in a calendar unit's range"),
+        .months = Calendar.init(fields.months) catch aegis.assert.never("every u32 is in a calendar unit's range"),
+        .weeks = Calendar.init(fields.weeks) catch aegis.assert.never("every u32 is in a calendar unit's range"),
         .days = try .init(fields.days),
         .hours = try .init(fields.hours),
         .minutes = try .init(fields.minutes),
@@ -83,7 +83,7 @@ pub fn init(sign: Sign, fields: Fields) RangeError!Span {
         .microseconds = try .init(fields.microseconds),
         .nanoseconds = try .init(fields.nanoseconds),
     };
-    if (out.magnitude() > arithmetic.max_time) return error.OutOfRange;
+    if (out.magnitude().compare(arithmetic.max_time) == .gt) return error.OutOfRange;
     if (out.isZero()) out.sign = .positive;
     return out;
 }
@@ -107,17 +107,31 @@ pub fn fromSigned(f: Signed) RangeError!Span {
     return init(if (negative) .negative else .positive, fields);
 }
 
-/// The days and time fields as one count of nanoseconds, unsigned.
-fn magnitude(s: Span) u128 {
-    const wide = struct {
-        fn f(v: anytype, comptime scale: u128) u128 {
-            return @as(u128, v) * scale;
-        }
-    }.f;
-    return wide(s.days.raw(), @intCast(arithmetic.ns_per_day)) + wide(s.hours.raw(), 3600 * ns_per_s) +
-        wide(s.minutes.raw(), 60 * ns_per_s) + wide(s.seconds.raw(), ns_per_s) +
-        wide(s.milliseconds.raw(), std.time.ns_per_ms) + wide(s.microseconds.raw(), std.time.ns_per_us) +
-        s.nanoseconds.raw();
+/// A field counted in `unit`, as nanoseconds: each field's range does, and the seven together.
+fn inNs(comptime unit: aegis.units.Unit, field: anytype) Ns {
+    return arithmetic.toNs(unit, .fromRanged(field));
+}
+
+/// The sum of lengths each under Temporal's bound, a few of them: no i128 overflows.
+fn sum(parts: []const Ns) Ns {
+    var out = arithmetic.zero;
+    for (parts) |part| out = out.add(part) catch aegis.assert.never("a few lengths under Temporal's bound sum inside an i128");
+    return out;
+}
+
+/// The days and time fields as one length, unsigned.
+fn magnitude(s: Span) Ns {
+    return sum(&.{ inNs(.day, s.days), s.time() });
+}
+
+/// The time fields, from the hours down, as one length, unsigned.
+fn time(s: Span) Ns {
+    return sum(&.{ inNs(.hour, s.hours), inNs(.minute, s.minutes), s.second() });
+}
+
+/// The seconds and their fractions as one length, unsigned: what `format` writes as seconds.
+fn second(s: Span) Ns {
+    return sum(&.{ inNs(.second, s.seconds), inNs(.millisecond, s.milliseconds), inNs(.microsecond, s.microseconds), inNs(.nanosecond, s.nanoseconds) });
 }
 
 /// A field's value with the span's sign.
@@ -131,14 +145,14 @@ pub fn get(s: Span, unit: Unit) i128 {
         .minute => s.minutes.raw(),
         .second => s.seconds.raw(),
         .millisecond => s.milliseconds.raw(),
-        .microsecond => @intCast(s.microseconds.raw()),
-        .nanosecond => @intCast(s.nanoseconds.raw()),
+        .microsecond => s.microseconds.widen(i128),
+        .nanosecond => s.nanoseconds.widen(i128),
     };
     return if (s.sign == .negative) -v else v;
 }
 
 pub fn isZero(s: Span) bool {
-    return s.years.raw() == 0 and s.months.raw() == 0 and s.weeks.raw() == 0 and s.magnitude() == 0;
+    return s.years.eql(.literal(0)) and s.months.eql(.literal(0)) and s.weeks.eql(.literal(0)) and s.magnitude().eql(arithmetic.zero);
 }
 
 /// -1, 0 or 1.
@@ -175,19 +189,19 @@ pub fn eql(a: Span, b: Span) bool {
 
 /// ToInternalDurationRecord. A span built as a literal past the joint bound is refused here.
 pub fn toInternal(s: Span) RangeError!arithmetic.Internal {
-    if (s.magnitude() > arithmetic.max_time) return error.OutOfRange;
+    if (s.magnitude().compare(arithmetic.max_time) == .gt) return error.OutOfRange;
     const negative = s.sign == .negative;
-    const time: i128 = @intCast(s.magnitude() - s.days.raw() * @as(u128, @intCast(arithmetic.ns_per_day)));
+    const t = s.time();
     const date: arithmetic.DateRec = .{
-        .years = s.years.raw(),
-        .months = s.months.raw(),
-        .weeks = s.weeks.raw(),
-        .days = @intCast(s.days.raw()),
+        .years = s.years.widen(i64),
+        .months = s.months.widen(i64),
+        .weeks = s.weeks.widen(i64),
+        .days = s.days.widen(i64),
     };
     return if (negative)
-        .{ .date = .{ .years = -date.years, .months = -date.months, .weeks = -date.weeks, .days = -date.days }, .time = -time }
+        .{ .date = .{ .years = -date.years, .months = -date.months, .weeks = -date.weeks, .days = -date.days }, .time = t.negate() catch aegis.assert.never("a length under Temporal's bound negates") }
     else
-        .{ .date = date, .time = time };
+        .{ .date = date, .time = t };
 }
 
 /// ToInternalDurationRecordWith24HourDays: the days counted into the time.
@@ -201,10 +215,11 @@ pub fn toInternalDays(s: Span) RangeError!arithmetic.Internal {
 /// TemporalDurationFromInternal: the time balanced up to `largest` (to days when that is a date
 /// unit), each field signed as the time is.
 pub fn fromInternal(d: arithmetic.Internal, largest: Unit) RangeError!Span {
-    const sign: i128 = arithmetic.signOf(d.time);
-    var rest: u128 = @abs(d.time);
-    var out: [7]u128 = @splat(0); // days, hours, minutes, seconds, ms, µs, ns
-    const radices = [_]u128{ 24, 60, 60, 1000, 1000, 1000 };
+    const sign: i128 = arithmetic.signOfNs(d.time);
+    if ((d.time.abs() catch return error.OutOfRange).compare(arithmetic.max_time) == .gt) return error.OutOfRange;
+    var rest = d.time.abs() catch return error.OutOfRange;
+    var out: [7]i128 = @splat(0); // days, hours, minutes, seconds, ms, µs, ns
+    const lengths = [_]Ns{ arithmetic.one_day, arithmetic.length(.hour), arithmetic.length(.minute), arithmetic.length(.second), arithmetic.length(.millisecond), arithmetic.length(.microsecond), arithmetic.length(.nanosecond) };
     // How many of the fields from the day down are kept: date units keep all seven.
     const kept: usize = switch (largest) {
         .year, .month, .week, .day => 7,
@@ -215,20 +230,18 @@ pub fn fromInternal(d: arithmetic.Internal, largest: Unit) RangeError!Span {
         .microsecond => 2,
         .nanosecond => 1,
     };
-    var i: usize = 6;
-    while (i > 7 - kept) : (i -= 1) {
-        out[i] = rest % radices[i - 1];
-        rest /= radices[i - 1];
+    // The largest field kept takes all the whole units of it; each below takes what is left.
+    for (7 - kept..7) |i| {
+        out[i] = rest.ratio(lengths[i]) catch aegis.assert.never("a unit has some length");
+        rest = rest.mod(lengths[i]) catch aegis.assert.never("a unit has some length");
     }
-    out[i] = rest;
     // The time is within 2^53 seconds, so every field but the microseconds and nanoseconds fits an
     // i64 at any balance.
     const signed = struct {
-        fn f(v: u128, s: i128) i128 {
-            return @as(i128, @intCast(v)) * s;
+        fn f(v: i128, s: i128) i128 {
+            return v * s;
         }
     }.f;
-    std.debug.assert(@abs(d.time) <= arithmetic.max_time);
     return fromSigned(.{
         .years = d.date.years,
         .months = d.date.months,
@@ -248,7 +261,7 @@ pub fn fromInternal(d: arithmetic.Internal, largest: Unit) RangeError!Span {
 pub const RelativeTo = union(enum) {
     date: arithmetic.IsoDate,
     /// An instant and its zone: days as the zone makes them.
-    zoned: struct { ns: i128, zone: arithmetic.Zone },
+    zoned: struct { ns: arithmetic.Epoch, zone: arithmetic.Zone },
 };
 
 /// Temporal's `Duration.prototype.add`: spans of days and time only (a day is 24 hours), the sum
@@ -256,8 +269,8 @@ pub const RelativeTo = union(enum) {
 pub fn add(a: Span, b: Span) ArithmeticError!Span {
     const largest = arithmetic.larger(a.largestUnit(), b.largestUnit());
     if (arithmetic.isCalendar(largest)) return error.CalendarUnits;
-    const sum = try arithmetic.checkTime((try a.toInternalDays()).time + (try b.toInternalDays()).time);
-    return fromInternal(.{ .time = sum }, largest);
+    const total_time = (try a.toInternalDays()).time.add((try b.toInternalDays()).time) catch return error.OutOfRange;
+    return fromInternal(.{ .time = try arithmetic.checkTime(total_time) }, largest);
 }
 
 pub fn subtract(a: Span, b: Span) ArithmeticError!Span {
@@ -276,7 +289,7 @@ pub fn compare(a: Span, b: Span, relative_to: ?RelativeTo) ArithmeticError!std.m
         .zoned => |z| if (arithmetic.isDate(a.largestUnit()) or arithmetic.isDate(b.largestUnit())) {
             const after_a = try arithmetic.zonedAdd(z.zone, z.ns, ia, .constrain);
             const after_b = try arithmetic.zonedAdd(z.zone, z.ns, ib, .constrain);
-            return std.math.order(after_a, after_b);
+            return after_a.compare(after_b);
         },
         .date => {},
     };
@@ -287,7 +300,7 @@ pub fn compare(a: Span, b: Span, relative_to: ?RelativeTo) ArithmeticError!std.m
     }
     const ta = try arithmetic.addDays(ia.time, days_a);
     const tb = try arithmetic.addDays(ib.time, days_b);
-    return std.math.order(ta, tb);
+    return ta.compare(tb);
 }
 
 /// DateDurationDays: a date part's length in days from `origin`.
@@ -325,8 +338,9 @@ pub fn round(s: Span, options: Round) ArithmeticError!Span {
         const z = rel.zoned;
         const target = try arithmetic.zonedAdd(z.zone, z.ns, try s.toInternal(), .constrain);
         if (!arithmetic.isDate(largest)) {
-            const time = try arithmetic.checkTime(rounding.toIncrement(target - z.ns, arithmetic.nanoseconds(smallest) * options.increment, options.mode));
-            return fromInternal(.{ .time = time }, largest);
+            const elapsed = z.ns.durationTo(target) catch return error.OutOfRange;
+            const rounded = try arithmetic.checkTime(try rounding.toIncrementNs(elapsed, arithmetic.lengthOf(smallest, options.increment), options.mode));
+            return fromInternal(.{ .time = rounded }, largest);
         }
         return fromInternal(try arithmetic.zonedUntilRounded(z.zone, z.ns, target, r), .hour);
     };
@@ -334,28 +348,27 @@ pub fn round(s: Span, options: Round) ArithmeticError!Span {
     if (options.relative_to) |rel| {
         const d = try s.toInternalDays();
         // The time reached from midnight, its whole days carried into the date part.
-        const carried: i64 = @intCast(@divFloor(d.time, arithmetic.ns_per_day));
-        const time: i64 = @intCast(@mod(d.time, arithmetic.ns_per_day));
+        const carried: i64 = @intCast(d.time.ratioFloor(arithmetic.one_day) catch return error.OutOfRange);
+        const of_day = d.time.mod(arithmetic.one_day) catch return error.OutOfRange;
         var date = d.date;
         date.days = carried;
         try arithmetic.checkDate(date);
         const origin = rel.date;
         const target = try arithmetic.dateAdd(origin, date, .constrain);
-        const result = try arithmetic.dateTimeUntilRounded(.{ .date = origin }, .{ .date = target, .time = time }, r);
+        const result = try arithmetic.dateTimeUntilRounded(.{ .date = origin }, .{ .date = target, .time = of_day }, r);
         return fromInternal(result, largest);
     }
 
     if (arithmetic.isCalendar(existing) or arithmetic.isCalendar(largest)) return error.CalendarUnits;
     const d = try s.toInternalDays();
     if (smallest == .day) {
-        const rounded = rounding.toIncrement(d.time, arithmetic.ns_per_day * options.increment, options.mode);
-        const days: arithmetic.DateRec = .{ .days = @intCast(@divExact(rounded, arithmetic.ns_per_day)) };
+        const rounded = try rounding.toIncrementNs(d.time, arithmetic.lengthOf(.day, options.increment), options.mode);
+        const days: arithmetic.DateRec = .{ .days = @intCast(rounded.ratio(arithmetic.one_day) catch return error.OutOfRange) };
         try arithmetic.checkDate(days);
         return fromInternal(.{ .date = days }, largest);
     }
-    const unit = arithmetic.nanoseconds(smallest) * options.increment;
-    const time = try arithmetic.checkTime(rounding.toIncrement(d.time, unit, options.mode));
-    return fromInternal(.{ .time = time }, largest);
+    const rounded = try arithmetic.checkTime(try rounding.toIncrementNs(d.time, arithmetic.lengthOf(smallest, options.increment), options.mode));
+    return fromInternal(.{ .time = rounded }, largest);
 }
 
 /// The most bytes `format` writes: a sign, `P`, three calendar fields of ten digits and days of
@@ -371,21 +384,22 @@ pub fn format(s: Span, w: *std.Io.Writer) std.Io.Writer.Error!void {
     for ([_]u64{ s.years.raw(), s.months.raw(), s.weeks.raw(), s.days.raw() }, letters) |v, c| {
         if (v != 0) try w.print("{d}{c}", .{ v, c });
     }
-    const sub: u128 = @as(u128, s.seconds.raw()) * ns_per_s + @as(u128, s.milliseconds.raw()) * std.time.ns_per_ms +
-        s.microseconds.raw() * std.time.ns_per_us + s.nanoseconds.raw();
-    const date_zero = s.years.raw() == 0 and s.months.raw() == 0 and s.weeks.raw() == 0 and s.days.raw() == 0;
-    const hours = s.hours.raw();
-    const minutes = s.minutes.raw();
-    if (hours == 0 and minutes == 0 and sub == 0) {
+    const sub = s.second();
+    const date_zero = s.years.eql(.literal(0)) and s.months.eql(.literal(0)) and s.weeks.eql(.literal(0)) and s.days.eql(.literal(0));
+    const no_hours = s.hours.eql(.literal(0));
+    const no_minutes = s.minutes.eql(.literal(0));
+    if (no_hours and no_minutes and sub.eql(arithmetic.zero)) {
         if (date_zero) try w.writeAll("T0S");
         return;
     }
     try w.writeByte('T');
-    if (hours != 0) try w.print("{d}H", .{hours});
-    if (minutes != 0) try w.print("{d}M", .{minutes});
-    if (sub != 0) {
-        try w.print("{d}", .{sub / ns_per_s});
-        try write.fraction(w, @intCast(sub % ns_per_s));
+    if (!no_hours) try w.print("{d}H", .{s.hours.raw()});
+    if (!no_minutes) try w.print("{d}M", .{s.minutes.raw()});
+    if (!sub.eql(arithmetic.zero)) {
+        const one_second = arithmetic.length(.second);
+        try w.print("{d}", .{sub.ratio(one_second) catch aegis.assert.never("a second has some length")});
+        const fraction = sub.mod(one_second) catch aegis.assert.never("a second has some length");
+        try write.fraction(w, (fraction.convert(.nanosecond, u32, .exact) catch aegis.assert.never("what is left of a second fits a u32")).raw());
         try w.writeByte('S');
     }
 }
@@ -417,26 +431,26 @@ pub fn total(s: Span, unit: Unit, relative_to: ?RelativeTo) ArithmeticError!f64 
     if (relative_to) |rel| switch (rel) {
         .zoned => |z| {
             const target = try arithmetic.zonedAdd(z.zone, z.ns, try s.toInternal(), .constrain);
-            if (!arithmetic.isDate(unit)) return arithmetic.ratioToF64(target - z.ns, arithmetic.nanoseconds(unit));
+            if (!arithmetic.isDate(unit)) return arithmetic.ratioToF64(z.ns.durationTo(target) catch return error.OutOfRange, arithmetic.length(unit));
             const diff = try arithmetic.zonedUntil(z.zone, z.ns, target, unit);
             return arithmetic.totalRelative(diff, z.ns, target, try z.zone.wallClock(z.ns), z.zone, unit);
         },
         .date => |origin_date| {
             const d = try s.toInternalDays();
-            const carried: i64 = @intCast(@divFloor(d.time, arithmetic.ns_per_day));
-            const time: i64 = @intCast(@mod(d.time, arithmetic.ns_per_day));
+            const carried: i64 = @intCast(d.time.ratioFloor(arithmetic.one_day) catch return error.OutOfRange);
+            const of_day = d.time.mod(arithmetic.one_day) catch return error.OutOfRange;
             var date = d.date;
             date.days = carried;
             try arithmetic.checkDate(date);
             const target_date = try arithmetic.dateAdd(origin_date, date, .constrain);
             const origin: arithmetic.IsoDateTime = .{ .date = origin_date };
-            const target: arithmetic.IsoDateTime = .{ .date = target_date, .time = time };
-            if (origin.epochNs() == target.epochNs()) return 0;
+            const target: arithmetic.IsoDateTime = .{ .date = target_date, .time = of_day };
+            if (origin.epochNs().eql(target.epochNs())) return 0;
             const diff = try arithmetic.dateTimeUntil(origin, target, unit);
-            if (unit == .nanosecond) return arithmetic.ratioToF64(diff.time, 1);
+            if (unit == .nanosecond) return arithmetic.ratioToF64(diff.time, arithmetic.length(.nanosecond));
             return arithmetic.totalRelative(diff, origin.epochNs(), target.epochNs(), origin, null, unit);
         },
     };
     if (arithmetic.isCalendar(s.largestUnit()) or arithmetic.isCalendar(unit)) return error.CalendarUnits;
-    return arithmetic.ratioToF64((try s.toInternalDays()).time, arithmetic.nanoseconds(unit));
+    return arithmetic.ratioToF64((try s.toInternalDays()).time, arithmetic.length(unit));
 }

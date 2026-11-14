@@ -25,7 +25,7 @@ pub fn eql(a: DateTime, b: DateTime) bool {
 }
 
 fn iso(dt: DateTime) arithmetic.IsoDateTime {
-    return .{ .date = dt.date.iso(), .time = @intCast(dt.time.nanosecondOfDay()) };
+    return .{ .date = dt.date.iso(), .time = dt.time.sinceMidnight() };
 }
 
 /// Temporal's `PlainDateTime.prototype.add`: the span's days and time added to the time of day
@@ -33,15 +33,12 @@ fn iso(dt: DateTime) arithmetic.IsoDateTime {
 /// date part added as `Date.add` adds it, the day regulated by `overflow`.
 pub fn add(dt: DateTime, span: Span, overflow: units.Overflow) RangeError!DateTime {
     const internal = try span.toInternalDays();
-    const reached = @as(i128, dt.time.nanosecondOfDay()) + internal.time;
+    const reached = dt.time.sinceMidnight().add(internal.time) catch return error.OutOfRange;
     var date = internal.date;
-    date.days = @intCast(@divFloor(reached, arithmetic.ns_per_day));
+    date.days = @intCast(reached.ratioFloor(arithmetic.one_day) catch return error.OutOfRange);
     try arithmetic.checkDate(date);
     const added = try arithmetic.dateAdd(dt.date.iso(), date, overflow);
-    return .{
-        .date = Date.fromIso(added),
-        .time = Time.fromNanosecondOfDay(@intCast(@mod(reached, arithmetic.ns_per_day))) catch unreachable,
-    };
+    return .{ .date = Date.fromIso(added), .time = Time.wrapped(reached) };
 }
 
 pub fn subtract(dt: DateTime, span: Span, overflow: units.Overflow) RangeError!DateTime {
@@ -105,10 +102,10 @@ pub fn round(dt: DateTime, options: Round) DifferenceError!DateTime {
     if (options.smallest == .day) {
         if (options.increment != 1) return error.InvalidOptions;
     } else try arithmetic.checkIncrement(options.increment, options.smallest);
-    const rounded = rounding.toIncrement(dt.time.nanosecondOfDay(), arithmetic.nanoseconds(options.smallest) * options.increment, options.mode);
-    const carry: i32 = @intCast(@divFloor(rounded, Time.nanoseconds_per_day));
+    const rounded = try rounding.toIncrementNs(dt.time.sinceMidnight(), arithmetic.lengthOf(options.smallest, options.increment), options.mode);
+    const carry: i32 = @intCast(rounded.ratioFloor(arithmetic.one_day) catch return error.OutOfRange);
     return .{
         .date = Date.fromDays(dt.date.days() + carry) catch return error.OutOfRange,
-        .time = Time.fromNanosecondOfDay(@intCast(@mod(rounded, Time.nanoseconds_per_day))) catch unreachable,
+        .time = Time.wrapped(rounded),
     };
 }

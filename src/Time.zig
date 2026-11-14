@@ -1,6 +1,7 @@
 //! A civil time of day, 00:00:00 to 23:59:59.999999999, with no zone and no leap second.
 const Time = @This();
 const std = @import("std");
+const aegis = @import("aegis");
 const units = @import("units.zig");
 const arithmetic = @import("arithmetic.zig");
 const rounding = @import("round.zig");
@@ -17,31 +18,62 @@ pub const RangeError = units.RangeError;
 
 pub const midnight: Time = .{};
 
-pub const nanoseconds_per_day: u64 = 86_400 * std.time.ns_per_s;
+pub const nanoseconds_per_day: u64 = (arithmetic.one_day.convert(.nanosecond, u64, .exact) catch aegis.assert.never("a day of nanoseconds fits a u64")).raw();
+const Ns = arithmetic.Ns;
 
 pub fn init(hour: u8, minute: u8, second: u8, nanosecond: u32) RangeError!Time {
     return .{ .hour = try .init(hour), .minute = try .init(minute), .second = try .init(second), .nanosecond = try .init(nanosecond) };
 }
 
+/// A field counted in `unit`, as nanoseconds.
+fn inNs(comptime unit: aegis.units.Unit, field: anytype) Ns {
+    return arithmetic.toNs(unit, .fromRanged(field));
+}
+
+/// The time since midnight.
+pub fn sinceMidnight(t: Time) Ns {
+    var out = inNs(.hour, t.hour);
+    for ([_]Ns{ inNs(.minute, t.minute), inNs(.second, t.second), inNs(.nanosecond, t.nanosecond) }) |part| {
+        out = out.add(part) catch aegis.assert.never("a time of day's fields sum to under a day");
+    }
+    return out;
+}
+
+/// The time `since` after midnight, within a day.
+pub fn fromSinceMidnight(since_midnight: Ns) RangeError!Time {
+    if (since_midnight.compare(arithmetic.zero) == .lt or since_midnight.compare(arithmetic.one_day) != .lt) return error.OutOfRange;
+    var rest = since_midnight;
+    var fields: [3]i128 = undefined;
+    for ([_]units.Unit{ .hour, .minute, .second }, &fields) |unit, *field| {
+        field.* = rest.ratio(arithmetic.length(unit)) catch aegis.assert.never("a unit has some length");
+        rest = rest.mod(arithmetic.length(unit)) catch aegis.assert.never("a unit has some length");
+    }
+    const nanosecond = rest.convert(.nanosecond, u32, .exact) catch aegis.assert.never("what is left of a second fits a u32");
+    return init(@intCast(fields[0]), @intCast(fields[1]), @intCast(fields[2]), nanosecond.raw()) catch aegis.assert.never("a length under a day is a time of day");
+}
+
+/// The time of day `d` lands on: `d` taken modulo a day.
+pub fn wrapped(d: Ns) Time {
+    const of_day = d.mod(arithmetic.one_day) catch aegis.assert.never("a day has some length");
+    return fromSinceMidnight(of_day) catch aegis.assert.never("a length taken modulo a day is a time of day");
+}
+
 /// Nanoseconds since midnight.
 pub fn nanosecondOfDay(t: Time) u64 {
-    const seconds = @as(u64, t.hour.raw()) * 3600 + @as(u64, t.minute.raw()) * 60 + t.second.raw();
-    return seconds * std.time.ns_per_s + t.nanosecond.raw();
+    return (t.sinceMidnight().convert(.nanosecond, u64, .exact) catch aegis.assert.never("under a day of nanoseconds fits a u64")).raw();
 }
 
 /// The time `ns` nanoseconds after midnight, within a day.
 pub fn fromNanosecondOfDay(ns: u64) RangeError!Time {
-    if (ns >= nanoseconds_per_day) return error.OutOfRange;
-    const seconds = ns / std.time.ns_per_s;
-    return init(@intCast(seconds / 3600), @intCast(seconds / 60 % 60), @intCast(seconds % 60), @intCast(ns % std.time.ns_per_s)) catch unreachable;
+    return fromSinceMidnight(.fromRaw(ns));
 }
 
 pub fn order(a: Time, b: Time) std.math.Order {
-    return std.math.order(a.nanosecondOfDay(), b.nanosecondOfDay());
+    return a.sinceMidnight().compare(b.sinceMidnight());
 }
 
 pub fn eql(a: Time, b: Time) bool {
-    return a.nanosecondOfDay() == b.nanosecondOfDay();
+    return a.sinceMidnight().eql(b.sinceMidnight());
 }
 
 pub const max_text_len = write.time_len;
@@ -62,15 +94,14 @@ pub fn fromText(text: []const u8, options: reading.Options) reading.ParseError!T
 
 /// A time the reader checked.
 pub fn fromCivil(c: reading.CivilTime) Time {
-    return init(c.hour, c.minute, c.second, c.nanosecond) catch unreachable;
+    return init(c.hour, c.minute, c.second, c.nanosecond) catch aegis.assert.never("the reader checked the time");
 }
 
 /// Temporal's `PlainTime.prototype.add`: the span's hours and smaller added, wrapping around
 /// midnight; its years, months, weeks and days pass a time of day by.
 pub fn add(t: Time, span: Span) RangeError!Time {
     const internal = try span.toInternal();
-    const ns = @mod(@as(i128, t.nanosecondOfDay()) + internal.time, nanoseconds_per_day);
-    return fromNanosecondOfDay(@intCast(ns)) catch unreachable;
+    return wrapped(t.sinceMidnight().add(internal.time) catch return error.OutOfRange);
 }
 
 pub fn subtract(t: Time, span: Span) RangeError!Time {
@@ -95,8 +126,8 @@ fn difference(t: Time, operation: arithmetic.Operation, other: Time, options: un
     var o = options;
     if (o.largest == null) o.largest = arithmetic.larger(.hour, o.smallest orelse .nanosecond);
     const r = try arithmetic.differenceSettings(operation, o, false);
-    const time = @as(i128, other.nanosecondOfDay()) - t.nanosecondOfDay();
-    const rounded = rounding.toIncrement(time, arithmetic.nanoseconds(r.smallest) * r.increment, r.mode);
+    const elapsed = other.sinceMidnight().sub(t.sinceMidnight()) catch return error.OutOfRange;
+    const rounded = try rounding.toIncrementNs(elapsed, arithmetic.lengthOf(r.smallest, r.increment), r.mode);
     const span = try Span.fromInternal(.{ .time = rounded }, r.largest);
     return if (operation == .since) span.negate() else span;
 }
@@ -114,6 +145,5 @@ pub const Round = struct {
 pub fn round(t: Time, options: Round) units.DifferenceError!Time {
     if (arithmetic.isDate(options.smallest)) return error.InvalidOptions;
     try arithmetic.checkIncrement(options.increment, options.smallest);
-    const rounded = rounding.toIncrement(t.nanosecondOfDay(), arithmetic.nanoseconds(options.smallest) * options.increment, options.mode);
-    return fromNanosecondOfDay(@intCast(@mod(rounded, nanoseconds_per_day))) catch unreachable;
+    return wrapped(try rounding.toIncrementNs(t.sinceMidnight(), arithmetic.lengthOf(options.smallest, options.increment), options.mode));
 }

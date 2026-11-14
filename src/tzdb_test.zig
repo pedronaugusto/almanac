@@ -10,10 +10,10 @@ const almanac = @import("almanac.zig");
 const zic = @import("zic");
 const tzdata = @import("tzdata");
 const zoneinfo = @import("zoneinfo");
-const embedded = @import("zone/embedded.zig");
+const embedded = @import("zone.zig").embedded;
 const options = @import("almanac_options");
 const windows_tool = @import("windows_tool");
-const windows_zones = @import("zone/windows.zig");
+const windows_zones = @import("zone.zig").windows;
 const TimeZone = almanac.TimeZone;
 const testing = std.testing;
 const Untrusted = aegis.input.Untrusted([]const u8);
@@ -79,11 +79,12 @@ const to_2400: i64 = 13_569_465_600;
 fn agree(name: []const u8, ours: *const TimeZone, theirs: *const TimeZone) !void {
     // Every transition of either, to 2400, and the second before it.
     for ([_]*const TimeZone{ ours, theirs }) |z| {
-        var at: i128 = @as(i128, from_1800) * ns_per_s;
-        while (z.nextChange(at)) |t| {
+        var at: almanac.resolve.Epoch = .fromRaw(@as(i128, from_1800) * ns_per_s);
+        while (z.nextChange(at)) |change| {
+            const t: i64 = @intCast(@divFloor(change.raw(), ns_per_s));
             if (t > to_2400) break;
             for ([_]i64{ t - 1, t }) |s| try same(name, ours, theirs, s, true);
-            at = @as(i128, t) * ns_per_s;
+            at = change;
         }
     }
     // Every hour from 1800 to 2100.
@@ -93,10 +94,10 @@ fn agree(name: []const u8, ours: *const TimeZone, theirs: *const TimeZone) !void
 
 fn same(name: []const u8, ours: *const TimeZone, theirs: *const TimeZone, seconds: i64, info: bool) !void {
     const ns = @as(i128, seconds) * ns_per_s;
-    const a = ours.offsetAtNanoseconds(ns);
-    const b = theirs.offsetAtNanoseconds(ns);
-    if (a != b) {
-        std.debug.print("{s} at {d}: almanac {d}, zic {d}\n", .{ name, seconds, a, b });
+    const a = ours.offsetAtNanoseconds(.fromRaw(ns));
+    const b = theirs.offsetAtNanoseconds(.fromRaw(ns));
+    if (!a.eql(b)) {
+        std.debug.print("{s} at {d}: almanac {d}, zic {d}\n", .{ name, seconds, a.seconds.raw(), b.seconds.raw() });
         return error.TestUnexpectedResult;
     }
     // Abbreviations and DST change only at transitions: compared on each side of one.

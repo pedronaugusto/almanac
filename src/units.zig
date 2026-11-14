@@ -43,6 +43,15 @@ pub const Offset = struct {
     pub fn init(seconds: i32) RangeError!Offset {
         return .{ .seconds = try .init(seconds) };
     }
+
+    /// The offset as a length of time in nanoseconds: `arithmetic.Ns`.
+    pub fn nanoseconds(o: Offset) aegis.units.Duration(.nanosecond, i128) {
+        return aegis.units.Duration(.second, i128).fromRanged(o.seconds).convert(.nanosecond, i128, .exact) catch aegis.assert.never("an offset under 26 hours fits an i128 of nanoseconds");
+    }
+
+    pub fn eql(a: Offset, b: Offset) bool {
+        return a.seconds.eql(b.seconds);
+    }
 };
 
 /// ISO 8601's days of the week: Monday is 1, Sunday 7.

@@ -56,7 +56,7 @@ const Runner = struct {
             // `±HH`, `±HHMM` or `±HH:MM`: a zone identifier has no seconds.
             const digits = name.len - 1 - @as(usize, if (std.mem.findScalar(u8, name, ':') != null) 1 else 0);
             if (digits != 2 and digits != 4) return error.Invalid;
-            const dt = text.parseTimestamp(Untrusted.init(try std.fmt.allocPrint(arena, "1970-01-01T00:00{s}", .{name})), .{}) catch return error.Invalid;
+            const dt = text.parseTimestamp(Untrusted.init(try arena.print("1970-01-01T00:00{s}", .{name})), .{}) catch return error.Invalid;
             // A zone's offset is written to the minute.
             if (@rem(dt.raw(), 60 * std.time.ns_per_s) != 0) return error.Invalid;
             break :blk try r.db.fixedZone(try almanac.Offset.init(@intCast(@divExact(-dt.raw(), std.time.ns_per_s))));
@@ -301,11 +301,11 @@ const Runner = struct {
                     .string => |t| t,
                     else => return r.unsupported("an offset of no string"),
                 };
-                const probe = try text.parseTimestamp(Untrusted.init(try std.fmt.allocPrint(arena, "1970-01-01T00:00{s}", .{offset_text})), .{});
+                const probe = try text.parseTimestamp(Untrusted.init(try arena.print("1970-01-01T00:00{s}", .{offset_text})), .{});
                 const seconds = std.math.cast(i32, @divTrunc(-probe.raw(), std.time.ns_per_s)) orelse return error.Invalid;
                 break :blk try almanac.resolve.resolveWithOffset(tz, civil, try almanac.Offset.init(seconds), r.bag_options.offset, r.bag_options.disambiguation, false);
             } else try almanac.resolve.resolve(tz, civil, r.bag_options.disambiguation);
-            return .{ .zoned = try almanac.Zoned.init(almanac.Timestamp.fromRaw(@intCast(ns)), tz) };
+            return .{ .zoned = try almanac.Zoned.init(ns, tz) };
         }
         return r.unsupported("a property bag of this type");
     }
@@ -570,7 +570,7 @@ fn fields(kind: []const u8, v: Val, out: *[10]i128) ?[]const i128 {
     }
     const t = time orelse return null;
     const ns = t.nanosecond.raw();
-    const tf = [_]i128{ t.hour.raw(), t.minute.raw(), t.second.raw(), ns / 1_000_000, ns / 1000 % 1000, ns % 1000 };
+    const tf = [_]i128{ t.hour.raw(), t.minute.raw(), t.second.raw(), ns / 1_000_000, (ns / 1000) % 1000, ns % 1000 };
     if (k(kind, "assertPlainTime")) {
         if (v != .time) return null;
         out[0..6].* = tf;
@@ -700,7 +700,7 @@ test "test262's Temporal cases: each passes or is listed" {
     defer parsed.deinit();
     var db = almanac.Database.init(testing.allocator, .{ .source = .embedded });
     defer db.deinit();
-    var reasons: std.StringArrayHashMapUnmanaged(usize) = .empty;
+    var reasons: std.array_hash_map.String(usize) = .empty;
     defer reasons.deinit(testing.allocator);
     var counts: [3]usize = @splat(0);
     var listed: usize = 0;

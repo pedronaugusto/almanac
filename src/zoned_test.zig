@@ -11,7 +11,6 @@ const TimeZone = almanac.TimeZone;
 const Zoned = almanac.Zoned;
 const Span = almanac.Span;
 const DateTime = almanac.DateTime;
-const Timestamp = almanac.Timestamp;
 const resolve = almanac.resolve;
 const testing = std.testing;
 const Untrusted = aegis.input.Untrusted([]const u8);
@@ -21,8 +20,8 @@ fn dt(y: i16, mo: u8, d: u8, h: u8, mi: u8, s: u8) DateTime {
     return .{ .date = almanac.Date.init(y, mo, d) catch unreachable, .time = almanac.Time.init(h, mi, s, 0) catch unreachable };
 }
 
-fn utc(y: i16, mo: u8, d: u8, h: u8, mi: u8, s: u8) i128 {
-    return (almanac.instant.fromDateTime(dt(y, mo, d, h, mi, s), .utc) catch unreachable).raw();
+fn utc(y: i16, mo: u8, d: u8, h: u8, mi: u8, s: u8) almanac.resolve.Epoch {
+    return .fromRaw((almanac.instant.fromDateTime(dt(y, mo, d, h, mi, s), .utc) catch unreachable).raw());
 }
 
 fn offset(seconds: i32) almanac.Offset {
@@ -200,7 +199,7 @@ fn anyWallClock(_: void, case: *shakedown.Case) !void {
     // Near a transition most of the time, where gaps and folds are.
     var base = shakedown.gen.intRange(case.source, i64, -3_000_000_000, 4_000_000_000);
     if (shakedown.gen.intRange(case.source, u8, 0, 3) != 0) {
-        if (zone.nextChange(@as(i128, base) * ns_per_s)) |t| base = t;
+        if (zone.nextChange(.fromRaw(@as(i128, base) * ns_per_s))) |t| base = @intCast(@divFloor(t.raw(), ns_per_s));
     }
     const local: i128 = (@as(i128, base) + shakedown.gen.intRange(case.source, i64, -10_000, 10_000)) * ns_per_s;
     var offsets: std.ArrayList(i32) = .empty;
@@ -212,15 +211,15 @@ fn anyWallClock(_: void, case: *shakedown.Case) !void {
     for (offsets.items, 0..) |o, i| {
         if (std.mem.findScalar(i32, offsets.items[0..i], o) != null) continue;
         const candidate = local - @as(i128, o) * ns_per_s;
-        if (zone.offsetAtNanoseconds(candidate) == o) try brute.append(testing.allocator, candidate);
+        if (zone.offsetAtNanoseconds(.fromRaw(candidate)).seconds.raw() == o) try brute.append(testing.allocator, candidate);
     }
     std.mem.sort(i128, brute.items, {}, std.sort.asc(i128));
-    const c = zone.candidatesAt(local);
+    const c = zone.candidatesAt(.fromRaw(local));
     try testing.expectEqual(brute.items.len, c.count);
-    try testing.expectEqualSlices(i128, brute.items, c.slice());
+    for (brute.items, c.slice()) |want, got| try testing.expectEqual(want, got.raw());
     // `compatible` is the first candidate, or in a gap the wall clock at the offset before it.
-    const want = if (brute.items.len > 0) brute.items[0] else local - @as(i128, zone.offsetAtNanoseconds(local - std.time.ns_per_day)) * ns_per_s;
-    try testing.expectEqual(want, try resolve.resolveWallClock(&zone, local, .compatible));
+    const want = if (brute.items.len > 0) brute.items[0] else local - @as(i128, zone.offsetAtNanoseconds(.fromRaw(local - std.time.ns_per_day)).seconds.raw()) * ns_per_s;
+    try testing.expectEqual(want, (try resolve.resolveWallClock(&zone, .fromRaw(local), .compatible)).raw());
 }
 
 test "property: resolution agrees with a brute-force search of the zone's offsets" {

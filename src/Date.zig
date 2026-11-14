@@ -2,6 +2,7 @@
 //! and its day checked against its month when it is made.
 const Date = @This();
 const std = @import("std");
+const aegis = @import("aegis");
 const units = @import("units.zig");
 const calendar = @import("calendar.zig");
 const arithmetic = @import("arithmetic.zig");
@@ -30,7 +31,11 @@ pub fn fromDays(count: i32) RangeError!Date {
     if (count < calendar.min_days or count > calendar.max_days) return error.OutOfRange;
     const c = calendar.civilFromDays(count);
     // In range by the bounds above, and a date by the kernel.
-    return .{ .year = units.Year.init(@intCast(c.year)) catch unreachable, .month = units.Month.init(@intCast(c.month)) catch unreachable, .day = units.Day.init(@intCast(c.day)) catch unreachable };
+    return .{
+        .year = units.Year.init(@intCast(c.year)) catch aegis.assert.never("a day count within the bounds falls in almanac's years"),
+        .month = units.Month.init(@intCast(c.month)) catch aegis.assert.never("the civil kernel's month is 1 to 12"),
+        .day = units.Day.init(@intCast(c.day)) catch aegis.assert.never("the civil kernel's day is one of its month"),
+    };
 }
 
 /// Days since 1970-01-01.
@@ -44,7 +49,7 @@ pub fn weekday(d: Date) units.Weekday {
 
 /// The day of the year, from 1.
 pub fn ordinal(d: Date) units.Ordinal {
-    return units.Ordinal.init(@intCast(calendar.ordinal(d.year.raw(), d.month.raw(), d.day.raw()))) catch unreachable;
+    return units.Ordinal.init(@intCast(calendar.ordinal(d.year.raw(), d.month.raw(), d.day.raw()))) catch aegis.assert.never("a date's ordinal is 1 to 366");
 }
 
 pub const IsoWeek = struct { year: i32, week: units.Week };
@@ -52,7 +57,7 @@ pub const IsoWeek = struct { year: i32, week: units.Week };
 /// ISO 8601's week date: the week-year (which may be the year before or after) and its week.
 pub fn isoWeek(d: Date) IsoWeek {
     const w = calendar.isoWeek(d.days());
-    return .{ .year = w.year, .week = units.Week.init(@intCast(w.week)) catch unreachable };
+    return .{ .year = w.year, .week = units.Week.init(@intCast(w.week)) catch aegis.assert.never("an ISO week is 1 to 53") };
 }
 
 pub fn isLeapYear(d: Date) bool {
@@ -78,7 +83,7 @@ pub fn iso(d: Date) arithmetic.IsoDate {
 
 /// The date of a record inside almanac's range.
 pub fn fromIso(i: arithmetic.IsoDate) Date {
-    return fromDays(@intCast(i.epochDays())) catch unreachable;
+    return fromDays(@intCast(i.epochDays())) catch aegis.assert.never("the record is of a date inside almanac's range");
 }
 
 /// The date as what gives a span's calendar units their lengths (Temporal's `relativeTo`).
@@ -95,7 +100,7 @@ pub fn add(d: Date, span: Span, overflow: units.Overflow) RangeError!Date {
         .years = internal.date.years,
         .months = internal.date.months,
         .weeks = internal.date.weeks,
-        .days = @intCast(@divTrunc(internal.time, arithmetic.ns_per_day)),
+        .days = @intCast(internal.time.ratio(arithmetic.one_day) catch return error.OutOfRange),
     };
     return fromIso(try arithmetic.dateAdd(d.iso(), date, overflow));
 }
@@ -154,5 +159,5 @@ pub fn fromText(text: []const u8, options: reading.Options) reading.ParseError!D
 
 /// A date the reader checked.
 pub fn fromCivil(c: reading.CivilDate) Date {
-    return init(c.year, c.month, c.day) catch unreachable;
+    return init(c.year, c.month, c.day) catch aegis.assert.never("the reader checked the date");
 }

@@ -97,7 +97,7 @@ pub const Rule = struct {
 
     /// The civil year, in standard time, of an instant.
     fn yearOf(r: *const Rule, seconds: i64) i64 {
-        const days = @divFloor(seconds + r.std.offset.seconds.raw(), 86_400);
+        const days = @divFloor(seconds + r.std.offset.seconds.widen(i64), 86_400);
         return calendar.civilFromDays(@intCast(days)).year;
     }
 
@@ -113,8 +113,8 @@ pub const Rule = struct {
         const d = r.dst.?;
         var year = first;
         while (year <= last) : (year += 1) {
-            events.items[events.len] = .{ .at = d.start.day.days(year) * 86_400 + d.start.time - r.std.offset.seconds.raw(), .dst = true };
-            events.items[events.len + 1] = .{ .at = d.end.day.days(year) * 86_400 + d.end.time - d.local.offset.seconds.raw(), .dst = false };
+            events.items[events.len] = .{ .at = d.start.day.days(year) * 86_400 + d.start.time - r.std.offset.seconds.widen(i64), .dst = true };
+            events.items[events.len + 1] = .{ .at = d.end.day.days(year) * 86_400 + d.end.time - d.local.offset.seconds.widen(i64), .dst = false };
             events.len += 2;
         }
         std.mem.sort(Event, events.items[0..events.len], {}, struct {
@@ -127,7 +127,7 @@ pub const Rule = struct {
     /// The first instant after `seconds` at which the rule's offset changes, if it ever does.
     pub fn next(r: *const Rule, seconds: i64) ?i64 {
         const d = r.dst orelse return null;
-        if (d.local.offset.seconds.raw() == r.std.offset.seconds.raw()) return null;
+        if (d.local.offset.eql(r.std.offset)) return null;
         const year = r.yearOf(seconds);
         var events: Events = .{};
         r.collect(&events, year - 2, year + 4);
@@ -152,7 +152,7 @@ pub const Rule = struct {
     /// The last instant before `seconds` at which the rule's offset changed, if it ever did.
     pub fn previous(r: *const Rule, seconds: i64) ?i64 {
         const d = r.dst orelse return null;
-        if (d.local.offset.seconds.raw() == r.std.offset.seconds.raw()) return null;
+        if (d.local.offset.eql(r.std.offset)) return null;
         const year = r.yearOf(seconds);
         var events: Events = .{};
         r.collect(&events, year - 5, year + 1);
@@ -205,7 +205,7 @@ const Parser = struct {
         var r: Rule = .{ .std = Local.init(std_offset, false, std_name) catch return error.Invalid };
         if (p.peek() == null) return r;
         const dst_name = try p.name();
-        const dst_offset = if (p.peek() != null and p.peek() != ',') try p.offset() else Offset.init(std_offset.seconds.raw() + 3600) catch return error.Invalid;
+        const dst_offset = if (p.peek() != null and p.peek() != ',') try p.offset() else Offset{ .seconds = std_offset.seconds.add(3600) catch return error.Invalid };
         if (!p.eat(',')) return error.Invalid;
         const start = try p.when();
         if (!p.eat(',')) return error.Invalid;

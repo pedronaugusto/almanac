@@ -3,6 +3,7 @@
 //! bracketed annotations (a time zone, a calendar, others kept or refused), and durations. This is
 //! the lenient reading; `strict.zig` answers whether a text is exactly RFC 3339.
 const std = @import("std");
+const aegis = @import("aegis");
 const units = @import("../units.zig");
 const calendar = @import("../calendar.zig");
 const Offset = units.Offset;
@@ -28,6 +29,17 @@ pub const DurationText = struct {
     nanoseconds: u128 = 0,
 };
 
+/// A written offset's length, in nanoseconds: `arithmetic.Ns`.
+pub const OffsetNs = aegis.units.Duration(.nanosecond, i128);
+
+/// An offset's hours, minutes or seconds as nanoseconds: under a day, far inside an i128.
+fn toNs(d: anytype) OffsetNs {
+    return d.convert(.nanosecond, i128, .exact) catch aegis.assert.never("an offset's field fits an i128 of nanoseconds");
+}
+
+/// A fraction of a duration's unit, in nanoseconds.
+const FractionNs = aegis.units.Duration(.nanosecond, u128);
+
 /// `Invalid`: the text is not what was asked for; `Diagnostic` says where and what was expected.
 pub const ParseError = error{Invalid};
 
@@ -48,13 +60,14 @@ pub const Options = struct {
 /// second or finer.
 pub const WrittenOffset = union(enum) {
     z,
-    numeric: struct { nanoseconds: i64, seconds: bool },
+    numeric: struct { nanoseconds: OffsetNs, seconds: bool },
 
     /// The offset in whole seconds, or null where it has a fraction of a second.
     pub fn whole(o: WrittenOffset) ?Offset {
         return switch (o) {
             .z => .utc,
-            .numeric => |n| if (@rem(n.nanoseconds, std.time.ns_per_s) != 0) null else Offset.init(@intCast(@divExact(n.nanoseconds, std.time.ns_per_s))) catch null,
+            // A fraction of a second converts inexactly: no whole offset.
+            .numeric => |n| Offset.init((n.nanoseconds.convert(.second, i32, .exact) catch return null).raw()) catch null,
         };
     }
 };
@@ -221,8 +234,14 @@ const Reader = struct {
             }
         }
         if (h > 23 or m > 59 or sec > 59) return r.fail("an offset hour to 23, minute and second to 59");
-        const total = (@as(i64, h) * 3600 + m * 60 + sec) * std.time.ns_per_s + ns;
-        return .{ .numeric = .{ .nanoseconds = s * total, .seconds = seconds } };
+        // Under a day: no part of it overflows an i128.
+        var total: OffsetNs = .fromRaw(ns);
+        for ([_]OffsetNs{
+            toNs(aegis.units.Duration(.hour, i128).fromRaw(h)),
+            toNs(aegis.units.Duration(.minute, i128).fromRaw(m)),
+            toNs(aegis.units.Duration(.second, i128).fromRaw(sec)),
+        }) |part| total = total.add(part) catch aegis.assert.never("an offset under a day fits");
+        return .{ .numeric = .{ .nanoseconds = total.mul(s) catch aegis.assert.never("an offset under a day negates"), .seconds = seconds } };
     }
 
     /// The bracketed annotations: a time zone first, at most once; `u-ca` naming `iso8601`; any
@@ -324,11 +343,13 @@ fn dateTimeOf(text: []const u8, options: Options, check_calendar: bool) ParseErr
 /// refused as ambiguous, as Temporal refuses it. A calendar annotation is read past: a time has
 /// none.
 pub fn timeOfDay(text: []const u8, options: Options) ParseError!CivilTime {
-    if (dateTimeOf(text, options, false)) |dt| {
+    // Not a whole date-time: read as a time alone below.
+    const whole = dateTimeOf(text, options, false) catch null;
+    if (whole) |dt| {
         const t = dt.time orelse return refuse(options, text.len, "a time");
         if (dt.offset != null and dt.offset.? == .z) return refuse(options, text.len, "no 'Z' on a civil value");
         return t;
-    } else |_| {}
+    }
     var r: Reader = .{ .text = text, .options = options, .check_calendar = false };
     const designated = r.eatAny("Tt");
     if (!designated and ambiguous(text)) return r.fail("'T' before a time that reads as a date too");
@@ -441,18 +462,25 @@ pub fn duration(text: []const u8, options: Options) ParseError!DurationText {
             'M' => 60,
             else => 1,
         };
-        var rest: u128 = @as(u128, n) * scale;
+        // Under the unit: under an hour, a minute or a second of nanoseconds.
+        var rest: FractionNs = .fromRaw(@as(u128, n) * scale);
         if (fraction_unit == 'H') {
-            f.minutes = @intCast(rest / (60 * std.time.ns_per_s));
-            rest %= 60 * std.time.ns_per_s;
+            const minutes = rest.convert(.minute, u64, .down) catch aegis.assert.never("a fraction of an hour is under 60 minutes");
+            f.minutes = minutes.raw();
+            rest = rest.sub(minutes.convert(.nanosecond, u128, .exact)) catch aegis.assert.never("the whole minutes are within the fraction");
         }
         if (fraction_unit != 'S') {
-            f.seconds = @intCast(rest / std.time.ns_per_s);
-            rest %= std.time.ns_per_s;
-        } else rest %= std.time.ns_per_s;
-        f.milliseconds = @intCast(rest / std.time.ns_per_ms);
-        f.microseconds = rest / std.time.ns_per_us % 1000;
-        f.nanoseconds = rest % 1000;
+            const seconds = rest.convert(.second, u64, .down) catch aegis.assert.never("what is left is under a minute");
+            f.seconds = seconds.raw();
+            rest = rest.sub(seconds.convert(.nanosecond, u128, .exact)) catch aegis.assert.never("the whole seconds are within what is left");
+        }
+        const milliseconds = rest.convert(.millisecond, u64, .down) catch aegis.assert.never("what is left is under a second");
+        f.milliseconds = milliseconds.raw();
+        rest = rest.sub(milliseconds.convert(.nanosecond, u128, .exact)) catch aegis.assert.never("the whole milliseconds are within what is left");
+        const microseconds = rest.convert(.microsecond, u64, .down) catch aegis.assert.never("what is left is under a millisecond");
+        f.microseconds = microseconds.raw();
+        rest = rest.sub(microseconds.convert(.nanosecond, u128, .exact)) catch aegis.assert.never("the whole microseconds are within what is left");
+        f.nanoseconds = rest.raw();
     }
     return f;
 }

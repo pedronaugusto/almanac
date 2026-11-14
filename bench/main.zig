@@ -85,19 +85,19 @@ fn rows(r: Report, gpa: std.mem.Allocator, io: std.Io, selected: []const []const
         defer zone.release();
         const tz = zone.get();
         var label: [64]u8 = undefined;
-        if (wanted(selected, "zoned/from-timestamp")) try r.time(try std.fmt.bufPrint(&label, "zoned/from-timestamp/{s}", .{name}), n, tz, struct {
+        if (wanted(selected, "zoned/from-timestamp")) try r.time(try std.mem.print(&label, "zoned/from-timestamp/{s}", .{name}), n, tz, struct {
             fn f(z: *const almanac.TimeZone, i: usize) !void {
                 const t = almanac.Timestamp.fromRaw(@as(i96, @intCast(i)) * 3_600_000_000_000);
                 sink +%= (try almanac.Zoned.init(t, z)).dateTime().time.hour.raw();
             }
         }.f);
-        if (wanted(selected, "zoned/from-datetime")) try r.time(try std.fmt.bufPrint(&label, "zoned/from-datetime/{s}", .{name}), n, tz, struct {
+        if (wanted(selected, "zoned/from-datetime")) try r.time(try std.mem.print(&label, "zoned/from-datetime/{s}", .{name}), n, tz, struct {
             fn f(z: *const almanac.TimeZone, i: usize) !void {
                 const dt: almanac.DateTime = .{ .date = try almanac.Date.fromDays(@intCast(i % 20_000)), .time = try almanac.Time.init(@intCast(i % 24), 30, 0, 0) };
                 sink +%= (try almanac.Zoned.fromDateTime(dt, z, .compatible)).timestamp.raw();
             }
         }.f);
-        if (wanted(selected, "tz/load")) try r.time(try std.fmt.bufPrint(&label, "tz/load/{s}", .{name}), @max(n / 1000, 1), name, struct {
+        if (wanted(selected, "tz/load")) try r.time(try std.mem.print(&label, "tz/load/{s}", .{name}), @max(n / 1000, 1), name, struct {
             fn f(zone_name: []const u8, _: usize) !void {
                 var loaded = try almanac.TimeZone.fromTzif(std.heap.page_allocator, .init(almanac.Database.embeddedBytes(zone_name).?), zone_name);
                 defer loaded.free();
