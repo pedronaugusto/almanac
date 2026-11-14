@@ -570,7 +570,7 @@ fn fields(kind: []const u8, v: Val, out: *[10]i128) ?[]const i128 {
     }
     const t = time orelse return null;
     const ns = t.nanosecond.raw();
-    const tf = [_]i128{ t.hour.raw(), t.minute.raw(), t.second.raw(), ns / 1_000_000, ns / 1000 % 1000, ns % 1000 };
+    const tf = [_]i128{ t.hour.raw(), t.minute.raw(), t.second.raw(), ns / 1_000_000, (ns / 1000) % 1000, ns % 1000 };
     if (k(kind, "assertPlainTime")) {
         if (v != .time) return null;
         out[0..6].* = tf;

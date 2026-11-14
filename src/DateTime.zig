@@ -1,6 +1,7 @@
 //! A civil date and time with no zone: what a wall clock and calendar show.
 const DateTime = @This();
 const std = @import("std");
+const aegis = @import("aegis");
 const units = @import("units.zig");
 const arithmetic = @import("arithmetic.zig");
 const Date = @import("Date.zig");
@@ -40,7 +41,7 @@ pub fn add(dt: DateTime, span: Span, overflow: units.Overflow) RangeError!DateTi
     const added = try arithmetic.dateAdd(dt.date.iso(), date, overflow);
     return .{
         .date = Date.fromIso(added),
-        .time = Time.fromNanosecondOfDay(@intCast(@mod(reached, arithmetic.ns_per_day))) catch unreachable,
+        .time = Time.fromNanosecondOfDay(@intCast(@mod(reached, arithmetic.ns_per_day))) catch aegis.assert.never("a count taken modulo a day is a time of day"),
     };
 }
 
@@ -109,6 +110,6 @@ pub fn round(dt: DateTime, options: Round) DifferenceError!DateTime {
     const carry: i32 = @intCast(@divFloor(rounded, Time.nanoseconds_per_day));
     return .{
         .date = Date.fromDays(dt.date.days() + carry) catch return error.OutOfRange,
-        .time = Time.fromNanosecondOfDay(@intCast(@mod(rounded, Time.nanoseconds_per_day))) catch unreachable,
+        .time = Time.fromNanosecondOfDay(@intCast(@mod(rounded, Time.nanoseconds_per_day))) catch aegis.assert.never("a count taken modulo a day is a time of day"),
     };
 }

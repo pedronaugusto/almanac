@@ -37,16 +37,16 @@ pub fn civilFromDays(days: i32) Civil {
     // The century, and the day within it.
     const n1 = 4 * n + 3;
     const century = n1 / 146_097;
-    const n_century = n1 % 146_097 / 4;
+    const n_century = (n1 % 146_097) / 4;
     // The year within the century, and the day within the year (March first).
     const n2 = 4 * n_century + 3;
     const p2 = @as(u64, 2_939_745) * n2;
     const year_of_century: u32 = @intCast(p2 / (1 << 32));
-    const n_year: u32 = @intCast(p2 % (1 << 32) / 2_939_745 / 4);
+    const n_year: u32 = @intCast((p2 % (1 << 32)) / 2_939_745 / 4);
     // The month and day, March as month 3 and February as 14.
     const n3 = 2141 * n_year + 197_913;
     const month = n3 / (1 << 16);
-    const day = n3 % (1 << 16) / 2141;
+    const day = (n3 % (1 << 16)) / 2141;
     const january_or_february = n_year >= 306;
     const year: i32 = @as(i32, @intCast(100 * century + year_of_century)) - @as(i32, @intCast(shift_years)) + @intFromBool(january_or_february);
     return .{ .year = year, .month = if (january_or_february) month - 12 else month, .day = day + 1 };

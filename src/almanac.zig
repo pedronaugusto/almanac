@@ -1,5 +1,6 @@
 //! almanac: civil time. Calendar dates and times, instants, spans and their arithmetic, time zones,
 //! the zone database, zoned times, and text (docs/design.md says what is built).
+const std = @import("std");
 pub const units = @import("units.zig");
 pub const calendar = @import("calendar.zig");
 pub const Date = @import("Date.zig");
@@ -44,11 +45,14 @@ pub const OffsetError = resolve.OffsetError;
 /// What glint replaces in a program that imports almanac: std's epoch arithmetic, which reads UTC
 /// only and checks no range, by almanac's checked civil time.
 pub const lint_rules = .{
-    .version = 1,
+    .version = 2,
+    .rules = .{
+        .{ .id = .AL001, .name = "epoch arithmetic", .kind = .ban, .reads = .replaces, .default = true, .purpose = "std's epoch arithmetic reads UTC only and checks no range: almanac's civil time takes any zone and refuses what is out of range" },
+    },
     .replaces = .{
-        .{ .std = "time.epoch.EpochSeconds", .with = toZoned, .why = "UTC only and no range check; almanac's civil time takes any zone and refuses out of range" },
-        .{ .std = "time.epoch.EpochDay", .with = Date, .why = "a Date is checked against its month and range; EpochDay's arithmetic is unchecked" },
-        .{ .std = "time.epoch.isLeapYear", .with = Date.init, .why = "a Date checks its day; leap years are the calendar's, not the caller's" },
-        .{ .std = "time.epoch.getDaysInMonth", .with = Date.init, .why = "a Date checks its day against its month" },
+        .{ .rule = .AL001, .decl = std.time.epoch.EpochSeconds, .with = toZoned, .why = "UTC only and no range check; almanac's civil time takes any zone and refuses out of range" },
+        .{ .rule = .AL001, .decl = std.time.epoch.EpochDay, .with = Date, .why = "a Date is checked against its month and range; EpochDay's arithmetic is unchecked" },
+        .{ .rule = .AL001, .decl = std.time.epoch.isLeapYear, .with = Date.init, .why = "a Date checks its day; leap years are the calendar's, not the caller's" },
+        .{ .rule = .AL001, .decl = std.time.epoch.getDaysInMonth, .with = Date.init, .why = "a Date checks its day against its month" },
     },
 };

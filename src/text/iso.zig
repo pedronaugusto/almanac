@@ -324,11 +324,13 @@ fn dateTimeOf(text: []const u8, options: Options, check_calendar: bool) ParseErr
 /// refused as ambiguous, as Temporal refuses it. A calendar annotation is read past: a time has
 /// none.
 pub fn timeOfDay(text: []const u8, options: Options) ParseError!CivilTime {
-    if (dateTimeOf(text, options, false)) |dt| {
+    // Not a whole date-time: read as a time alone below.
+    const whole = dateTimeOf(text, options, false) catch null;
+    if (whole) |dt| {
         const t = dt.time orelse return refuse(options, text.len, "a time");
         if (dt.offset != null and dt.offset.? == .z) return refuse(options, text.len, "no 'Z' on a civil value");
         return t;
-    } else |_| {}
+    }
     var r: Reader = .{ .text = text, .options = options, .check_calendar = false };
     const designated = r.eatAny("Tt");
     if (!designated and ambiguous(text)) return r.fail("'T' before a time that reads as a date too");
@@ -451,7 +453,7 @@ pub fn duration(text: []const u8, options: Options) ParseError!DurationText {
             rest %= std.time.ns_per_s;
         } else rest %= std.time.ns_per_s;
         f.milliseconds = @intCast(rest / std.time.ns_per_ms);
-        f.microseconds = rest / std.time.ns_per_us % 1000;
+        f.microseconds = (rest / std.time.ns_per_us) % 1000;
         f.nanoseconds = rest % 1000;
     }
     return f;

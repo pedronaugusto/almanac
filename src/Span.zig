@@ -72,9 +72,9 @@ pub fn init(sign: Sign, fields: Fields) RangeError!Span {
     var out: Span = .{
         .sign = sign,
         // Every u32 is in range.
-        .years = Calendar.init(fields.years) catch unreachable,
-        .months = Calendar.init(fields.months) catch unreachable,
-        .weeks = Calendar.init(fields.weeks) catch unreachable,
+        .years = Calendar.init(fields.years) catch aegis.assert.never("every u32 is in a calendar unit's range"),
+        .months = Calendar.init(fields.months) catch aegis.assert.never("every u32 is in a calendar unit's range"),
+        .weeks = Calendar.init(fields.weeks) catch aegis.assert.never("every u32 is in a calendar unit's range"),
         .days = try .init(fields.days),
         .hours = try .init(fields.hours),
         .minutes = try .init(fields.minutes),
@@ -228,7 +228,7 @@ pub fn fromInternal(d: arithmetic.Internal, largest: Unit) RangeError!Span {
             return @as(i128, @intCast(v)) * s;
         }
     }.f;
-    std.debug.assert(@abs(d.time) <= arithmetic.max_time);
+    aegis.assert.invariant(@abs(d.time) <= arithmetic.max_time, "@abs(d.time) <= arithmetic.max_time");
     return fromSigned(.{
         .years = d.date.years,
         .months = d.date.months,

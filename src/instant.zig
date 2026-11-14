@@ -71,7 +71,7 @@ fn inside(instant: anytype) RangeError!i128 {
 
 /// An instant of type `T` at `ns`, which is a whole number of `T`'s unit.
 fn fromNanoseconds(comptime T: type, ns: i128) RangeError!T {
-    std.debug.assert(@mod(ns, step(T)) == 0);
+    aegis.assert.invariant(@mod(ns, step(T)) == 0, "@mod(ns, step(T)) == 0");
     return T.fromRaw(std.math.cast(T.aegis_scalar.representation, @divExact(ns, step(T))) orelse return error.OutOfRange);
 }
 
@@ -111,8 +111,8 @@ pub fn toDateTime(instant: anytype, offset: Offset) RangeError!DateTime {
     const days = @divFloor(local, ns_per_day);
     if (days < calendar.min_days or days > calendar.max_days) return error.OutOfRange;
     return .{
-        .date = Date.fromDays(@intCast(days)) catch unreachable,
-        .time = Time.fromNanosecondOfDay(@intCast(@mod(local, ns_per_day))) catch unreachable,
+        .date = Date.fromDays(@intCast(days)) catch aegis.assert.never("an instant in range, at an offset under a day, falls on a date in range"),
+        .time = Time.fromNanosecondOfDay(@intCast(@mod(local, ns_per_day))) catch aegis.assert.never("a count taken modulo a day is a time of day"),
     };
 }
 

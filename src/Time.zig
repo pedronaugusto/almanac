@@ -1,6 +1,7 @@
 //! A civil time of day, 00:00:00 to 23:59:59.999999999, with no zone and no leap second.
 const Time = @This();
 const std = @import("std");
+const aegis = @import("aegis");
 const units = @import("units.zig");
 const arithmetic = @import("arithmetic.zig");
 const rounding = @import("round.zig");
@@ -33,7 +34,7 @@ pub fn nanosecondOfDay(t: Time) u64 {
 pub fn fromNanosecondOfDay(ns: u64) RangeError!Time {
     if (ns >= nanoseconds_per_day) return error.OutOfRange;
     const seconds = ns / std.time.ns_per_s;
-    return init(@intCast(seconds / 3600), @intCast(seconds / 60 % 60), @intCast(seconds % 60), @intCast(ns % std.time.ns_per_s)) catch unreachable;
+    return init(@intCast(seconds / 3600), @intCast((seconds / 60) % 60), @intCast(seconds % 60), @intCast(ns % std.time.ns_per_s)) catch aegis.assert.never("a count under a day is a time of day");
 }
 
 pub fn order(a: Time, b: Time) std.math.Order {
@@ -62,7 +63,7 @@ pub fn fromText(text: []const u8, options: reading.Options) reading.ParseError!T
 
 /// A time the reader checked.
 pub fn fromCivil(c: reading.CivilTime) Time {
-    return init(c.hour, c.minute, c.second, c.nanosecond) catch unreachable;
+    return init(c.hour, c.minute, c.second, c.nanosecond) catch aegis.assert.never("the reader checked the time");
 }
 
 /// Temporal's `PlainTime.prototype.add`: the span's hours and smaller added, wrapping around
@@ -70,7 +71,7 @@ pub fn fromCivil(c: reading.CivilTime) Time {
 pub fn add(t: Time, span: Span) RangeError!Time {
     const internal = try span.toInternal();
     const ns = @mod(@as(i128, t.nanosecondOfDay()) + internal.time, nanoseconds_per_day);
-    return fromNanosecondOfDay(@intCast(ns)) catch unreachable;
+    return fromNanosecondOfDay(@intCast(ns)) catch aegis.assert.never("a count taken modulo a day is a time of day");
 }
 
 pub fn subtract(t: Time, span: Span) RangeError!Time {
@@ -115,5 +116,5 @@ pub fn round(t: Time, options: Round) units.DifferenceError!Time {
     if (arithmetic.isDate(options.smallest)) return error.InvalidOptions;
     try arithmetic.checkIncrement(options.increment, options.smallest);
     const rounded = rounding.toIncrement(t.nanosecondOfDay(), arithmetic.nanoseconds(options.smallest) * options.increment, options.mode);
-    return fromNanosecondOfDay(@intCast(@mod(rounded, nanoseconds_per_day))) catch unreachable;
+    return fromNanosecondOfDay(@intCast(@mod(rounded, nanoseconds_per_day))) catch aegis.assert.never("a count taken modulo a day is a time of day");
 }

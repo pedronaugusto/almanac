@@ -8,6 +8,7 @@ const std = @import("std");
 const units = @import("units.zig");
 const calendar = @import("calendar.zig");
 const round = @import("round.zig");
+const aegis = @import("aegis");
 const Unit = units.Unit;
 const RoundingMode = units.RoundingMode;
 const Overflow = units.Overflow;
@@ -142,7 +143,7 @@ pub fn inRange(days: i64) bool {
 
 /// The date of a day count inside almanac's range.
 pub fn fromEpochDays(days: i64) IsoDate {
-    std.debug.assert(inRange(days));
+    aegis.assert.invariant(inRange(days), "inRange(days)");
     const c = calendar.civilFromDays(@intCast(days));
     return .{ .year = c.year, .month = @intCast(c.month), .day = @intCast(c.day) };
 }
@@ -193,7 +194,7 @@ fn surpasses(sign: i2, year: i64, month: u8, day: u8, two: IsoDate) bool {
 /// unit up one at a time while the date reached does not surpass `two`; surpassing is monotone in
 /// the count, so the count is the distance in that unit, less one where the day overshoots.
 pub fn dateUntil(one: IsoDate, two: IsoDate, largest: Unit) DateRec {
-    std.debug.assert(isDate(largest));
+    aegis.assert.invariant(isDate(largest), "isDate(largest)");
     const sign = -compare(one, two);
     if (sign == 0) return .{};
     var years: i64 = 0;
@@ -208,7 +209,7 @@ pub fn dateUntil(one: IsoDate, two: IsoDate, largest: Unit) DateRec {
         const at = balanceYearMonth(one.year + years, @as(i64, one.month) + months);
         if (surpasses(sign, at.year, at.month, one.day, two)) months -= sign;
     }
-    const constrained = regulate(balanceYearMonth(one.year + years, @as(i64, one.month) + months), one.day, .constrain) catch unreachable;
+    const constrained = regulate(balanceYearMonth(one.year + years, @as(i64, one.month) + months), one.day, .constrain) catch aegis.assert.never("constrain clamps the day to its month, and refuses nothing");
     const diff = two.epochDays() - constrained.epochDays();
     const weeks: i64 = if (largest == .week) @divTrunc(diff, 7) else 0;
     return .{ .years = years, .months = months, .weeks = weeks, .days = diff - 7 * weeks };
@@ -353,7 +354,7 @@ const Nudge = struct {
 
 /// A ratio of integers as the nearest f64, rounded once (ties to even): Temporal's 𝔽(total).
 pub fn ratioToF64(numerator: i128, denominator: i128) f64 {
-    std.debug.assert(denominator != 0);
+    aegis.assert.invariant(denominator != 0, "denominator != 0");
     if (numerator == 0) return 0;
     const negative = (numerator < 0) != (denominator < 0);
     const n: u512 = @abs(numerator);
@@ -588,7 +589,7 @@ fn loops(one: IsoDate, two: IsoDate, largest: Unit) DateRec {
             at = balanceYearMonth(at.year, @as(i64, at.month) + sign);
         }
     }
-    const constrained = regulate(balanceYearMonth(one.year + years, @as(i64, one.month) + months), one.day, .constrain) catch unreachable;
+    const constrained = regulate(balanceYearMonth(one.year + years, @as(i64, one.month) + months), one.day, .constrain) catch aegis.assert.never("constrain clamps the day to its month, and refuses nothing");
     var weeks: i64 = 0;
     if (largest == .week) {
         var candidate: i64 = sign;

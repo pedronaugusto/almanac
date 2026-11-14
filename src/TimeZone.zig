@@ -56,7 +56,7 @@ pub const Cursor = struct {
     index: usize = 0,
 };
 
-pub const utc: TimeZone = .{ .initial = Local.init(.utc, false, "UTC") catch unreachable };
+pub const utc: TimeZone = .{ .initial = Local.init(.utc, false, "UTC") catch aegis.assert.never("UTC's abbreviation fits") };
 
 /// A zone of one offset for all time, abbreviated as RFC 9557 writes it (`+05:30`, `-00:00:30`).
 pub fn fixed(offset: Offset) TimeZone {
@@ -64,10 +64,10 @@ pub fn fixed(offset: Offset) TimeZone {
     const a: u32 = @abs(s);
     var buffer: [posix_rule.max_abbreviation]u8 = undefined;
     const text = if (a % 60 == 0)
-        std.fmt.bufPrint(&buffer, "{c}{d:0>2}:{d:0>2}", .{ @as(u8, if (s < 0) '-' else '+'), a / 3600, a / 60 % 60 }) catch unreachable
+        std.mem.print(&buffer, "{c}{d:0>2}:{d:0>2}", .{ @as(u8, if (s < 0) '-' else '+'), a / 3600, (a / 60) % 60 }) catch aegis.assert.never("an offset under a day writes in an abbreviation's room")
     else
-        std.fmt.bufPrint(&buffer, "{c}{d:0>2}:{d:0>2}:{d:0>2}", .{ @as(u8, if (s < 0) '-' else '+'), a / 3600, a / 60 % 60, a % 60 }) catch unreachable;
-    return .{ .initial = Local.init(offset, false, text) catch unreachable };
+        std.mem.print(&buffer, "{c}{d:0>2}:{d:0>2}:{d:0>2}", .{ @as(u8, if (s < 0) '-' else '+'), a / 3600, (a / 60) % 60, a % 60 }) catch aegis.assert.never("an offset under a day writes in an abbreviation's room");
+    return .{ .initial = Local.init(offset, false, text) catch aegis.assert.never("an offset's name fits an abbreviation") };
 }
 
 /// The zone a POSIX TZ string describes (`EST5EDT,M3.2.0,M11.1.0`). Daylight saving time without

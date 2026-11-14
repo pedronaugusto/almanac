@@ -4,6 +4,7 @@
 //! through the zone's wall clock, time units on the timeline.
 const Zoned = @This();
 const std = @import("std");
+const aegis = @import("aegis");
 const units = @import("units.zig");
 const arithmetic = @import("arithmetic.zig");
 const rounding = @import("round.zig");
@@ -61,12 +62,12 @@ fn nanoseconds(z: Zoned) i128 {
 /// The wall clock: the civil date and time in the zone.
 pub fn dateTime(z: Zoned) DateTime {
     // Checked when the value was made.
-    return instant.toDateTime(z.timestamp, z.offset) catch unreachable;
+    return instant.toDateTime(z.timestamp, z.offset) catch aegis.assert.never("checked when the value was made");
 }
 
 /// The offset, daylight saving and abbreviation in force.
 pub fn info(z: Zoned) TimeZone.Info {
-    return z.zone.infoAt(z.timestamp) catch unreachable;
+    return z.zone.infoAt(z.timestamp) catch aegis.assert.never("the zone answered for this instant when the value was made");
 }
 
 pub fn order(a: Zoned, b: Zoned) std.math.Order {
@@ -187,7 +188,7 @@ pub fn round(z: Zoned, options: Round) DifferenceError!Zoned {
     const days = dt.date.days() + @as(i32, @intCast(@divFloor(time, ns_per_day)));
     const rounded: DateTime = .{
         .date = Date.fromDays(days) catch return error.OutOfRange,
-        .time = Time.fromNanosecondOfDay(@intCast(@mod(time, ns_per_day))) catch unreachable,
+        .time = Time.fromNanosecondOfDay(@intCast(@mod(time, ns_per_day))) catch aegis.assert.never("a count taken modulo a day is a time of day"),
     };
     const ns = resolve.resolveWithOffset(z.zone, rounded, z.offset, .prefer, .compatible, false) catch |err| switch (err) {
         error.OutOfRange => return error.OutOfRange,

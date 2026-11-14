@@ -2,6 +2,7 @@
 //! between the two candidates a value lies between, on integers and rationals alike.
 const std = @import("std");
 const units = @import("units.zig");
+const aegis = @import("aegis");
 const RoundingMode = units.RoundingMode;
 
 /// GetUnsignedRoundingMode's results.
@@ -37,7 +38,7 @@ pub fn negate(mode: RoundingMode) RoundingMode {
 /// whether the result is `r2` rather than `r1`. `r1_even` says whether `r1` is the even candidate,
 /// for half-even.
 pub fn toSecond(num: i128, den: i128, mode: Unsigned, r1_even: bool) bool {
-    std.debug.assert(den > 0 and num >= 0 and num <= den);
+    aegis.assert.invariant(den > 0 and num >= 0 and num <= den, "den > 0 and num >= 0 and num <= den");
     if (num == 0) return false;
     if (num == den) return true;
     switch (mode) {
@@ -58,7 +59,7 @@ pub fn toSecond(num: i128, den: i128, mode: Unsigned, r1_even: bool) bool {
 
 /// RoundNumberToIncrement: `x` rounded to a multiple of `increment` (> 0) by `mode`.
 pub fn toIncrement(x: i128, increment: i128, mode: RoundingMode) i128 {
-    std.debug.assert(increment > 0);
+    aegis.assert.invariant(increment > 0, "increment > 0");
     const negative = x < 0;
     const ax: i128 = if (negative) -x else x;
     const q = @divFloor(ax, increment);
@@ -71,7 +72,7 @@ pub fn toIncrement(x: i128, increment: i128, mode: RoundingMode) i128 {
 /// RoundNumberToIncrementAsIfPositive: rounding on a timeline, where a mode's direction is the
 /// timeline's whatever the sign (an instant before 1970 truncates toward the past, as floor).
 pub fn toIncrementAsIfPositive(x: i128, increment: i128, mode: RoundingMode) i128 {
-    std.debug.assert(increment > 0);
+    aegis.assert.invariant(increment > 0, "increment > 0");
     const q = @divFloor(x, increment);
     const r = x - q * increment;
     const up = toSecond(r, increment, unsignedMode(mode, false), @mod(q, 2) == 0);
