@@ -1,0 +1,12 @@
+# Everything this repository holds is LF on every platform: the tables made
+# again from tzdata/ and cldr/ are compared byte for byte, and the texts the
+# tests read are the bytes they name.
+* text=auto eol=lf
+
+# The compiled zone database and the TZif test zones are bytes.
+src/zone/tzdb.bin binary
+testdata/zoneinfo/** binary
+
+# Two changes that add lines under one group of CHANGELOG.md both keep them, with no
+# conflict to resolve; `bay release` orders the section.
+CHANGELOG.md merge=union
