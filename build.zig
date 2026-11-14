@@ -69,9 +69,9 @@ pub fn dev(b: *std.Build, tools: type) void {
         }),
     });
     const generate = b.addRunArtifact(generator);
-    generate.addDirectoryArg(p.path("tzdata"));
-    generate.addDirectoryArg(p.path("cldr"));
-    generate.addDirectoryArg(p.path("src/zone"));
+    generate.addDirectoryArg2(p.path("tzdata"), .{});
+    generate.addDirectoryArg2(p.path("cldr"), .{});
+    generate.addDirectoryArg2(p.path("src/zone"), .{});
     generate.has_side_effects = true;
     b.step("tzdb", "Regenerate src/zone/tzdb.bin from tzdata/ and src/zone/windows.zig from cldr/").dependOn(&generate.step);
 
@@ -83,7 +83,7 @@ pub fn dev(b: *std.Build, tools: type) void {
     const transcribe = b.addRunArtifact(transcriber);
     transcribe.addArg(b.option([]const u8, "test262", "A test262 checkout to transcribe the Temporal cases from") orelse "test262");
     transcribe.addArg(b.option([]const u8, "test262-commit", "The checkout's commit, recorded in the cases") orelse "2e58f87");
-    transcribe.addDirectoryArg(p.path("testdata/test262"));
+    transcribe.addDirectoryArg2(p.path("testdata/test262"), .{});
     transcribe.has_side_effects = true;
     b.step("test262", "Transcribe test262's Temporal cases into testdata/test262/temporal.json").dependOn(&transcribe.step);
 

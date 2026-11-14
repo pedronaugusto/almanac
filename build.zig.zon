@@ -3,7 +3,7 @@
     .version = "0.0.0",
     .minimum_zig_version = "0.17.0",
     .fingerprint = 0xc7b7f8ba399207b1,
-    .paths = .{ "build.zig", "build.zig.zon", "src", "docs/design.md", "README.md", "CHANGELOG.md", "LICENSE" },
+    .paths = .{ "build.zig", "build.zig.zon", "src", "README.md", "CHANGELOG.md", "LICENSE", "LICENSES" },
     .dependencies = .{
         .aegis = .{
             .url = "git+https://github.com/pedronaugusto/aegis#2dd07e601bf4a1f6b2a971cb61d9d01a2a8a311f",

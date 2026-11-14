@@ -57,7 +57,7 @@ test "names: read beneath the directory, links followed while they stay beneath 
     var tree = try Tree.init();
     defer tree.deinit();
     const io = testing.io;
-    var db = Database.init(testing.allocator, .{ .zoneinfo = tree.zones });
+    var db = Database.init(testing.allocator, .{ .zoneinfo = .of(tree.zones) });
     defer db.deinit();
     var ny = try db.zone(io, .init("America/New_York"));
     defer ny.release();
@@ -78,14 +78,14 @@ test "names: read beneath the directory, links followed while they stay beneath 
     try testing.expectError(error.Corrupt, db.zone(io, .init("Bad/Zone")));
     try testing.expectError(error.TooLarge, db.zone(io, .init("Big")));
     // UTC that no source has is the built-in one.
-    var system_only = Database.init(testing.allocator, .{ .zoneinfo = tree.zones, .source = .system });
+    var system_only = Database.init(testing.allocator, .{ .zoneinfo = .of(tree.zones), .source = .system });
     defer system_only.deinit();
     var utc = try system_only.zone(io, .init("UTC"));
     defer utc.release();
     try testing.expectEqual(.builtin, utc.source());
     try testing.expectError(error.ZoneNotFound, system_only.zone(io, .init("Asia/Tokyo")));
     // Only the embedded data: the tree's damaged file is not read, the embedded zone is.
-    var embedded = Database.init(testing.allocator, .{ .zoneinfo = tree.zones, .source = .embedded });
+    var embedded = Database.init(testing.allocator, .{ .zoneinfo = .of(tree.zones), .source = .embedded });
     defer embedded.deinit();
     var bundled = try embedded.zone(io, .init("America/New_York"));
     defer bundled.release();
@@ -93,7 +93,7 @@ test "names: read beneath the directory, links followed while they stay beneath 
     try testing.expectEqual(-14400, try offsetAt(&bundled, 2024, 7, 1));
     try testing.expectError(error.ZoneNotFound, embedded.zone(io, .init("Bad/Zone")));
     // The system first, the embedded data only where the system has no such zone.
-    var both = Database.init(testing.allocator, .{ .zoneinfo = tree.zones });
+    var both = Database.init(testing.allocator, .{ .zoneinfo = .of(tree.zones) });
     defer both.deinit();
     var tokyo = try both.zone(io, .init("Asia/Tokyo"));
     defer tokyo.release();
@@ -107,7 +107,7 @@ test "the local zone: $TZ as POSIX reads it, else the localtime link" {
     var tree = try Tree.init();
     defer tree.deinit();
     const io = testing.io;
-    var db = Database.init(testing.allocator, .{ .zoneinfo = tree.zones, .localtime = tree.etc });
+    var db = Database.init(testing.allocator, .{ .zoneinfo = .of(tree.zones), .localtime = .of(tree.etc) });
     defer db.deinit();
     var named = try db.local(io, .init("Europe/Lisbon"));
     defer named.release();
@@ -128,7 +128,7 @@ test "the local zone: $TZ as POSIX reads it, else the localtime link" {
     defer system.release();
     try testing.expectEqualStrings("Europe/Lisbon", system.get().name().?);
     // With no localtime at all, UTC.
-    var bare = Database.init(testing.allocator, .{ .zoneinfo = tree.zones, .source = .system });
+    var bare = Database.init(testing.allocator, .{ .zoneinfo = .of(tree.zones), .source = .system });
     defer bare.deinit();
     var none = try bare.local(io, null);
     defer none.release();
@@ -141,7 +141,7 @@ test "refresh: a changed file is a new zone, and the old one lives while held" {
     const io = testing.io;
     var quarantine = shakedown.alloc.Quarantine.init(.{});
     defer quarantine.deinit();
-    var db = Database.init(quarantine.allocator(), .{ .zoneinfo = tree.zones });
+    var db = Database.init(quarantine.allocator(), .{ .zoneinfo = .of(tree.zones) });
     defer db.deinit();
     var old = try db.zone(io, .init("America/New_York"));
     defer old.release();
@@ -167,7 +167,7 @@ test "every read's failure and cancel, and the cache left as it was" {
     const fio = try shakedown.FaultIo.init(testing.allocator, testing.io, .{});
     defer fio.deinit();
     const io = fio.io();
-    var db = Database.init(testing.allocator, .{ .zoneinfo = tree.zones });
+    var db = Database.init(testing.allocator, .{ .zoneinfo = .of(tree.zones) });
     defer db.deinit();
     try fio.setPlan(&.{.{ .at = .{ .nth = .{ .call = .dirOpenFile, .n = 1 } }, .fault = .{ .fail = error.AccessDenied } }});
     try testing.expectError(error.ReadFailed, db.zone(io, .init("America/New_York")));
@@ -175,9 +175,11 @@ test "every read's failure and cancel, and the cache left as it was" {
     try testing.expectError(error.Canceled, db.zone(io, .init("America/New_York")));
     try fio.setPlan(&.{.{ .at = .{ .nth = .{ .call = .fileReadPositional, .n = 1 } }, .fault = .{ .fail = error.InputOutput } }});
     try testing.expectError(error.ReadFailed, db.zone(io, .init("America/New_York")));
-    // A short read is read on; a read that makes no progress ends the file there: truncated.
-    try fio.setPlan(&.{.{ .at = .{ .nth = .{ .call = .fileReadPositional, .n = 1 } }, .fault = .{ .short = 0 } }});
-    try testing.expectError(error.Corrupt, db.zone(io, .init("America/New_York")));
+    // A short read is read on: the zone loads whole.
+    try fio.setPlan(&.{.{ .at = .{ .nth = .{ .call = .fileReadPositional, .n = 1 } }, .fault = .{ .short = 1 } }});
+    var short = try db.zone(io, .init("America/New_York"));
+    defer short.release();
+    try testing.expectEqual(-14400, try offsetAt(&short, 2024, 7, 1));
     try fio.setPlan(&.{});
     var ny = try db.zone(io, .init("America/New_York"));
     defer ny.release();

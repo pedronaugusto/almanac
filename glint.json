@@ -1,0 +1,12 @@
+{
+  "seams": [
+    {
+      "file": "src/Database.zig",
+      "rules": [
+        "A009",
+        "P007"
+      ],
+      "reason": "the zone database's system side: it reads the zoneinfo files and the localtime link the caller's directories hold, each file under max_zone_bytes and parsed by the TZif reader, and on Windows asks kernel32's GetDynamicTimeZoneInformation for the local zone's key"
+    }
+  ]
+}

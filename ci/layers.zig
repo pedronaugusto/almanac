@@ -4,7 +4,7 @@ const gantry = @import("gantry");
 pub const layers: []const gantry.rules.Layer = &.{
     .{ .name = "vocabulary", .patterns = &.{"src/units.zig"} },
     .{ .name = "kernels", .patterns = &.{ "src/calendar.zig", "src/round.zig", "src/text/write.zig", "src/text/strict.zig", "src/text/iso.zig" } },
-    .{ .name = "rules", .patterns = &.{ "src/zone/posix.zig", "src/zone/tzif.zig", "src/zone/embedded.zig", "src/zone/windows.zig" } },
+    .{ .name = "rules", .patterns = &.{ "src/zone/posix.zig", "src/zone/tzif.zig", "src/zone/embedded.zig", "src/zone/windows.zig", "src/zone.zig" } },
     .{ .name = "arithmetic", .patterns = &.{"src/arithmetic.zig"} },
     .{ .name = "span", .patterns = &.{"src/Span.zig"} },
     .{ .name = "civil", .patterns = &.{ "src/Date.zig", "src/Time.zig", "src/DateTime.zig" } },
@@ -47,6 +47,7 @@ pub const required = [_][]const u8{
     "src/zone/tzif.zig",
     "src/zone/embedded.zig",
     "src/zone/windows.zig",
+    "src/zone.zig",
     "src/TimeZone.zig",
     "src/resolve.zig",
     "src/Zoned.zig",

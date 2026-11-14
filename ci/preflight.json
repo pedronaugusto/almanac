@@ -12,6 +12,9 @@
   "test_dependencies": [
     "shakedown"
   ],
+  "shipped": {
+    "LICENSES": "the Unicode License v3 of the CLDR data src/zone/windows.zig is compiled from, which asks that it travel with copies of the code made from it"
+  },
   "function_exceptions": {},
   "layout_exceptions": {},
   "glint_paths": [

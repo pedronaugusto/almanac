@@ -11,7 +11,6 @@ const TimeZone = almanac.TimeZone;
 const Zoned = almanac.Zoned;
 const Span = almanac.Span;
 const DateTime = almanac.DateTime;
-const Timestamp = almanac.Timestamp;
 const resolve = almanac.resolve;
 const testing = std.testing;
 const Untrusted = aegis.input.Untrusted([]const u8);

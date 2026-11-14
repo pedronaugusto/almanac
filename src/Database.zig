@@ -10,8 +10,8 @@ const std = @import("std");
 const aegis = @import("aegis");
 const TimeZone = @import("TimeZone.zig");
 const units = @import("units.zig");
-const embedded = @import("zone/embedded.zig");
-const windows_zones = @import("zone/windows.zig");
+const embedded = @import("zone.zig").embedded;
+const windows_zones = @import("zone.zig").windows;
 const target_os = @import("builtin").os.tag;
 const Io = std.Io;
 const Allocator = std.mem.Allocator;
@@ -36,10 +36,10 @@ pub const Options = struct {
     source: enum { system, embedded, system_then_embedded } = .system_then_embedded,
     /// The system's zoneinfo, opened by the caller (`/usr/share/zoneinfo` on most systems); null
     /// where there is none (Windows) or only the embedded data is wanted.
-    zoneinfo: ?Io.Dir = null,
+    zoneinfo: ?aegis.own.Unowned(Io.Dir) = null,
     /// The directory holding the system's `localtime` link (`/etc` on most systems), opened by the
     /// caller; null where there is none.
-    localtime: ?Io.Dir = null,
+    localtime: ?aegis.own.Unowned(Io.Dir) = null,
     max_zone_bytes: aegis.units.Bytes(u32) = .literal("1MiB"),
 };
 
@@ -71,18 +71,21 @@ pub const Zone = struct {
     }
 };
 
+/// A file's modification time, on the real clock.
+const Mtime = aegis.units.Instant(.real, .nanosecond, i96);
+
 /// What identifies a file's contents for `refresh`: its inode, size and modification time.
 const Stamp = struct {
     inode: Io.File.INode,
     size: u64,
-    mtime: i96,
+    mtime: Mtime,
 
     fn of(s: Io.File.Stat) Stamp {
-        return .{ .inode = s.inode, .size = s.size, .mtime = s.mtime.nanoseconds };
+        return .{ .inode = s.inode, .size = s.size, .mtime = .fromTimestamp(s.mtime, .exact) };
     }
 
     fn eql(a: Stamp, b: Stamp) bool {
-        return a.inode == b.inode and a.size == b.size and a.mtime == b.mtime;
+        return a.inode == b.inode and a.size == b.size and a.mtime.eql(b.mtime);
     }
 };
 
@@ -201,7 +204,7 @@ fn lockError(err: anyerror) ZoneError {
 fn load(db: *Database, io: Io, name: []const u8) ZoneError!Entry {
     const system = db.options.source != .embedded;
     if (system) if (db.options.zoneinfo) |dir| {
-        if (try db.loadSystem(io, dir, name)) |e| return e;
+        if (try db.loadSystem(io, dir.get(), name)) |e| return e;
     };
     if (db.options.source != .system) if (embedded.find(name)) |bytes| {
         var value = TimeZone.fromTzif(db.gpa, .init(bytes), name) catch |err| return switch (err) {
@@ -255,7 +258,7 @@ fn resolvePath(io: Io, dir: Io.Dir, name: []const u8, buffer: *[512]u8) ZoneErro
         var joined: [512]u8 = undefined;
         const parent = if (std.mem.findScalarLast(u8, path.items[0..end], '/')) |slash| path.items[0..slash] else "";
         const rest = path.items[end..];
-        const raw = std.fmt.bufPrint(&joined, "{s}{s}{s}{s}", .{ parent, if (parent.len > 0) "/" else "", target, rest }) catch return error.ZoneNotFound;
+        const raw = std.mem.print(&joined, "{s}{s}{s}{s}", .{ parent, if (parent.len > 0) "/" else "", target, rest }) catch return error.ZoneNotFound;
         var parts: [64][]const u8 = undefined;
         var depth: usize = 0;
         var it = std.mem.splitScalar(u8, raw, '/');
@@ -300,7 +303,7 @@ fn readZone(db: *Database, io: Io, dir: Io.Dir, path: []const u8, name: ?[]const
     };
     defer file.close(io);
     const stat = file.stat(io) catch |err| return if (err == error.Canceled) error.Canceled else error.ReadFailed;
-    if (stat.size > db.options.max_zone_bytes.raw()) return error.TooLarge;
+    if (aegis.units.Bytes(u64).fromRaw(stat.size).compare(db.options.max_zone_bytes.convert(u64)) == .gt) return error.TooLarge;
     const bytes = try db.gpa.alloc(u8, @intCast(stat.size));
     defer db.gpa.free(bytes);
     const n = file.readPositionalAll(io, bytes, 0) catch |err| return if (err == error.Canceled) error.Canceled else error.ReadFailed;
@@ -331,7 +334,7 @@ pub fn local(db: *Database, io: Io, tz: ?Untrusted) ZoneError!Zone {
         return db.builtin(rule);
     }
     if (target_os == .windows) return db.windowsLocal(io);
-    const etc = db.options.localtime orelse return db.zone(io, .init("UTC"));
+    const etc = (db.options.localtime orelse return db.zone(io, .init("UTC"))).get();
     var target: [512]u8 = undefined;
     if (etc.readLink(io, "localtime", &target)) |n| {
         const link = target[0..n];
@@ -397,7 +400,7 @@ pub const Refreshed = struct {
 /// Nothing in use is freed. The cache is held for writing while files are checked.
 pub fn refresh(db: *Database, io: Io) ZoneError!Refreshed {
     var out: Refreshed = .{};
-    const dir = db.options.zoneinfo orelse return out;
+    const dir = (db.options.zoneinfo orelse return out).get();
     var guard = db.cache.write(io) catch |err| return lockError(err);
     defer guard.deinit(io);
     const cache = guard.value();
