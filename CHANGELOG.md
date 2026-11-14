@@ -18,6 +18,10 @@ follow [Semantic Versioning](https://semver.org/).
   caller opens and closes, given as `.of(dir)`.
 - `text`'s written offset holds its length as a nanosecond `Duration`.
 
+### Fixed
+
+- On Windows, a link in the zoneinfo directory whose target climbs out of it is refused, as on POSIX: Windows gives a link's target with `\` for its separator (and an absolute one with a drive), which the check read as one name and followed.
+
 ### Added
 
 - `Time.sinceMidnight`, `Time.fromSinceMidnight` and `Time.wrapped`; `Offset.nanoseconds` and `Offset.eql`;

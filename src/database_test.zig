@@ -123,6 +123,14 @@ test "the local zone: $TZ as POSIX reads it, else the localtime link" {
     defer empty.release();
     try testing.expectEqualStrings("UTC", (try empty.get().infoAt(almanac.instant.min)).abbreviation);
     try testing.expectError(error.ZoneNotFound, db.local(io, .init("Not a zone")));
+    if (@import("builtin").os.tag == .windows) {
+        // Unset on Windows, which has no localtime link: the system's own zone, by its time zone
+        // key through CLDR, never a file of the zoneinfo tree.
+        var own = try db.local(io, null);
+        defer own.release();
+        try testing.expect(own.source() != .system);
+        return;
+    }
     // Unset: the localtime link's target, past "zoneinfo/".
     var system = try db.local(io, null);
     defer system.release();

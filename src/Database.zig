@@ -252,7 +252,12 @@ fn resolvePath(io: Io, dir: Io.Dir, name: []const u8, buffer: *[512]u8) ZoneErro
         hops += 1;
         if (hops > max_links) return error.ZoneNotFound;
         const target = target_buffer[0..n];
-        if (target.len == 0 or target[0] == '/') return error.ZoneNotFound;
+        // Windows gives a link's target with its own separator, `\`, and an absolute one with a
+        // drive: read as the `/` and the root they are, so a climb above the directory is seen.
+        if (target_os == .windows) for (target) |*c| {
+            if (c.* == '\\') c.* = '/';
+        };
+        if (target.len == 0 or target[0] == '/' or (target_os == .windows and target.len >= 2 and target[1] == ':')) return error.ZoneNotFound;
         // The target, relative to the link's own directory, joined and normalized; climbing above
         // the zoneinfo directory names no zone.
         var joined: [512]u8 = undefined;
