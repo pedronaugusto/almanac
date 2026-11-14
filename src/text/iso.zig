@@ -3,6 +3,7 @@
 //! bracketed annotations (a time zone, a calendar, others kept or refused), and durations. This is
 //! the lenient reading; `strict.zig` answers whether a text is exactly RFC 3339.
 const std = @import("std");
+const aegis = @import("aegis");
 const units = @import("../units.zig");
 const calendar = @import("../calendar.zig");
 const Offset = units.Offset;
@@ -27,6 +28,9 @@ pub const DurationText = struct {
     microseconds: u128 = 0,
     nanoseconds: u128 = 0,
 };
+
+/// A fraction of a duration's unit, in nanoseconds.
+const FractionNs = aegis.units.Duration(.nanosecond, u128);
 
 /// `Invalid`: the text is not what was asked for; `Diagnostic` says where and what was expected.
 pub const ParseError = error{Invalid};
@@ -443,18 +447,25 @@ pub fn duration(text: []const u8, options: Options) ParseError!DurationText {
             'M' => 60,
             else => 1,
         };
-        var rest: u128 = @as(u128, n) * scale;
+        // Under the unit: under an hour, a minute or a second of nanoseconds.
+        var rest: FractionNs = .fromRaw(@as(u128, n) * scale);
         if (fraction_unit == 'H') {
-            f.minutes = @intCast(rest / (60 * std.time.ns_per_s));
-            rest %= 60 * std.time.ns_per_s;
+            const minutes = rest.convert(.minute, u64, .down) catch aegis.assert.never("a fraction of an hour is under 60 minutes");
+            f.minutes = minutes.raw();
+            rest = rest.sub(minutes.convert(.nanosecond, u128, .exact)) catch aegis.assert.never("the whole minutes are within the fraction");
         }
         if (fraction_unit != 'S') {
-            f.seconds = @intCast(rest / std.time.ns_per_s);
-            rest %= std.time.ns_per_s;
-        } else rest %= std.time.ns_per_s;
-        f.milliseconds = @intCast(rest / std.time.ns_per_ms);
-        f.microseconds = (rest / std.time.ns_per_us) % 1000;
-        f.nanoseconds = rest % 1000;
+            const seconds = rest.convert(.second, u64, .down) catch aegis.assert.never("what is left is under a minute");
+            f.seconds = seconds.raw();
+            rest = rest.sub(seconds.convert(.nanosecond, u128, .exact)) catch aegis.assert.never("the whole seconds are within what is left");
+        }
+        const milliseconds = rest.convert(.millisecond, u64, .down) catch aegis.assert.never("what is left is under a second");
+        f.milliseconds = milliseconds.raw();
+        rest = rest.sub(milliseconds.convert(.nanosecond, u128, .exact)) catch aegis.assert.never("the whole milliseconds are within what is left");
+        const microseconds = rest.convert(.microsecond, u64, .down) catch aegis.assert.never("what is left is under a millisecond");
+        f.microseconds = microseconds.raw();
+        rest = rest.sub(microseconds.convert(.nanosecond, u128, .exact)) catch aegis.assert.never("the whole microseconds are within what is left");
+        f.nanoseconds = rest.raw();
     }
     return f;
 }
