@@ -8,6 +8,7 @@ follow [Semantic Versioning](https://semver.org/).
 
 ### Changed
 
+- Pins aegis f52eabe, still 0.2.4 (its addition: `id.raws`), the one aegis the family builds on; development on preflight's ci-standard f991816 and shakedown 327bc61. Nothing this package calls changed.
 - Time is carried as aegis units through the arithmetic: a length as `Duration(.nanosecond, i128)`, a place on the
   timeline as `Instant(.real, .nanosecond, i128)`, an offset converted from its ranged seconds, so seconds and
   nanoseconds cannot be mixed. `resolve.wallClock`, `resolve.checked`, `resolve.resolveWallClock`, `resolve.resolve`,
