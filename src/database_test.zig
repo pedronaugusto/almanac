@@ -126,8 +126,10 @@ test "the local zone: $TZ as POSIX reads it, else the localtime link" {
     try testing.expectError(error.ZoneNotFound, db.local(io, .init("Not a zone")));
     if (@import("builtin").os.tag == .windows) {
         // Unset on Windows, which has no localtime link: the system's own zone, by its time zone
-        // key through CLDR, never a file of the zoneinfo tree.
-        var own = try db.local(io, null);
+        // key through CLDR, read from the embedded data, never a file of the zoneinfo tree.
+        var windows = Database.init(testing.allocator, .{ .zoneinfo = .of(tree.zones), .embedded = tzdb });
+        defer windows.deinit();
+        var own = try windows.local(io, null);
         defer own.release();
         try testing.expect(own.source() != .system);
         return;
