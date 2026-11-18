@@ -6,6 +6,27 @@ calendar arithmetic. Its runtime closure is almanac → aegis → std.
 This describes the implementation in this repository. Change it with the code when an owner, an
 invariant or a decision changes.
 
+## Scope
+
+In: instants, civil dates and times, offsets, zones (UTC, fixed offsets, TZif files, POSIX TZ strings,
+an embedded copy of the IANA database), zoned times, spans with Temporal's semantics, RFC 3339, RFC
+9557 and ISO 8601 text both ways, and RFC 3339's strict grammar checks (JSON Schema's formats live
+with the grammar's owner).
+
+Out, by decision:
+
+- Non-ISO calendars and locale formatting (month names, CLDR patterns): CLDR's domain, a data
+  dependency the size of a dictionary, and no consumer.
+- `strftime`-style patterns: every consumer writes a fixed form (RFC 3339, a date, a clock); added when
+  one asks, with jiff's `strtime` as the model.
+- Leap seconds: almanac counts POSIX time, as Temporal, jiff, Go and java.time do.
+- HTTP dates, ASN.1 times and git's date grammar: each is its protocol's grammar and stays with it.
+- Monotonic time and timers: `std.Io`'s clocks and aegis's instants.
+
+Everything but `Database` is pure: no allocation, no `Io`, bounded work. There is no global database
+and no lazy global: a program that wants one zone for its life loads it once and keeps the handle.
+Nothing recurses; the zic compiler in `tools/` is not shipped.
+
 ## Layers
 
 [ci/layers.zig](../ci/layers.zig) checks the production import graph, lowest first: the vocabulary
@@ -172,7 +193,8 @@ such zone, or where it is the only source given.
 
 ## Windows
 
-Windows has no zoneinfo; its zones come from the embedded data. Its time zone names are mapped to IANA
+Windows has no zoneinfo: a program there names its zones' source as the embedded data
+(`.{ .embedded = &almanac.tzdb }`). Its time zone names are mapped to IANA
 names by CLDR's `windowsZones.xml` (vendored in `cldr/` with its release, Unicode License v3 in
 `LICENSES/cldr-unicode-v3.txt`), each name's default (territory 001), generated into
 `src/zone/windows.zig` by `tools/windows.zig` with the rest of `bay dev tzdb` and checked by
