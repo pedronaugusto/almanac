@@ -10,6 +10,15 @@ follow [Semantic Versioning](https://semver.org/).
 
 - Pins aegis f52eabe, still 0.2.4 (its addition: `id.raws`), the one aegis the family builds on; development on preflight's ci-standard f991816 and shakedown 327bc61. Nothing this package calls changed.
 - Development on preflight's ci-standard 9c18016 and shakedown b99b768.
+- The zone sources are chosen where a program makes its `Database`, and the build has no `-Dtzdb` option (nor
+  `Tzdb`): `Database.Options.source` is gone, and `Database.Options.embedded` takes almanac's copy of the IANA
+  database, `&almanac.tzdb`. The sources are what the options give: `zoneinfo` alone reads the system's files,
+  `embedded` alone the embedded data, and both read the system's files first and the embedded data where the
+  system has no such zone. The data (about 280 KiB) is compiled only into a program that names `almanac.tzdb`.
+  Before: `.{ .source = .embedded }`, `.{ .zoneinfo = .of(dir), .source = .system }`, `.{ .zoneinfo = .of(dir) }`.
+  After: `.{ .embedded = &almanac.tzdb }`, `.{ .zoneinfo = .of(dir) }`, `.{ .zoneinfo = .of(dir), .embedded =
+  &almanac.tzdb }`. `Database.embeddedBytes(name)` and `Database.embeddedVersion()` are `almanac.tzdb.find(name)`
+  and `almanac.tzdb.version()` (with `count()`, on `almanac.Embedded`).
 - Time is carried as aegis units through the arithmetic: a length as `Duration(.nanosecond, i128)`, a place on the
   timeline as `Instant(.real, .nanosecond, i128)`, an offset converted from its ranged seconds, so seconds and
   nanoseconds cannot be mixed. `resolve.wallClock`, `resolve.checked`, `resolve.resolveWallClock`, `resolve.resolve`,

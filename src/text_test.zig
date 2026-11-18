@@ -115,7 +115,7 @@ test "durations: Temporal's reading" {
 
 test "zoned text: the zone, the offset weighed, the day's start" {
     const io = testing.io;
-    var db = almanac.Database.init(testing.allocator, .{ .source = .embedded });
+    var db = almanac.Database.init(testing.allocator, .{ .embedded = &almanac.tzdb });
     defer db.deinit();
     var a = try text.parseZoned(&db, io, u("2024-11-03T01:30:00-05:00[America/New_York]"), .{});
     defer a.release();

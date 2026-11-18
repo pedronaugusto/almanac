@@ -15,6 +15,11 @@ pub const Database = @import("Database.zig");
 pub const text = @import("text.zig");
 pub const Zone = Database.Zone;
 pub const ZoneError = Database.ZoneError;
+/// almanac's copy of the IANA time zone database, a `Database`'s `embedded` source
+/// (`.{ .embedded = &almanac.tzdb }`): about 280 KiB, compiled into a program only where it is
+/// named.
+pub const tzdb = @import("zone/embedded.zig").tzdb;
+pub const Embedded = @import("zone/embedded.zig").Embedded;
 
 /// An instant in a zone.
 pub const toZoned = Zoned.init;

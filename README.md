@@ -15,7 +15,7 @@ Windows' zone mapping, zoned times, and text (RFC 3339, RFC 9557, ISO 8601 durat
 ```zig
 // Zones come from a database: here the embedded IANA data (the system's files go through
 // `.zoneinfo`, a directory the caller opens).
-var db = almanac.Database.init(init.gpa, .{ .source = .embedded });
+var db = almanac.Database.init(init.gpa, .{ .embedded = &almanac.tzdb });
 defer db.deinit();
 var lisbon = try db.zone(io, .init("Europe/Lisbon"));
 defer lisbon.release();

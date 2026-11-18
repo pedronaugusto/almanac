@@ -698,7 +698,7 @@ test "test262's Temporal cases: each passes or is listed" {
     defer _ = arena_state.reset(.free_all);
     const parsed = try std.json.parseFromSlice(Json, testing.allocator, test262.temporal, .{});
     defer parsed.deinit();
-    var db = almanac.Database.init(testing.allocator, .{ .source = .embedded });
+    var db = almanac.Database.init(testing.allocator, .{ .embedded = &almanac.tzdb });
     defer db.deinit();
     var reasons: std.array_hash_map.String(usize) = .empty;
     defer reasons.deinit(testing.allocator);
@@ -757,7 +757,7 @@ fn duration(f: Span.Signed) Span {
 
 // Transcribed: test/built-ins/Temporal/Duration/prototype/total/relativeto-total-of-each-unit.js
 test "transcribed: each unit's total of P5Y5M5W5DT5H5M5.005005005S from a date and from a zoned value" {
-    var db = almanac.Database.init(testing.allocator, .{ .source = .embedded });
+    var db = almanac.Database.init(testing.allocator, .{ .embedded = &almanac.tzdb });
     defer db.deinit();
     var utc = try db.zone(testing.io, .init("UTC"));
     defer utc.release();
@@ -840,7 +840,7 @@ test "transcribed: forty days in months depends on the months it spans" {
 
 // Transcribed: test/built-ins/Temporal/Duration/prototype/total/relativeto-zoneddatetime-with-fractional-days.js
 test "transcribed: a week and an hour in days from a zoned value" {
-    var db = almanac.Database.init(testing.allocator, .{ .source = .embedded });
+    var db = almanac.Database.init(testing.allocator, .{ .embedded = &almanac.tzdb });
     defer db.deinit();
     var utc = try db.zone(testing.io, .init("UTC"));
     defer utc.release();

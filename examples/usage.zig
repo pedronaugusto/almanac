@@ -7,7 +7,7 @@ pub fn main(init: std.process.Init) !void {
     // README-BEGIN
     // Zones come from a database: here the embedded IANA data (the system's files go through
     // `.zoneinfo`, a directory the caller opens).
-    var db = almanac.Database.init(init.gpa, .{ .source = .embedded });
+    var db = almanac.Database.init(init.gpa, .{ .embedded = &almanac.tzdb });
     defer db.deinit();
     var lisbon = try db.zone(io, .init("Europe/Lisbon"));
     defer lisbon.release();

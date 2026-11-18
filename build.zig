@@ -5,20 +5,14 @@ const std = @import("std");
 pub fn build(b: *std.Build) void {
     const target = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});
-    const tzdb = b.option(Tzdb, "tzdb", "Zone data linked in: system files only, the embedded database, or both (default)") orelse .both;
-    _ = almanacModule(b, b, target, optimize, tzdb);
+    _ = almanacModule(b, b, target, optimize);
 }
 
-/// Which zone data a program carries: `system` reads only the system's files, `embedded` and
-/// `both` link almanac's copy of the IANA database (about 400 KiB).
-pub const Tzdb = enum { system, embedded, both };
-
-fn almanacModule(b: *std.Build, p: *std.Build, target: std.Build.ResolvedTarget, optimize: std.lang.Optimize, tzdb: Tzdb) *std.Build.Module {
+/// The zone data a program carries is chosen where it makes a `Database`: almanac's copy of the
+/// IANA database is compiled in only where the program names `almanac.tzdb`.
+fn almanacModule(b: *std.Build, p: *std.Build, target: std.Build.ResolvedTarget, optimize: std.lang.Optimize) *std.Build.Module {
     const module = b.addModule("almanac", .{ .root_source_file = p.path("src/almanac.zig"), .target = target, .optimize = optimize });
     module.addImport("aegis", p.dependency("aegis", .{ .target = target, .optimize = optimize }).module("aegis"));
-    const options = b.addOptions();
-    options.addOption(bool, "embedded", tzdb != .system);
-    module.addOptions("almanac_options", options);
     return module;
 }
 
@@ -34,7 +28,6 @@ pub fn dev(b: *std.Build, tools: type) void {
     const zic = b.createModule(.{ .root_source_file = p.path("tools/zic.zig"), .target = target, .optimize = optimize });
     const windows_tool = b.createModule(.{ .root_source_file = p.path("tools/windows.zig"), .target = target, .optimize = optimize });
     const test_options = b.addOptions();
-    test_options.addOption(bool, "embedded", true);
     test_options.addOption(?[]const u8, "zic_out", b.option([]const u8, "zic-out", "A directory of zic's output for the tests to compare every zone against"));
     const tests = b.addTest(.{
         .name = "almanac-tests",
@@ -147,9 +140,6 @@ fn benchImports(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.l
     const p = b.dependency("almanac", .{ .target = target, .optimize = optimize }).builder;
     const module = b.createModule(.{ .root_source_file = p.path("src/almanac.zig"), .target = target, .optimize = optimize });
     module.addImport("aegis", p.dependency("aegis", .{ .target = target, .optimize = optimize }).module("aegis"));
-    const options = b.addOptions();
-    options.addOption(bool, "embedded", true);
-    module.addOptions("almanac_options", options);
     return b.allocator.dupe(std.Build.Module.Import, &.{.{ .name = "almanac", .module = module }}) catch @panic("OOM");
 }
 

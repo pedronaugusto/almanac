@@ -165,8 +165,10 @@ choice differs from a literal reading of zic: a rule-driven zone line starts fro
 Shanghai's 1949 line shows.
 
 `bay dev tzdb` regenerates the file; a unit test regenerates it in memory and fails unless it is the
-same byte for byte. `-Dtzdb=system` leaves it out of a build; `embedded` and `both` (the default) link
-it, and `Database` reads it where the system has no such zone or where only it is asked for.
+same byte for byte. A program carries it only where it names `almanac.tzdb`, as a `Database`'s
+`embedded` source (`.{ .embedded = &almanac.tzdb }`): nothing in almanac names it, so a program
+that reads only the system's files compiles none of it. `Database` reads it where the system has no
+such zone, or where it is the only source given.
 
 ## Windows
 

@@ -78,7 +78,7 @@ fn rows(r: Report, gpa: std.mem.Allocator, io: std.Io, selected: []const []const
         }
     }.f);
 
-    var db = almanac.Database.init(gpa, .{ .source = .embedded });
+    var db = almanac.Database.init(gpa, .{ .embedded = &almanac.tzdb });
     defer db.deinit();
     for ([_][]const u8{ "UTC", "America/New_York", "Europe/Lisbon" }) |name| {
         var zone = try db.zone(io, .init(name));
@@ -99,7 +99,7 @@ fn rows(r: Report, gpa: std.mem.Allocator, io: std.Io, selected: []const []const
         }.f);
         if (wanted(selected, "tz/load")) try r.time(try std.mem.print(&label, "tz/load/{s}", .{name}), @max(n / 1000, 1), name, struct {
             fn f(zone_name: []const u8, _: usize) !void {
-                var loaded = try almanac.TimeZone.fromTzif(std.heap.page_allocator, .init(almanac.Database.embeddedBytes(zone_name).?), zone_name);
+                var loaded = try almanac.TimeZone.fromTzif(std.heap.page_allocator, .init(almanac.tzdb.find(zone_name).?), zone_name);
                 defer loaded.free();
                 sink +%= loaded.transitions.len;
             }
@@ -120,7 +120,7 @@ fn rows(r: Report, gpa: std.mem.Allocator, io: std.Io, selected: []const []const
         }
     }.f);
     if (wanted(selected, "parse/rfc9557")) {
-        var parse_db = almanac.Database.init(gpa, .{ .source = .embedded });
+        var parse_db = almanac.Database.init(gpa, .{ .embedded = &almanac.tzdb });
         defer parse_db.deinit();
         const Context = struct { db: *almanac.Database, io: std.Io };
         try r.time("parse/rfc9557", n, Context{ .db = &parse_db, .io = io }, struct {

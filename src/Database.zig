@@ -10,7 +10,7 @@ const std = @import("std");
 const aegis = @import("aegis");
 const TimeZone = @import("TimeZone.zig");
 const units = @import("units.zig");
-const embedded = @import("zone.zig").embedded;
+const Embedded = @import("zone.zig").embedded.Embedded;
 const windows_zones = @import("zone.zig").windows;
 const target_os = @import("builtin").os.tag;
 const Io = std.Io;
@@ -26,17 +26,20 @@ pub const ZoneError = error{ ZoneNotFound, Corrupt, LeapSeconds, TooLarge, Cance
 pub const Source = enum {
     /// The system's zoneinfo.
     system,
-    /// The data built into almanac (`-Dtzdb=embedded` or `both`).
+    /// almanac's copy of the IANA data (`almanac.tzdb`), where the options name it.
     embedded,
     /// Made here: UTC when no source has it, a POSIX string from `$TZ`, a local zone with no name.
     builtin,
 };
 
 pub const Options = struct {
-    source: enum { system, embedded, system_then_embedded } = .system_then_embedded,
     /// The system's zoneinfo, opened by the caller (`/usr/share/zoneinfo` on most systems); null
     /// where there is none (Windows) or only the embedded data is wanted.
     zoneinfo: ?aegis.own.Unowned(Io.Dir) = null,
+    /// almanac's copy of the IANA data, `&almanac.tzdb`, read where the system has no such zone
+    /// (or there is no `zoneinfo`); null reads the system's files alone. A program that names
+    /// `almanac.tzdb` carries its 280 KiB; one that does not compiles none of it.
+    embedded: ?*const Embedded = null,
     /// The directory holding the system's `localtime` link (`/etc` on most systems), opened by the
     /// caller; null where there is none.
     localtime: ?aegis.own.Unowned(Io.Dir) = null,
@@ -121,16 +124,6 @@ pub fn ianaForWindows(name: []const u8) ?[]const u8 {
     return null;
 }
 
-/// The TZif bytes of a zone or link in the embedded data, or null.
-pub fn embeddedBytes(name: []const u8) ?[]const u8 {
-    return embedded.find(name);
-}
-
-/// The IANA release the embedded data is (`2026f`), or empty where it is not linked.
-pub fn embeddedVersion() []const u8 {
-    return embedded.version();
-}
-
 pub fn init(gpa: Allocator, options: Options) Database {
     return .{ .gpa = gpa, .options = options, .cache = .init(.{}) };
 }
@@ -163,8 +156,8 @@ pub fn validName(name: []const u8) bool {
     return true;
 }
 
-/// The zone `name` names, from the cache or loaded from the sources `options.source` allows.
-/// `system_then_embedded` falls back to the embedded data only when the system has no such zone;
+/// The zone `name` names, from the cache or loaded from the sources the options name: the system's
+/// files beneath `zoneinfo`, then the embedded data, read only when the system has no such zone;
 /// a damaged or unreadable system file is an error, never a silent second answer. "UTC" that no
 /// source has is the built-in UTC.
 pub fn zone(db: *Database, io: Io, name: Untrusted) ZoneError!Zone {
@@ -202,11 +195,10 @@ fn lockError(err: anyerror) ZoneError {
 
 /// Loads a zone, its one handle the caller's.
 fn load(db: *Database, io: Io, name: []const u8) ZoneError!Entry {
-    const system = db.options.source != .embedded;
-    if (system) if (db.options.zoneinfo) |dir| {
+    if (db.options.zoneinfo) |dir| {
         if (try db.loadSystem(io, dir.get(), name)) |e| return e;
-    };
-    if (db.options.source != .system) if (embedded.find(name)) |bytes| {
+    }
+    if (db.options.embedded) |data| if (data.find(name)) |bytes| {
         var value = TimeZone.fromTzif(db.gpa, .init(bytes), name) catch |err| return switch (err) {
             // The embedded data is almanac's own, checked when it was generated.
             error.Corrupt, error.LeapSeconds => unreachable,
@@ -378,7 +370,7 @@ const DynamicZone = extern struct {
 extern "kernel32" fn GetDynamicTimeZoneInformation(info: *DynamicZone) callconv(.winapi) u32;
 
 /// Windows' local zone: its time zone key name mapped to an IANA name through CLDR, read from the
-/// embedded data (Windows has no zoneinfo). Where the user turned daylight saving adjustment off,
+/// sources the options name (the embedded data, as Windows has no zoneinfo). Where the user turned daylight saving adjustment off,
 /// the clock keeps standard time all year: a fixed offset.
 fn windowsLocal(db: *Database, io: Io) ZoneError!Zone {
     var info: DynamicZone = undefined;
