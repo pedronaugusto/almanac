@@ -237,16 +237,24 @@ fn anyLookups(_: void, case: *shakedown.Case) !void {
             try testing.expect((try z.offsetAt(later(n.at, -1))).seconds.raw() != n.info.offset.seconds.raw());
             try testing.expectEqual(offset, try z.offsetAt(later(n.at, -1)));
         }
+        // The previous transition is strictly before `t`, so it set the offset in force just before
+        // `t`, which differs from `t`'s own when `t` is itself a transition.
         if (try z.previousTransition(t)) |p| {
+            const just_before = try z.offsetAt(later(t, -1));
             try testing.expect(p.at.raw() < t.raw());
-            try testing.expectEqual(offset, try z.offsetAt(p.at));
-            try testing.expect((try z.offsetAt(later(p.at, -1))).seconds.raw() != offset.seconds.raw());
+            try testing.expectEqual(just_before, try z.offsetAt(p.at));
+            try testing.expect((try z.offsetAt(later(p.at, -1))).seconds.raw() != just_before.seconds.raw());
         }
     }
 }
 
 test "property: lookups agree with a linear scan, with any cursor, and transitions bound them" {
-    try shakedown.check(testing.allocator, {}, anyLookups, .{ .cases = 400, .seed = 0x7a1 });
+    try shakedown.check(testing.allocator, {}, anyLookups, .{
+        .cases = 400,
+        .seed = 0x7a1,
+        // Lord Howe at the instant its daylight saving starts in 2035.
+        .regressions = &.{"2:0:f8fd5b03:3:3:3:1984e20"},
+    });
 }
 
 const rule_examples = [_][]const u8{
@@ -269,7 +277,7 @@ fn anyRule(_: void, case: *shakedown.Case) !void {
     }
     if (try z.previousTransition(t)) |p| {
         try testing.expect(p.at.raw() < t.raw());
-        try testing.expectEqual(offset, try z.offsetAt(p.at));
+        try testing.expectEqual(try z.offsetAt(later(t, -1)), try z.offsetAt(p.at));
     }
 }
 
