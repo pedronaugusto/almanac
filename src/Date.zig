@@ -141,10 +141,10 @@ fn difference(d: Date, operation: arithmetic.Operation, other: Date, options: un
 pub const max_text_len = write.date_len;
 
 /// The date read and written as text by a format that honors the declaration (strand's), through
-/// `parse` and `format`; text past `max_len` is refused unread. JSON Schema's `date` (RFC 3339's
-/// full-date) for years 0000 to 9999; a year outside them is ISO 8601's expanded form, which that
-/// format does not take.
-pub const text_form = .{ .max_len = max_text_len, .schema_format = "date" };
+/// `parse` and `format`; text past `max_len` is refused unread. No JSON Schema format: Schema's
+/// `date` is RFC 3339's full-date, which covers only the years 0000 to 9999, and a date outside them
+/// is ISO 8601's expanded form, so the format would not hold for every value.
+pub const text_form = .{ .max_len = max_text_len };
 
 /// ISO 8601's extended date, as RFC 3339 writes it: `2026-10-31`.
 pub fn format(d: Date, w: *std.Io.Writer) std.Io.Writer.Error!void {

@@ -8,7 +8,7 @@ follow [Semantic Versioning](https://semver.org/).
 
 ### Added
 
-- `Date`, `Time`, `DateTime` and `Span` declare `text_form`, `.{ .max_len = max_text_len }` (the date's with `.schema_format = "date"`, RFC 3339's full-date, for years 0000 to 9999): the declaration a format reads and writes a value as text by (strand's text form), through their existing `parse` and `format`. A plain literal: almanac imports nothing for it. The others name no JSON Schema format, as Schema's `time` and `date-time` carry an offset and its `duration` takes no sign or fraction. Tests: the declarations and signatures, and each one's documented examples.
+- `Date`, `Time`, `DateTime` and `Span` declare `text_form`, `.{ .max_len = max_text_len }`: the declaration a format reads and writes a value as text by (strand's text form), through their existing `parse` and `format`. A plain literal: almanac imports nothing for it. None names a JSON Schema format, as none would hold for every value: Schema's `date` covers only the years 0000 to 9999, its `time` and `date-time` carry an offset, and its `duration` takes no sign or fraction. Tests: the declarations and signatures, and each one's documented examples.
 
 ### Changed
 

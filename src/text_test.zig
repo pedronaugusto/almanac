@@ -371,14 +371,15 @@ test "fuzz: every parser and check on mutated text, the strict grammar within th
     try shakedown.check(testing.allocator, {}, anyText, .{ .cases = 5000, .seed = 0x3342 });
 }
 
-test "each type declares its text form: max_len is max_text_len, a JSON Schema format only for the date" {
+test "each type declares its text form: max_len is max_text_len, and no JSON Schema format" {
     inline for (.{ Date, almanac.Time, DateTime, Span }) |T| {
         try testing.expectEqual(T.max_text_len, T.text_form.max_len);
         comptime std.debug.assert(@TypeOf(T.format) == fn (T, *std.Io.Writer) std.Io.Writer.Error!void);
         comptime std.debug.assert(@typeInfo(@TypeOf(T.parse)).@"fn".param_types.len == 1);
     }
-    try testing.expectEqualStrings("date", Date.text_form.schema_format);
-    inline for (.{ almanac.Time, DateTime, Span }) |T| try testing.expect(!@hasField(@TypeOf(T.text_form), "schema_format"));
+    // A schema format holds for every value or is not named: Schema's date
+    // covers only the years 0000 to 9999.
+    inline for (.{ Date, almanac.Time, DateTime, Span }) |T| try testing.expect(!@hasField(@TypeOf(T.text_form), "schema_format"));
     // Each one's documented examples, as their docs spell them.
     try expectWritten("2026-10-31", try Date.parse("2026-10-31"));
     try expectWritten("2026-10-31T09:00:00", try DateTime.parse("2026-10-31T09:00:00"));
