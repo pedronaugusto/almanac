@@ -78,6 +78,11 @@ pub fn eql(a: Time, b: Time) bool {
 
 pub const max_text_len = write.time_len;
 
+/// The time read and written as text by a format that honors the declaration (strand's), through
+/// `parse` and `format`; text past `max_len` is refused unread. No JSON Schema format: Schema's
+/// `time` has an offset, which a civil time has not.
+pub const text_form = .{ .max_len = max_text_len };
+
 /// `09:00:00`, with the fraction of the second where there is one (`09:00:00.25`).
 pub fn format(t: Time, w: *std.Io.Writer) std.Io.Writer.Error!void {
     return write.time(w, t.hour.raw(), t.minute.raw(), t.second.raw(), t.nanosecond.raw());

@@ -68,6 +68,11 @@ fn difference(dt: DateTime, operation: arithmetic.Operation, other: DateTime, op
 
 pub const max_text_len = Date.max_text_len + 1 + Time.max_text_len;
 
+/// The date-time read and written as text by a format that honors the declaration (strand's),
+/// through `parse` and `format`; text past `max_len` is refused unread. No JSON Schema format:
+/// Schema's `date-time` has an offset, which a civil date-time has not.
+pub const text_form = .{ .max_len = max_text_len };
+
 /// `2026-10-31T09:00:00`.
 pub fn format(dt: DateTime, w: *std.Io.Writer) std.Io.Writer.Error!void {
     try dt.date.format(w);

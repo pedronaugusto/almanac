@@ -371,6 +371,22 @@ test "fuzz: every parser and check on mutated text, the strict grammar within th
     try shakedown.check(testing.allocator, {}, anyText, .{ .cases = 5000, .seed = 0x3342 });
 }
 
+test "each type declares its text form: max_len is max_text_len, a JSON Schema format only for the date" {
+    inline for (.{ Date, almanac.Time, DateTime, Span }) |T| {
+        try testing.expectEqual(T.max_text_len, T.text_form.max_len);
+        comptime std.debug.assert(@TypeOf(T.format) == fn (T, *std.Io.Writer) std.Io.Writer.Error!void);
+        comptime std.debug.assert(@typeInfo(@TypeOf(T.parse)).@"fn".param_types.len == 1);
+    }
+    try testing.expectEqualStrings("date", Date.text_form.schema_format);
+    inline for (.{ almanac.Time, DateTime, Span }) |T| try testing.expect(!@hasField(@TypeOf(T.text_form), "schema_format"));
+    // Each one's documented examples, as their docs spell them.
+    try expectWritten("2026-10-31", try Date.parse("2026-10-31"));
+    try expectWritten("2026-10-31T09:00:00", try DateTime.parse("2026-10-31T09:00:00"));
+    try expectWritten("09:00:00.25", try almanac.Time.parse("09:00:00.25"));
+    try expectWritten("P1Y2M3DT4H5M6.5S", try Span.parse("P1Y2M3DT4H5M6.5S"));
+    try expectWritten("-PT1H", try Span.parse("-PT1H"));
+}
+
 test "each type publishes the text-form contract: parse, format, max_text_len" {
     inline for (.{ .{ Date, "-009999-01-01" }, .{ almanac.Time, "23:59:59.999999999" }, .{ DateTime, "+009999-12-31T23:59:59.999999999" }, .{ Span, "-P4294967295Y4294967295M4294967295W104249991374DT7H" } }) |c| {
         const T = c[0];

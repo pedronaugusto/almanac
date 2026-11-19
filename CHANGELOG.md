@@ -6,6 +6,10 @@ follow [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added
+
+- `Date`, `Time`, `DateTime` and `Span` declare `text_form`, `.{ .max_len = max_text_len }` (the date's with `.schema_format = "date"`, RFC 3339's full-date, for years 0000 to 9999): the declaration a format reads and writes a value as text by (strand's text form), through their existing `parse` and `format`. A plain literal: almanac imports nothing for it. The others name no JSON Schema format, as Schema's `time` and `date-time` carry an offset and its `duration` takes no sign or fraction. Tests: the declarations and signatures, and each one's documented examples.
+
 ### Changed
 
 - Pins aegis f52eabe, still 0.2.4 (its addition: `id.raws`), the one aegis the family builds on; development on preflight's ci-standard f991816 and shakedown 327bc61. Nothing this package calls changed.

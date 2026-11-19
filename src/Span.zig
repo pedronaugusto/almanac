@@ -375,6 +375,11 @@ pub fn round(s: Span, options: Round) ArithmeticError!Span {
 /// twelve with their letters, `T`, hours, minutes and seconds with nine fractional digits.
 pub const max_text_len = 2 + 3 * 11 + 13 + 1 + 14 + 16 + 27;
 
+/// The span read and written as text by a format that honors the declaration (strand's), through
+/// `parse` and `format`; text past `max_len` is refused unread. No JSON Schema format: Temporal's
+/// duration takes a sign and fractional seconds, which Schema's `duration` (RFC 3339's) does not.
+pub const text_form = .{ .max_len = max_text_len };
+
 /// ISO 8601's duration as Temporal writes it (`P1Y2M3DT4H5M6.5S`, `-PT1H`, `PT0S` for zero): the
 /// seconds, milliseconds, microseconds and nanoseconds together as seconds with a fraction.
 pub fn format(s: Span, w: *std.Io.Writer) std.Io.Writer.Error!void {
