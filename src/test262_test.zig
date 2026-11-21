@@ -57,9 +57,10 @@ const Runner = struct {
             const digits = name.len - 1 - @as(usize, if (std.mem.findScalar(u8, name, ':') != null) 1 else 0);
             if (digits != 2 and digits != 4) return error.Invalid;
             const dt = text.parseTimestamp(Untrusted.init(try arena.print("1970-01-01T00:00{s}", .{name})), .{}) catch return error.Invalid;
-            // A zone's offset is written to the minute.
-            if (@rem(dt.raw(), 60 * std.time.ns_per_s) != 0) return error.Invalid;
-            break :blk try r.db.fixedZone(try almanac.Offset.init(@intCast(@divExact(-dt.raw(), std.time.ns_per_s))));
+            // A zone's offset is written to the minute: its span from the epoch, negated, is whole minutes.
+            const minutes = (dt.sinceEpoch().negate() catch return error.Invalid).convert(.minute, i32, .exact) catch return error.Invalid;
+            const seconds = minutes.convert(.second, i32, .exact) catch return error.Invalid;
+            break :blk try r.db.fixedZone(try almanac.Offset.init(seconds.raw()));
         } else try r.db.zone(testing.io, .init(name));
         try r.zones.append(testing.allocator, z);
         return r.zones.items[r.zones.items.len - 1].get();
@@ -302,8 +303,10 @@ const Runner = struct {
                     else => return r.unsupported("an offset of no string"),
                 };
                 const probe = try text.parseTimestamp(Untrusted.init(try arena.print("1970-01-01T00:00{s}", .{offset_text})), .{});
-                const seconds = std.math.cast(i32, @divTrunc(-probe.raw(), std.time.ns_per_s)) orelse return error.Invalid;
-                break :blk try almanac.resolve.resolveWithOffset(tz, civil, try almanac.Offset.init(seconds), r.bag_options.offset, r.bag_options.disambiguation, false);
+                // The offset's span from the epoch, negated, in whole seconds toward zero.
+                const span = probe.sinceEpoch().negate() catch return error.Invalid;
+                const seconds = (if (span.compare(.fromRaw(0)) == .lt) span.convert(.second, i32, .up) else span.convert(.second, i32, .down)) catch return error.Invalid;
+                break :blk try almanac.resolve.resolveWithOffset(tz, civil, try almanac.Offset.init(seconds.raw()), r.bag_options.offset, r.bag_options.disambiguation, false);
             } else try almanac.resolve.resolve(tz, civil, r.bag_options.disambiguation);
             return .{ .zoned = try almanac.Zoned.init(ns, tz) };
         }
@@ -644,8 +647,8 @@ fn same(a: Val, b: Val) bool {
         .date_time => |x| b == .date_time and x.eql(b.date_time),
         .time => |x| b == .time and x.eql(b.time),
         .span => |x| b == .span and x.eql(b.span),
-        .instant => |x| b == .instant and x.raw() == b.instant.raw(),
-        .zoned => |x| b == .zoned and x.timestamp.raw() == b.zoned.timestamp.raw(),
+        .instant => |x| b == .instant and x.eql(b.instant),
+        .zoned => |x| b == .zoned and x.timestamp.eql(b.zoned.timestamp),
         else => false,
     };
 }

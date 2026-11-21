@@ -154,7 +154,7 @@ fn anyInstant(_: void, case: *shakedown.Case) !void {
     const dt = instant.toDateTime(t, o) catch |err| {
         // Only where the offset carries it past the calendar's edge.
         try testing.expectEqual(error.OutOfRange, err);
-        try testing.expect(local < instant.min.raw() or local > instant.max.raw());
+        try testing.expect(instant.min.convert(.nanosecond, i128, .exact).compare(.fromRaw(local)) == .gt or instant.max.convert(.nanosecond, i128, .exact).compare(.fromRaw(local)) == .lt);
         return;
     };
     try testing.expectEqual(t, try instant.fromDateTime(dt, o));

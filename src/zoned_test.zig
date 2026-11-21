@@ -211,7 +211,7 @@ fn anyWallClock(_: void, case: *shakedown.Case) !void {
     for (offsets.items, 0..) |o, i| {
         if (std.mem.findScalar(i32, offsets.items[0..i], o) != null) continue;
         const candidate = local - @as(i128, o) * ns_per_s;
-        if (zone.offsetAtNanoseconds(.fromRaw(candidate)).seconds.raw() == o) try brute.append(testing.allocator, candidate);
+        if (zone.offsetAtNanoseconds(.fromRaw(candidate)).seconds.widen(i32) == o) try brute.append(testing.allocator, candidate);
     }
     std.mem.sort(i128, brute.items, {}, std.sort.asc(i128));
     const c = zone.candidatesAt(.fromRaw(local));

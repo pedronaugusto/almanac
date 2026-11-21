@@ -28,7 +28,7 @@ fn utc(y: i16, mo: u8, d: u8, h: u8, mi: u8, s: u8) Timestamp {
 }
 
 fn later(t: Timestamp, seconds: i96) Timestamp {
-    return .fromRaw(t.raw() + seconds * std.time.ns_per_s);
+    return t.add(.fromRaw(seconds * std.time.ns_per_s)) catch unreachable;
 }
 
 fn expectInfo(zone: *const TimeZone, at: Timestamp, offset: i32, dst: bool, abbreviation: []const u8) !void {
@@ -233,17 +233,17 @@ fn anyLookups(_: void, case: *shakedown.Case) !void {
         try testing.expectEqual(offset, try z.offsetAtCursor(&cursor, t));
         // The next and previous transitions change the offset, and nothing between changes it.
         if (try z.nextTransition(t)) |n| {
-            try testing.expect(n.at.raw() > t.raw());
-            try testing.expect((try z.offsetAt(later(n.at, -1))).seconds.raw() != n.info.offset.seconds.raw());
+            try testing.expect(n.at.compare(t) == .gt);
+            try testing.expect((try z.offsetAt(later(n.at, -1))).seconds.compare(n.info.offset.seconds) != .eq);
             try testing.expectEqual(offset, try z.offsetAt(later(n.at, -1)));
         }
         // The previous transition is strictly before `t`, so it set the offset in force just before
         // `t`, which differs from `t`'s own when `t` is itself a transition.
         if (try z.previousTransition(t)) |p| {
             const just_before = try z.offsetAt(later(t, -1));
-            try testing.expect(p.at.raw() < t.raw());
+            try testing.expect(p.at.compare(t) == .lt);
             try testing.expectEqual(just_before, try z.offsetAt(p.at));
-            try testing.expect((try z.offsetAt(later(p.at, -1))).seconds.raw() != just_before.seconds.raw());
+            try testing.expect((try z.offsetAt(later(p.at, -1))).seconds.compare(just_before.seconds) != .eq);
         }
     }
 }
@@ -271,12 +271,12 @@ fn anyRule(_: void, case: *shakedown.Case) !void {
     const t: Timestamp = .fromRaw(@as(i96, seconds) * std.time.ns_per_s);
     const offset = try z.offsetAt(t);
     if (try z.nextTransition(t)) |n| {
-        try testing.expect(n.at.raw() > t.raw());
+        try testing.expect(n.at.compare(t) == .gt);
         try testing.expectEqual(offset, try z.offsetAt(later(n.at, -1)));
-        try testing.expect(n.info.offset.seconds.raw() != offset.seconds.raw());
+        try testing.expect(n.info.offset.seconds.compare(offset.seconds) != .eq);
     }
     if (try z.previousTransition(t)) |p| {
-        try testing.expect(p.at.raw() < t.raw());
+        try testing.expect(p.at.compare(t) == .lt);
         try testing.expectEqual(try z.offsetAt(later(t, -1)), try z.offsetAt(p.at));
     }
 }
@@ -293,8 +293,8 @@ fn anyFile(_: void, case: *shakedown.Case) !void {
     const seconds = shakedown.gen.intRange(case.source, i64, -300_000_000_000, 250_000_000_000);
     const t: Timestamp = .fromRaw(@as(i96, seconds) * std.time.ns_per_s);
     _ = try z.infoAt(t);
-    if (try z.nextTransition(t)) |n| try testing.expect(n.at.raw() > t.raw());
-    if (try z.previousTransition(t)) |p| try testing.expect(p.at.raw() < t.raw());
+    if (try z.nextTransition(t)) |n| try testing.expect(n.at.compare(t) == .gt);
+    if (try z.previousTransition(t)) |p| try testing.expect(p.at.compare(t) == .lt);
 }
 
 test "fuzz: the TZif reader on mutated files refuses or reads, and what it reads answers" {

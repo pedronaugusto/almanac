@@ -215,7 +215,7 @@ fn anyStrictText(_: void, case: *shakedown.Case) !void {
         minute = @intCast(@mod(local, 60));
         second = 60;
     }
-    try w.print("{d:0>4}-{d:0>2}-{d:0>2}{c}{d:0>2}:{d:0>2}:{d:0>2}", .{ @as(u16, @intCast(date.year.raw())), date.month.raw(), date.day.raw(), g.oneOf(case.source, u8, "Tt"), hour, minute, second });
+    try w.print("{d:0>4}-{d:0>2}-{d:0>2}{c}{d:0>2}:{d:0>2}:{d:0>2}", .{ std.math.cast(u16, date.year.raw()).?, date.month.raw(), date.day.raw(), g.oneOf(case.source, u8, "Tt"), hour, minute, second });
     var ns: u32 = 0;
     if (digits > 0) {
         try w.writeByte('.');
@@ -233,14 +233,15 @@ fn anyStrictText(_: void, case: *shakedown.Case) !void {
     try testing.expect(strict.isDateTime(s));
     // Read leniently to the same instant, a leap second as the second before it.
     const local: almanac.DateTime = .{ .date = date, .time = try almanac.Time.init(hour, minute, @min(second, 59), ns) };
-    const want = (try almanac.instant.fromDateTime(local, .utc)).raw() - @as(i96, offset_minutes) * 60 * std.time.ns_per_s;
+    const offset_span: aegis.units.Duration(.nanosecond, i128) = .fromRaw(@as(i128, offset_minutes) * 60 * std.time.ns_per_s);
+    const want = try (try almanac.instant.fromDateTime(local, .utc)).convert(.nanosecond, i128, .exact).sub(offset_span);
     const got = text.parseTimestamp(u(s), .{}) catch |err| {
         // Only an instant RFC 3339 can write that almanac's range cannot hold: year 0000 at a
         // positive offset, or 9999 at a negative one, is inside; nothing else is refused.
-        if (want < almanac.instant.min.raw() or want > almanac.instant.max.raw()) return;
+        if (want.compare(almanac.instant.min.convert(.nanosecond, i128, .exact)) == .lt or want.compare(almanac.instant.max.convert(.nanosecond, i128, .exact)) == .gt) return;
         return err;
     };
-    try testing.expectEqual(want, got.raw());
+    try testing.expectEqual(want, got.convert(.nanosecond, i128, .exact));
 }
 
 test "property: every date-time the strict check accepts is read leniently to the same instant" {

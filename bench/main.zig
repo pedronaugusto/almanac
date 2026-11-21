@@ -69,7 +69,7 @@ pub fn main(init: std.process.Init) !void {
 fn rows(r: Report, gpa: std.mem.Allocator, io: std.Io, selected: []const []const u8, n: usize) !void {
     if (wanted(selected, "civil/from-days")) try r.time("civil/from-days", n, {}, struct {
         fn f(_: void, i: usize) !void {
-            sink +%= (try almanac.Date.fromDays(@intCast(i % 2_000_000))).day.raw();
+            std.mem.doNotOptimizeAway((try almanac.Date.fromDays(@intCast(i % 2_000_000))).day);
         }
     }.f);
     if (wanted(selected, "civil/to-days")) try r.time("civil/to-days", n, {}, struct {
@@ -88,13 +88,13 @@ fn rows(r: Report, gpa: std.mem.Allocator, io: std.Io, selected: []const []const
         if (wanted(selected, "zoned/from-timestamp")) try r.time(try std.mem.print(&label, "zoned/from-timestamp/{s}", .{name}), n, tz, struct {
             fn f(z: *const almanac.TimeZone, i: usize) !void {
                 const t = almanac.Timestamp.fromRaw(@as(i96, @intCast(i)) * 3_600_000_000_000);
-                sink +%= (try almanac.Zoned.init(t, z)).dateTime().time.hour.raw();
+                std.mem.doNotOptimizeAway((try almanac.Zoned.init(t, z)).dateTime().time.hour);
             }
         }.f);
         if (wanted(selected, "zoned/from-datetime")) try r.time(try std.mem.print(&label, "zoned/from-datetime/{s}", .{name}), n, tz, struct {
             fn f(z: *const almanac.TimeZone, i: usize) !void {
                 const dt: almanac.DateTime = .{ .date = try almanac.Date.fromDays(@intCast(i % 20_000)), .time = try almanac.Time.init(@intCast(i % 24), 30, 0, 0) };
-                sink +%= (try almanac.Zoned.fromDateTime(dt, z, .compatible)).timestamp.raw();
+                std.mem.doNotOptimizeAway((try almanac.Zoned.fromDateTime(dt, z, .compatible)).timestamp);
             }
         }.f);
         if (wanted(selected, "tz/load")) try r.time(try std.mem.print(&label, "tz/load/{s}", .{name}), @max(n / 1000, 1), name, struct {
@@ -108,7 +108,7 @@ fn rows(r: Report, gpa: std.mem.Allocator, io: std.Io, selected: []const []const
 
     if (wanted(selected, "parse/rfc3339")) try r.time("parse/rfc3339", n, {}, struct {
         fn f(_: void, _: usize) !void {
-            sink +%= (try almanac.text.parseTimestamp(.init("2026-10-31T09:00:00.123456789+01:00"), .{})).raw();
+            std.mem.doNotOptimizeAway((try almanac.text.parseTimestamp(.init("2026-10-31T09:00:00.123456789+01:00"), .{})));
         }
     }.f);
     if (wanted(selected, "format/rfc3339")) try r.time("format/rfc3339", n, {}, struct {
@@ -127,7 +127,7 @@ fn rows(r: Report, gpa: std.mem.Allocator, io: std.Io, selected: []const []const
             fn f(c: Context, _: usize) !void {
                 var p = try almanac.text.parseZoned(c.db, c.io, .init("2026-10-31T09:00:00+00:00[Europe/Lisbon]"), .{});
                 defer p.release();
-                sink +%= p.zoned.timestamp.raw();
+                std.mem.doNotOptimizeAway(p.zoned.timestamp);
             }
         }.f);
     }
