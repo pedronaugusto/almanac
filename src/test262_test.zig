@@ -569,8 +569,11 @@ fn fields(kind: []const u8, v: Val, out: *[10]i128) ?[]const i128 {
         return out[0..3];
     }
     const t = time orelse return null;
-    const ns = t.nanosecond.raw();
-    const tf = [_]i128{ t.hour.raw(), t.minute.raw(), t.second.raw(), ns / 1_000_000, (ns / 1000) % 1000, ns % 1000 };
+    const ns = t.nanosecond;
+    const millis = ns.div(1_000_000) catch aegis.assert.never("a nanosecond's digits divide out by a constant, within its range");
+    const micros = (ns.div(1000) catch aegis.assert.never("a nanosecond's digits divide out by a constant, within its range")).rem(1000) catch aegis.assert.never("a nanosecond's digits divide out by a constant, within its range");
+    const nanos = ns.rem(1000) catch aegis.assert.never("a nanosecond's digits divide out by a constant, within its range");
+    const tf = [_]i128{ t.hour.raw(), t.minute.raw(), t.second.raw(), millis.raw(), micros.raw(), nanos.raw() };
     if (k(kind, "assertPlainTime")) {
         if (v != .time) return null;
         out[0..6].* = tf;

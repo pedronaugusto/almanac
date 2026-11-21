@@ -61,13 +61,13 @@ pub const utc: TimeZone = .{ .initial = Local.init(.utc, false, "UTC") catch aeg
 
 /// A zone of one offset for all time, abbreviated as RFC 9557 writes it (`+05:30`, `-00:00:30`).
 pub fn fixed(offset: Offset) TimeZone {
-    const s = offset.seconds.raw();
-    const a: u32 = @abs(s);
+    const sign: u8 = if (offset.seconds.compare(.literal(0)) == .lt) '-' else '+';
+    const a: u32 = @abs(offset.seconds.raw());
     var buffer: [posix_rule.max_abbreviation]u8 = undefined;
     const text = if (a % 60 == 0)
-        std.mem.print(&buffer, "{c}{d:0>2}:{d:0>2}", .{ @as(u8, if (s < 0) '-' else '+'), a / 3600, (a / 60) % 60 }) catch aegis.assert.never("an offset under a day writes in an abbreviation's room")
+        std.mem.print(&buffer, "{c}{d:0>2}:{d:0>2}", .{ sign, a / 3600, (a / 60) % 60 }) catch aegis.assert.never("an offset under a day writes in an abbreviation's room")
     else
-        std.mem.print(&buffer, "{c}{d:0>2}:{d:0>2}:{d:0>2}", .{ @as(u8, if (s < 0) '-' else '+'), a / 3600, (a / 60) % 60, a % 60 }) catch aegis.assert.never("an offset under a day writes in an abbreviation's room");
+        std.mem.print(&buffer, "{c}{d:0>2}:{d:0>2}:{d:0>2}", .{ sign, a / 3600, (a / 60) % 60, a % 60 }) catch aegis.assert.never("an offset under a day writes in an abbreviation's room");
     return .{ .initial = Local.init(offset, false, text) catch aegis.assert.never("an offset's name fits an abbreviation") };
 }
 
@@ -209,17 +209,18 @@ pub const Candidates = struct {
 /// force within two days either side (an offset is under 26 hours) is tried: the wall clock less
 /// it is a candidate where that offset is the one in force there.
 pub fn candidatesAt(zone: *const TimeZone, local: Epoch) Candidates {
-    const day: i64 = (arithmetic.one_day.convert(.second, i64, .exact) catch aegis.assert.never("a day is whole seconds")).raw();
-    const centre = floorSeconds(local);
+    // Two days are whole seconds, so the window's ends are the wall clock's second less and plus them.
+    const two_days = arithmetic.one_day.mul(2) catch aegis.assert.never("two days fit an i128 of nanoseconds");
+    const last = floorSeconds(local.add(two_days) catch aegis.assert.never("a wall clock near almanac's range plus two days fits an i128"));
     var offsets: [66]Offset = undefined;
     var n: usize = 0;
-    var at = centre - 2 * day;
+    var at = floorSeconds(local.sub(two_days) catch aegis.assert.never("a wall clock near almanac's range less two days fits an i128"));
     offsets[n] = zone.localAt(at, null).offset;
     n += 1;
     // The changes within the window; a zone with more than 64 in four days has the rest passed over.
     while (n < offsets.len) {
         at = zone.nextSeconds(at) orelse break;
-        if (at > centre + 2 * day) break;
+        if (at > last) break;
         offsets[n] = zone.localAt(at, null).offset;
         n += 1;
     }
